@@ -1,0 +1,56 @@
+<div class="flex items-center flex-col pt-56 h-screen bg-gray-100">
+  <div class="h-screen">
+    <h1 class="text-4xl text-center font-bold my-10">
+      Chào mừng đến với
+      <span class="text-5xl text-green-800">May Ap</span>
+    </h1>
+
+    <div class="container mx-auto my-4">
+      <div class="flex justify-center items-center">
+        <div class="w-full flex justify-center space-x-4">
+          <a
+            [routerLink]="['/google-search']"
+            routerLinkActive="router-link-active"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >Tìm kiếm: Google</a
+          >
+          <a
+            [routerLink]="['/twitter-search']"
+            routerLinkActive="router-link-active"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >Tìm kiếm: Twitter</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center group mt-4">
+      <a
+        [routerLink]="['/test']"
+        routerLinkActive="router-link-active"
+        class="invisible group-hover:visible bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        >Tính năng ẩn
+      </a>
+    </p>
+
+    <div class="flex flex-col items-center gap-5 justify-center mt-8">
+      <!-- @if (authService.getUserDetail()) {
+      <h1 class="text-2xl">
+        Bạn đã đăng nhập với tên
+        <span class="font-bold bg-blue-600 text-white px-4 rounded-sm">
+          {{ authService.getUserDetail()?.fullName }}
+        </span>
+      </h1>
+      } @else {
+      <h1 class="text-3xl">Bạn chưa đăng nhập</h1>
+      <a [routerLink]="['/login']" routerLinkActive="router-link-active">
+        <button
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline"
+        >
+          Đăng nhập
+        </button>
+      </a>
+      } -->
+    </div>
+  </div>
+</div>
