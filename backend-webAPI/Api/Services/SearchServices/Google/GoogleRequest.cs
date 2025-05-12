@@ -8,6 +8,9 @@ namespace Api.Services.SearchServices.Google
 {
     public class GoogleRequest
     {
+        public GoogleRequest()
+        {
+        }
         /// <summary>
         /// Chuỗi tìm kiếm từ khóa (ví dụ: "học lập trình C#").
         /// Đây là tham số bắt buộc và không được để trống.
@@ -108,7 +111,7 @@ namespace Api.Services.SearchServices.Google
         {
             var parameters = new Dictionary<string, string>
             {
-                { "q", (q ?? string.Empty) }
+                { "q", (string.IsNullOrEmpty(q) ? "site:google.com 'Không tim thấy'" : (string.IsNullOrEmpty(site) ? "" : $"site:{site} ") + (q)) },
             };
 
             if (!string.IsNullOrEmpty(gl))
@@ -155,16 +158,19 @@ namespace Api.Services.SearchServices.Google
                 var words = notWords.Split(new[] { " OR " }, StringSplitOptions.RemoveEmptyEntries);
                 response.Organic = response.Organic.Where(item => !words.Any(word => item.Title.Contains(word, StringComparison.OrdinalIgnoreCase))).ToList();
             }
-            if (!string.IsNullOrEmpty(site))
-            {
-                response.Organic = response.Organic.Where(item => item.Link.Contains(site, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
 
             return response;
         }
         public GoogleRequest(string q, string? gl = null, string? location = null, string? hl = null, string? tbs = null, int? num = null, string? type = null, string? engine = null)
         {
-            this.q = q;
+            if (this.site != null)
+            {
+                this.q = $"{q} site:{this.site}";
+            }
+            else
+            {
+                this.q = q;
+            }
             this.gl = gl;
             this.location = location;
             this.hl = hl;
