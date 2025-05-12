@@ -75,6 +75,7 @@ namespace Api.Controllers
                 {
                     analysisResult.GeneralSearchResults.AddRange(googleResults.ToGeneralSearchResults());
                 }
+                analysisResult.SiteSearch = query.site;
 
                 return Ok(analysisResult);
             }
