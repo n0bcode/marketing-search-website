@@ -26,6 +26,7 @@ namespace Api.Services.AIServices.Gemini
         #endregion
 
         #region [Database Properties] 
+        public string? SiteSearch { get; set; } = string.Empty;
         public string Note { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

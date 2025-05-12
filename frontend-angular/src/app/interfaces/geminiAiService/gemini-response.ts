@@ -5,6 +5,7 @@ export interface GeminiResponse {
   modelVersion: string;
   generalSearchResults: GeneralSearchResult[];
   generalSearchResultsCount: number;
+  siteSearch: string;
 }
 
 // #region [MAIN INTERFACE]

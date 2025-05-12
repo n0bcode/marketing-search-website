@@ -70,7 +70,7 @@ namespace Api.Services.AIServices.Gemini
 
         public void AddAnalysisPromptGoodAndBad()
         {
-            Parts.Add(new PartRequest("Phân tích tốt xấu hoặc trung bình dựa trên đánh giá của người dùng về từ khóa tìm kiếm."));
+            Parts.Add(new PartRequest("Đọc toàn bộ nội dung trong trang web và phân tích tốt xấu hoặc trung bình dựa trên đánh giá của người dùng hoặc bài viết đối với từ khóa tìm kiếm."));
         }
 
         public void AddDefaultRelatedPrompt()

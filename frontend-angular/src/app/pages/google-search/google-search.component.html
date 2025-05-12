@@ -26,6 +26,19 @@
             class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
         </div>
+        <div class="mb-4">
+          <label class="block mb-2 text-sm font-medium">Thời gian:</label>
+          <select
+            [(ngModel)]="searchParameters.tbs"
+            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+          >
+            <option value="">Ngẫu nhiên</option>
+            <option value="d">Ngày</option>
+            <option value="w">Tuần</option>
+            <option value="m">Tháng</option>
+            <option value="y">Năm</option>
+          </select>
+        </div>
 
         <div class="mb-4">
           <label class="block mb-2 text-sm font-medium"
@@ -34,6 +47,7 @@
           <input
             type="number"
             [(ngModel)]="searchNum"
+            min="10"
             placeholder="Số lượng kết quả tối đa (vd: 10)"
             class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
@@ -65,7 +79,6 @@
             <option value="jp">Nhật Bản</option>
           </select>
         </div>
-
         <div class="mb-4">
           <label class="block mb-2 text-sm font-medium"
             >Cụm từ chính xác:</label
@@ -100,14 +113,73 @@
 
         <div class="mb-4">
           <label class="block mb-2 text-sm font-medium"
-            >Trang web hoặc tên miền:</label
+            >Chọn trang web hoặc tên miền để tìm kiếm:</label
           >
-          <input
-            type="text"
-            [(ngModel)]="searchParameters.site"
-            placeholder="Trang web hoặc tên miền (vd: wikipedia.org)"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
+          <div class="flex flex-col space-y-2">
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                value="facebook.com"
+                (change)="updateSelectedSites($event)"
+                class="mr-2 focus:ring-2 focus:ring-blue-500"
+              />
+              Facebook
+            </label>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                value="x.com"
+                (change)="updateSelectedSites($event)"
+                class="mr-2 focus:ring-2 focus:ring-blue-500"
+              />
+              Twitter/X
+            </label>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                value="instagram.com"
+                (change)="updateSelectedSites($event)"
+                class="mr-2 focus:ring-2 focus:ring-blue-500"
+              />
+              Instagram
+            </label>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                value="linkedin.com"
+                (change)="updateSelectedSites($event)"
+                class="mr-2 focus:ring-2 focus:ring-blue-500"
+              />
+              LinkedIn
+            </label>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                value="tiktok.com"
+                (change)="updateSelectedSites($event)"
+                class="mr-2 focus:ring-2 focus:ring-blue-500"
+              />
+              TikTok
+            </label>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                value="reddit.com"
+                (change)="updateSelectedSites($event)"
+                class="mr-2 focus:ring-2 focus:ring-blue-500"
+              />
+              Reddit
+            </label>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                value="youtube.com"
+                (change)="updateSelectedSites($event)"
+                class="mr-2 focus:ring-2 focus:ring-blue-500"
+              />
+              YouTube
+            </label>
+          </div>
         </div>
 
         <button
@@ -122,50 +194,74 @@
     <!-- Khu vực Kết Quả và Lịch Sử -->
     <div class="w-full md:w-3/4 flex flex-col">
       <!-- Kết quả phân tích -->
-      <div *ngIf="searchResults" class="p-4">
+      <div *ngIf="searchResultsList.length > 0" class="p-4">
         <div
           *ngIf="isLoading()"
           class="text-center text-blue-500 font-semibold"
         >
           Loading...
         </div>
-        <div *ngIf="!isLoading()" class="flex flex-col md:flex-row">
-          <div class="w-full md:w-2/3 p-2">
-            <h2 class="text-xl font-semibold mb-2">Phân tích dữ liệu của AI</h2>
-            <div class="mb-4 p-4 border border-gray-200 rounded-md">
-              <h3 class="font-bold text-lg">Kết quả phân tích:</h3>
-              <p [innerHTML]="searchResults.showText"></p>
-            </div>
+        <div *ngIf="!isLoading()">
+          <!-- Tab để chọn site -->
+          <div class="flex space-x-2 mb-4">
+            <button
+              *ngFor="let result of searchResultsList"
+              (click)="selectSite(result.siteSearch)"
+              [ngClass]="{
+                'bg-blue-500 text-white': selectedSite === result.siteSearch,
+                'bg-gray-200 text-gray-700': selectedSite !== result.siteSearch
+              }"
+              class="px-4 py-2 rounded-md hover:bg-blue-400 transition"
+            >
+              {{ result.siteSearch || "Mặc định" }}
+            </button>
           </div>
-          <div class="w-full md:w-1/3 p-2">
-            <h2 class="text-xl font-semibold mb-2">Kết quả chi tiết:</h2>
-            <div class="h-[100vh] overflow-y-auto">
-              <div
-                *ngFor="let result of searchResults.generalSearchResults"
-                class="mb-4 p-4 border border-gray-200 rounded-md"
-              >
-                <h3 class="font-bold text-lg">{{ result.title }}</h3>
-                <p [innerHTML]="result.description" class="text-gray-700"></p>
-                <div class="group relative">
-                  <a
-                    [href]="result.url"
-                    (mouseenter)="onAnalysisLink(result.url)"
-                    class="text-blue-500 hover:underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Xem thêm
-                  </a>
-                  <!-- Mục nội dung hiển thị khi hover vào link -->
-                  <div
-                    class="absolute bottom-full tb-2 w-48 border border-gray-300 rounded-md shadow-lg hidden group-hover:block z-1000"
-                  >
-                    <p
-                      class="text-gray-700 bg-white p-2"
-                      [innerHTML]="
-                        analysisLink?.analysisText ?? 'Hiện chưa thể phân tích'
-                      "
-                    ></p>
+
+          <!-- Hiển thị kết quả cho site được chọn -->
+          <div class="flex flex-col md:flex-row">
+            <div class="w-full md:w-2/3 p-2">
+              <h2 class="text-xl font-semibold mb-2">
+                Phân tích dữ liệu của AI
+              </h2>
+              <div class="mb-4 p-4 border border-gray-200 rounded-md">
+                <h3 class="font-bold text-lg">Kết quả phân tích:</h3>
+                <p
+                  *ngIf="searchResults"
+                  [innerHTML]="searchResults.showText"
+                ></p>
+                <p *ngIf="!searchResults">Không có dữ liệu cho site này.</p>
+              </div>
+            </div>
+            <div class="w-full md:w-1/3 p-2">
+              <h2 class="text-xl font-semibold mb-2">Kết quả chi tiết:</h2>
+              <div class="h-[100vh] overflow-y-auto">
+                <div
+                  *ngFor="let result of searchResults?.generalSearchResults"
+                  class="mb-4 p-4 border border-gray-200 rounded-md"
+                >
+                  <h3 class="font-bold text-lg">{{ result.title }}</h3>
+                  <p [innerHTML]="result.description" class="text-gray-700"></p>
+                  <div class="group relative">
+                    <a
+                      [href]="result.url"
+                      (mouseenter)="onAnalysisLink(result.url)"
+                      class="text-blue-500 hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Xem thêm
+                    </a>
+                    <div
+                      class="absolute top-full tb-2 w-48 border border-gray-300 rounded-md shadow-lg hidden group-hover:block z-1000"
+                    >
+                      <p
+                        class="text-gray-700 bg-white p-2"
+                        [innerHTML]="
+                          analysisLink?.analysisText ??
+                          'Hiện chưa thể phân tích'
+                        "
+                      ></p>
+                    </div>
                   </div>
                 </div>
               </div>

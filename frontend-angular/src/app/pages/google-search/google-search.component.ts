@@ -1,4 +1,4 @@
-import { Component, signal, Signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ApiService } from '../../utils/http-client-config';
 import { GoogleSearchRequest } from '../../interfaces/googleSearchService/google-search-request';
 import { GeminiResponse } from '../../interfaces/geminiAiService/gemini-response';
@@ -23,12 +23,15 @@ export class GoogleSearchComponent {
   searchQuery: string = '';
   searchNum: number = 10;
   searchResults: GeminiResponse | null = null;
+  searchResultsList: GeminiResponse[] = []; // Mảng lưu trữ kết quả từ nhiều site
+  selectedSite: string = ''; // Lưu site đang được chọn để hiển thị
   analysisLink: AnalysisLink | null = null;
   analysisLinks: AnalysisLink[] = [];
 
   keywordModels: KeywordModel[] | null = null;
-  showKeywordHistory: boolean = false; // Biến để theo dõi trạng thái ẩn/hiện lịch sử
-  storedKeywords: string[] = []; // Mảng lưu trữ các từ khóa tìm kiếm
+  showKeywordHistory: boolean = false;
+  storedKeywords: string[] = [];
+  listSitesSelected: string[] = [];
 
   searchParameters: GoogleSearchRequest = {
     q: '',
@@ -39,46 +42,73 @@ export class GoogleSearchComponent {
     num: 10,
     type: 'search',
     engine: 'google',
-    correctPhrase: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
-    anyWords: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
-    notWords: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
-    site: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
+    correctPhrase: '',
+    anyWords: '',
+    notWords: '',
+    site: '',
   };
 
   constructor(private apiService: ApiService) {}
 
-  // Phương thức tìm kiếm Google
+  // #region [Tìm kiếm Google]
   onSearch() {
     this.searchParameters.q = this.searchQuery;
     this.searchParameters.num = this.searchNum;
     this.isLoading.set(true);
+    this.searchResultsList = [];
+    this.selectedSite = ''; // Reset tab được chọn
 
-    // Lưu từ khóa vào lịch sử
     this.storeKeyword(this.searchQuery);
 
+    if (this.listSitesSelected.length === 0) {
+      this.performSearch({ ...this.searchParameters, site: '' });
+    } else {
+      this.listSitesSelected.forEach((site) => {
+        this.performSearch({ ...this.searchParameters, site });
+      });
+    }
+  }
+
+  // Hàm thực hiện tìm kiếm cho một bộ tham số
+  private performSearch(params: GoogleSearchRequest) {
     this.apiService
       .postToApi<GeminiResponse>(
         '/Analysis/SearchGoogleAndAnalysis',
-        this.searchParameters,
+        params,
         ConfigsRequest.getSkipAuthConfig()
       )
       .subscribe({
         next: (response) => {
-          this.searchResults = response;
-          this.searchResults.showText =
-            MarkdownItConfig.formatMessageMarkToHtml(
-              response.candidates[0].content.parts[0].text
-            );
-          this.isLoading.set(false);
-          console.log(this.searchResults);
+          response.showText = MarkdownItConfig.formatMessageMarkToHtml(
+            response.candidates[0].content.parts[0].text
+          );
+          response.siteSearch = params.site || 'default'; // Lưu site vào response
+          this.searchResultsList.push(response);
+          if (!this.selectedSite) {
+            this.selectedSite = response.siteSearch; // Chọn site đầu tiên mặc định
+            this.searchResults = response;
+          }
+          this.isLoading.set(
+            this.searchResultsList.length < this.listSitesSelected.length
+          );
+          console.log(`Result for site ${params.site || 'default'}:`, response);
         },
         error: (err) => {
-          console.error('Error fetching search results:', err);
-          this.isLoading.set(false);
+          console.error(
+            `Error fetching search results for site ${
+              params.site || 'default'
+            }:`,
+            err
+          );
+          this.isLoading.set(
+            this.searchResultsList.length < this.listSitesSelected.length
+          );
         },
       });
   }
+  // #endregion
 
+  // #region [Phân tích liên kết]
   onAnalysisLink(link: string) {
     const existingAnalysis = this.analysisLinks.find((a) => a.link == link);
     if (existingAnalysis) {
@@ -105,17 +135,18 @@ export class GoogleSearchComponent {
         },
       });
   }
+  // #endregion
 
-  // Phương thức để lưu từ khóa vào lịch sử
+  // #region [Phương thức để lưu từ khóa vào lịch sử]
   storeKeyword(keyword: string) {
     if (!this.keywordModels) {
       this.keywordModels = [];
     }
 
     const newKeyword: KeywordModel = {
-      id: Date.now().toString(), // Tạo ID duy nhất cho từ khóa
+      id: Date.now().toString(),
       keyword: keyword,
-      relatedKeyword: '', // Có thể thêm logic liên quan nếu cần
+      relatedKeyword: '',
       source: '',
       term: '',
       socialMediaInfo: '',
@@ -126,12 +157,15 @@ export class GoogleSearchComponent {
 
     this.keywordModels.push(newKeyword);
   }
+  // #endregion
 
-  // Phương thức để ẩn/hiện lịch sử từ khóa
+  // #region [Phương thức để ẩn/hiện lịch sử từ khóa]
   toggleKeywordHistory() {
     this.showKeywordHistory = !this.showKeywordHistory;
   }
+  // #endregion
 
+  // #region [Lấy danh sách từ khóa từ API]
   onTakeKeywordGoogle() {
     this.apiService
       .getFromApi<ResponseAPI<KeywordModel[]>>(
@@ -148,7 +182,9 @@ export class GoogleSearchComponent {
         },
       });
   }
+  // #endregion
 
+  // #region [Lấy danh sách từ khóa từ API]
   loadOldAnalysis(keywordId: string) {
     console.log(keywordId);
     this.apiService
@@ -166,7 +202,10 @@ export class GoogleSearchComponent {
           console.error('Error fetching search results:', err);
         },
       });
-  } // Đoạn mã trong một hàm (ví dụ: hàm xử lý kết quả tìm kiếm)
+  }
+  // #endregion
+
+  // #region [Phương thức để xử lý kết quả tìm kiếm]
   processSearchResults(response: GeminiResponse): void {
     console.log(response);
     if (
@@ -176,23 +215,50 @@ export class GoogleSearchComponent {
     ) {
       let combinedText = '';
 
-      // Lặp qua từng candidate trong response
       for (const candidate of response.candidates) {
         if (candidate.content && Array.isArray(candidate.content.parts)) {
-          // Lặp qua từng part trong Content
           for (const part of candidate.content.parts) {
-            combinedText += part.text; // Ghép văn bản của từng part
+            combinedText += part.text;
           }
         }
       }
 
-      // Gán giá trị cho showText sau khi ghép
-      this.searchResults!.showText =
+      response.showText =
         MarkdownItConfig.formatMessageMarkToHtml(combinedText);
     } else {
-      // Xử lý trường hợp không có dữ liệu hợp lệ
-      this.searchResults!.showText =
-        'Không có dữ liệu tìm kiếm nào được tìm thấy.';
+      response.showText = 'Không có dữ liệu tìm kiếm nào được tìm thấy.';
     }
   }
+  // #endregion
+
+  // #region [Hàm xử lý khi checkbox thay đổi trạng thái]
+  updateSelectedSites(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const site = input.value;
+
+    if (input.checked) {
+      if (!this.listSitesSelected.includes(site)) {
+        this.listSitesSelected.push(site);
+      }
+    } else {
+      this.listSitesSelected = this.listSitesSelected.filter((s) => s !== site);
+    }
+
+    console.log('Selected sites:', this.listSitesSelected);
+  }
+  // #endregion
+  // #region [Chọn site để hiển thị kết quả]
+  selectSite(site: string) {
+    this.selectedSite = site;
+    const selectedResult = this.searchResultsList.find(
+      (result) => result.siteSearch === site
+    );
+    this.searchResults = selectedResult || null;
+  }
+  // #endregion
+  // #region [Hàm để lấy danh sách các site đã chọn]
+  getSelectedSites(): string[] {
+    return this.listSitesSelected;
+  }
+  // #endregion
 }
