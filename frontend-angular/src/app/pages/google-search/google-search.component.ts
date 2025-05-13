@@ -33,6 +33,19 @@ export class GoogleSearchComponent {
   storedKeywords: string[] = [];
   listSitesSelected: string[] = [];
 
+  // Khởi tạo `dictionaryListSites`
+  dictionaryListSites: Record<string, string> = {
+    'facebook.com': 'Facebook',
+    'x.com': 'Twitter/X',
+    'instagram.com': 'Instagram',
+    'linkedin.com': 'LinkedIn',
+    'tiktok.com': 'TikTok',
+    'reddit.com': 'Reddit',
+    'youtube.com': 'YouTube',
+  };
+  considerSiteAdd: string = '';
+  newDomain: string = '';
+
   searchParameters: GoogleSearchRequest = {
     q: '',
     gl: 'us',
@@ -261,4 +274,28 @@ export class GoogleSearchComponent {
     return this.listSitesSelected;
   }
   // #endregion
+
+  // #region [Kiểm tra xem site đã được chọn hay chưa]
+  isSelected(site: string): boolean {
+    return this.listSitesSelected.some((x) => x == site);
+  }
+  // #endregion
+
+  addDomainToDictionary() {
+    if (this.newDomain && !this.dictionaryListSites[this.newDomain]) {
+      // Thêm tên miền vào dictionaryListSites với giá trị mặc định (có thể tùy chỉnh)
+      this.dictionaryListSites[this.newDomain] = this.newDomain; // Hoặc một giá trị mô tả khác
+
+      // Reset ô nhập
+      this.newDomain = '';
+      console.log(
+        'Tên miền đã được thêm vào từ điển:',
+        this.dictionaryListSites
+      );
+    } else if (this.dictionaryListSites[this.newDomain]) {
+      console.log('Tên miền đã tồn tại trong từ điển.');
+    } else {
+      console.log('Vui lòng nhập tên miền hợp lệ.');
+    }
+  }
 }
