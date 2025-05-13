@@ -22,10 +22,9 @@ namespace Api.Services.AIServices.Gemini
             contentRequest.AddPart($"Đóng vai trò là chuyên gia phân tích dữ liệu. Dưới đây là thông tin từ API: {prompt}");
             contentRequest.AddPart($"Phân tích và cung cấp thông tin liên quan đến từ khóa '{query}' mà không cần giải thích thêm.");
             contentRequest.AddPart("Không cần phản hồi lại thông tin prompt, hãy phản hồi như một chuyên gia.");
-            contentRequest.AddPart("Lưu ý: Cung cấp thông tin cho các phản hồi sau trong khoảng 100 chữ.");
+            // contentRequest.AddPart("Lưu ý: Cung cấp thông tin cho các phản hồi sau trong khoảng 500 chữ.");
             contentRequest.AddPart($"Nếu không có dữ liệu nào liên quan đến truy vấn, hãy giải thích lý do có thể là do API không tìm thấy thông tin hoặc giới hạn token tài khoản.");
             contentRequest.AddPromptQuerySearch(query);
-            contentRequest.AddPart(prompt);
             contentRequest.AddDefaultRelatedPrompt();
             contentRequest.AddAnalysisPromptGoodAndBad();
             contentRequest.AddDefaultIgnoreTrashInfoPrompt();

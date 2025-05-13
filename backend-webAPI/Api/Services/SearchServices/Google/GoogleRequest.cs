@@ -111,7 +111,7 @@ namespace Api.Services.SearchServices.Google
         {
             var parameters = new Dictionary<string, string>
             {
-                { "q", (string.IsNullOrEmpty(q) ? "site:google.com 'Không tim thấy'" : (string.IsNullOrEmpty(site) ? "" : $"site:{site} ") + (q)) },
+                { "q", (string.IsNullOrEmpty(q) ? "site:google.com 'Không tìm thấy'" : (string.IsNullOrEmpty(site) ? "" : $"site:{site} ") + (q)) },
             };
 
             if (!string.IsNullOrEmpty(gl))
