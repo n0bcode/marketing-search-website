@@ -9,6 +9,7 @@ using Api.Services.SearchServices.Twitter.TwitterRequests;
 using Api.Utils;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Text;
 
 namespace Api.Controllers
 {
@@ -240,18 +241,37 @@ namespace Api.Controllers
         }
         #region [PRIVATE METHOD]
 
-        // Helper method để lấy dữ liệu cần thiết cho phân tích (ví dụ)
         private string GetAnalysisInput(GoogleResponse googleResults)
         {
-            if (googleResults == null || googleResults.Organic == null)
+            if (googleResults == null || googleResults.Organic == null || !googleResults.Organic.Any())
             {
                 return "Không có kết quả tìm kiếm Google.";
             }
 
-            // Tạo một chuỗi chứa thông tin tóm tắt từ kết quả tìm kiếm Google
-            return $"Tổng số kết quả: {googleResults.Organic.Count}"; // Ví dụ đơn giản
-            // Bạn có thể thêm thông tin khác, chẳng hạn như tiêu đề và đoạn trích của các kết quả hàng đầu
+            // Sử dụng StringBuilder để xây dựng chuỗi một cách hiệu quả
+            var sb = new StringBuilder();
+
+            // Thêm tiêu đề để AI biết cấu trúc dữ liệu
+            sb.AppendLine("--- Kết quả tìm kiếm Google ---");
+
+            foreach (var result in googleResults.Organic)
+            {
+                // Format dữ liệu theo kiểu key-value để dễ phân tích
+                sb.AppendLine("--- Kết quả ---");
+                sb.AppendLine($"Tiêu đề: {result.Title}");
+                sb.AppendLine($"Ngày: {result.Date}");
+                sb.AppendLine($"Vị trí: {result.Position}");
+                sb.AppendLine($"Liên kết: {result.Link}");
+                sb.AppendLine($"Đoạn trích: {result.Snippet}");
+                sb.AppendLine(); // Thêm dòng trống để phân tách các kết quả
+            }
+
+            // Thêm chú thích cuối để đánh dấu kết thúc dữ liệu
+            sb.AppendLine("--- Kết thúc kết quả tìm kiếm ---");
+
+            return sb.ToString();
         }
+
         private string GetAnalysisInput(TwitterResponse twitterResults)
         {
             if (twitterResults == null || twitterResults.Data == null)
