@@ -26,6 +26,13 @@ export class GoogleSearchComponent {
   searchResultsList: GeminiResponse[] = []; // Mảng lưu trữ kết quả từ nhiều site
   selectedSite: string = ''; // Lưu site đang được chọn để hiển thị
   analysisLink: AnalysisLink | null = null;
+  waitAnalysisLink: AnalysisLink = {
+    id: 0,
+    link: '',
+    analysisText: 'Vui lòng chờ phân tích...',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
   analysisLinks: AnalysisLink[] = [];
 
   errorMessageResponse: string = '';
@@ -142,6 +149,8 @@ export class GoogleSearchComponent {
     if (existingAnalysis) {
       this.analysisLink = existingAnalysis;
       return;
+    } else {
+      this.analysisLink = this.waitAnalysisLink; // Reset phân tích liên kết trước đó
     }
 
     this.apiService
