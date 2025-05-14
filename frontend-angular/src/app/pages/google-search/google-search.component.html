@@ -205,9 +205,12 @@
                 'bg-blue-500 text-white': selectedSite === result.siteSearch,
                 'bg-gray-200 text-gray-700': selectedSite !== result.siteSearch
               }"
+              [disabled]="isResponseOfSiteHaveValue(result.siteSearch)"
               class="px-4 py-2 rounded-md hover:bg-blue-400 transition"
             >
-              {{ result.siteSearch || "Mặc định" }}
+              {{ result.siteSearch || "Mặc định" }} ({{
+                result.generalSearchResultsCount
+              }})
             </button>
           </div>
 

@@ -75,9 +75,12 @@ export class GoogleSearchComponent {
 
     this.storeKeyword(this.searchQuery);
 
+    // Kiểm tra xem có từ khóa nào không
     if (this.listSitesSelected.length === 0) {
       this.performSearch({ ...this.searchParameters, site: '' });
-    } else {
+    }
+    // Nếu có từ khóa, thực hiện tìm kiếm cho từng site đã chọn
+    else {
       this.listSitesSelected.forEach((site) => {
         this.performSearch({ ...this.searchParameters, site });
       });
@@ -94,23 +97,28 @@ export class GoogleSearchComponent {
       )
       .subscribe({
         next: (response) => {
+          // Kiểm tra xem response có thành công không
           if (!(response.success || response.data)) {
             this.errorMessageResponse = response.message;
             this.searchResults = null; // Reset kết quả
             return; // Nếu có lỗi, dừng lại tại đây
           }
+          // Kiểm tra xem response có chứa dữ liệu không
           response.data!.showText = MarkdownItConfig.formatMessageMarkToHtml(
             response.data!.candidates[0].content.parts[0].text
           );
+          // Lưu kết quả vào response
           response.data!.siteSearch = params.site || 'default'; // Lưu site vào response
+          response.data!.generalSearchResultsCount =
+            response.data!.generalSearchResults.length;
           this.searchResultsList.push(response.data!);
+          // Nếu chưa có site nào được chọn, chọn site đầu tiên
           if (!this.selectedSite) {
             this.selectedSite = response.data!.siteSearch; // Chọn site đầu tiên mặc định
             this.searchResults = response.data!;
           }
-          this.isLoading.set(
-            this.searchResultsList.length < this.listSitesSelected.length
-          );
+          // Nếu đã có site được load thành công, đưa dữ liệu ra ngoài hiển thị
+          this.isLoading.set(false);
           console.log(`Result for site ${params.site || 'default'}:`, response);
         },
         error: (err) => {
@@ -337,5 +345,11 @@ export class GoogleSearchComponent {
       console.warn('Đường dẫn không phải là Facebook: ', website);
       alert('Đường dẫn không phải là Facebook!'); // Hoặc xử lý khác theo yêu cầu
     }
+  }
+
+  isResponseOfSiteHaveValue(site: string): boolean {
+    return (
+      this.searchResultsList.find((x) => x.siteSearch == site)?.showText == null
+    );
   }
 }
