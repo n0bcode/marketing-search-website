@@ -4,7 +4,6 @@
     <div class="w-full md:w-1/4 p-4">
       <div class="bg-gray-50 rounded-md shadow-md p-4">
         <h2 class="text-lg font-bold mb-4">Tìm Kiếm Thông Tin</h2>
-
         <div class="mb-4">
           <label class="block mb-2 text-sm font-medium"
             >Từ khóa tìm kiếm:</label
@@ -163,15 +162,31 @@
 
         <button
           (click)="onSearch()"
+          [disabled]="isLoading()"
+          [ngClass]="{
+            'bg-gray-300 cursor-not-allowed': isLoading(),
+            'bg-blue-500 hover:bg-blue-600': !isLoading()
+          }"
+          [textContent]="isLoading() ? 'Đang tìm kiếm...' : 'Tìm kiếm'"
           class="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600 transition"
         >
-          Tìm kiếm
+          <span *ngIf="isLoading()" class="material-icons animate-spin">
+            loading
+          </span>
+          <span *ngIf="!isLoading()" class="material-icons">search</span>
         </button>
       </div>
     </div>
 
     <!-- Khu vực Kết Quả và Lịch Sử -->
     <div class="w-full md:w-3/4 flex flex-col">
+      <!-- Thêm phần hiển thị thông báo lỗi -->
+      <div
+        *ngIf="errorMessageResponse"
+        class="text-red-500 font-semibold w-100vh"
+      >
+        {{ errorMessageResponse }}
+      </div>
       <!-- Kết quả phân tích -->
       <div *ngIf="searchResultsList.length > 0" class="p-4">
         <div
@@ -233,13 +248,13 @@
                     <div
                       class="absolute top-full tb-2 w-48 border border-gray-300 rounded-md shadow-lg hidden group-hover:block z-1000"
                     >
-                      <p
+                      <div
                         class="text-gray-700 bg-white p-2"
                         [innerHTML]="
                           analysisLink?.analysisText ??
                           'Hiện chưa thể phân tích'
                         "
-                      ></p>
+                      ></div>
                     </div>
                   </div>
                 </div>

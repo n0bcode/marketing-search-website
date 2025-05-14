@@ -28,6 +28,8 @@ export class GoogleSearchComponent {
   analysisLink: AnalysisLink | null = null;
   analysisLinks: AnalysisLink[] = [];
 
+  errorMessageResponse: string = '';
+
   keywordModels: KeywordModel[] | null = null;
   showKeywordHistory: boolean = false;
   storedKeywords: string[] = [];
@@ -65,9 +67,9 @@ export class GoogleSearchComponent {
 
   // #region [Tìm kiếm Google]
   onSearch() {
+    this.isLoading.set(true);
     this.searchParameters.q = this.searchQuery;
     this.searchParameters.num = this.searchNum;
-    this.isLoading.set(true);
     this.searchResultsList = [];
     this.selectedSite = ''; // Reset tab được chọn
 
@@ -85,21 +87,26 @@ export class GoogleSearchComponent {
   // Hàm thực hiện tìm kiếm cho một bộ tham số
   private performSearch(params: GoogleSearchRequest) {
     this.apiService
-      .postToApi<GeminiResponse>(
+      .postToApi<ResponseAPI<GeminiResponse>>(
         '/Analysis/SearchGoogleAndAnalysis',
         params,
         ConfigsRequest.getSkipAuthConfig()
       )
       .subscribe({
         next: (response) => {
-          response.showText = MarkdownItConfig.formatMessageMarkToHtml(
-            response.candidates[0].content.parts[0].text
+          if (!(response.success || response.data)) {
+            this.errorMessageResponse = response.message;
+            this.searchResults = null; // Reset kết quả
+            return; // Nếu có lỗi, dừng lại tại đây
+          }
+          response.data!.showText = MarkdownItConfig.formatMessageMarkToHtml(
+            response.data!.candidates[0].content.parts[0].text
           );
-          response.siteSearch = params.site || 'default'; // Lưu site vào response
-          this.searchResultsList.push(response);
+          response.data!.siteSearch = params.site || 'default'; // Lưu site vào response
+          this.searchResultsList.push(response.data!);
           if (!this.selectedSite) {
-            this.selectedSite = response.siteSearch; // Chọn site đầu tiên mặc định
-            this.searchResults = response;
+            this.selectedSite = response.data!.siteSearch; // Chọn site đầu tiên mặc định
+            this.searchResults = response.data!;
           }
           this.isLoading.set(
             this.searchResultsList.length < this.listSitesSelected.length
@@ -144,10 +151,14 @@ export class GoogleSearchComponent {
           this.analysisLinks.push(response);
         },
         error: (err) => {
+          this.errorMessageResponse =
+            'Đã xảy ra lỗi khi phân tích liên kết: ' +
+            (err.message || 'Lỗi không xác định');
           console.error('Error fetching analysis link:', err);
         },
       });
   }
+
   // #endregion
 
   // #region [Phương thức để lưu từ khóa vào lịch sử]
@@ -296,6 +307,35 @@ export class GoogleSearchComponent {
       console.log('Tên miền đã tồn tại trong từ điển.');
     } else {
       console.log('Vui lòng nhập tên miền hợp lệ.');
+    }
+  }
+  login(website: string) {
+    const email = 'marcus61wolffzvk@hotmail.com'; // Thay bằng email thực tế của bạn
+    const password = 'Ak3O8VBoVrhEiYtESg1R'; // Thay bằng mật khẩu thực tế của bạn
+
+    // Kiểm tra nếu link website chứa facebook.com
+    if (website.includes('facebook.com')) {
+      const script = `
+      document.getElementById('email').value = '${email}';
+      document.getElementById('pass').value = '${password}';
+      document.querySelector('button[name="login"]').click();
+    `;
+
+      // Mở Facebook và thực hiện tự động điền
+      const newWindow = window.open(website, '_blank');
+
+      // 3 giây sau, gửi thông tin vào cửa sổ con
+      setTimeout(() => {
+        if (newWindow) {
+          newWindow.postMessage(
+            { email, password },
+            'https://www.facebook.com'
+          );
+        }
+      }, 3000);
+    } else {
+      console.warn('Đường dẫn không phải là Facebook: ', website);
+      alert('Đường dẫn không phải là Facebook!'); // Hoặc xử lý khác theo yêu cầu
     }
   }
 }

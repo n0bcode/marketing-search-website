@@ -6,41 +6,50 @@ namespace Api.Services.AIServices.Gemini
     {
         public GeminiRequest(string content, string note = "Không cần trả lời theo yêu cầu mà chỉ thực hiện yêu cầu của tôi. Cảm ơn.", bool isUseNote = false)
         {
-            var contentRequest = new ContentRequest();
-            contentRequest.AddPart(content);
-            if (isUseNote)
-            {
-                contentRequest.AddPart($"Chú ý: {note}");
-            }
-            this.Contents.Add(contentRequest);
+            InitializeContentRequest($"{content}{(isUseNote ? $"\nChú ý: {note}" : string.Empty)}");
         }
 
         public GeminiRequest(string query, string prompt)
         {
-            // Khởi tạo ContentRequest với prompt
-            var contentRequest = new ContentRequest();
-            contentRequest.AddPart($"Đóng vai trò là chuyên gia phân tích dữ liệu. Dưới đây là thông tin từ API: {prompt}");
-            contentRequest.AddPart($"Phân tích và cung cấp thông tin liên quan đến từ khóa '{query}' mà không cần giải thích thêm.");
-            contentRequest.AddPart("Không cần phản hồi lại thông tin prompt, hãy phản hồi như một chuyên gia.");
-            // contentRequest.AddPart("Lưu ý: Cung cấp thông tin cho các phản hồi sau trong khoảng 500 chữ.");
-            contentRequest.AddPart($"Nếu không có dữ liệu nào liên quan đến truy vấn, hãy giải thích lý do có thể là do API không tìm thấy thông tin hoặc giới hạn token tài khoản.");
-            contentRequest.AddPromptQuerySearch(query);
-            contentRequest.AddDefaultRelatedPrompt();
-            contentRequest.AddAnalysisPromptGoodAndBad();
-            contentRequest.AddDefaultIgnoreTrashInfoPrompt();
-            this.Contents.Add(contentRequest);
+            var initialPrompt = $"Đóng vai trò là chuyên gia phân tích dữ liệu. Dưới đây là thông tin từ API: {prompt}";
+            var queryPrompt = $"Phân tích và cung cấp thông tin liên quan đến từ khóa '{query}' mà không cần giải thích thêm.";
+            var noDataPrompt = "Nếu không có dữ liệu nào liên quan đến truy vấn, hãy giải thích lý do có thể là do API không tìm thấy thông tin hoặc giới hạn token tài khoản.";
+
+            InitializeContentRequest(initialPrompt, queryPrompt, noDataPrompt);
+            AddCommonPrompts(query);
         }
 
         public GeminiRequest(string link)
         {
+            var linkAnalysisPrompt = $"Cung cấp phản hồi ngắn gọn (200 ký tự) về tình trạng trang web tại đường dẫn này." +
+                                      $"\nTóm tắt thông tin hữu ích như mã số thuế, tình trạng doanh nghiệp." +
+                                      $"\nĐường dẫn trang web cần phân tích: {link}. Tổng hợp và đánh giá thông tin liên quan đến doanh nghiệp." +
+                                      "\nNếu không phải là thông tin doanh nghiệp, hãy phân tích như một trang web bình thường.";
+
+            InitializeContentRequest(linkAnalysisPrompt);
+            AddCommonPrompts();
+        }
+
+        private void InitializeContentRequest(params string[] parts)
+        {
             var contentRequest = new ContentRequest();
-            contentRequest.AddPart("Cung cấp phản hồi ngắn gọn (200 ký tự) về tình trạng trang web tại đường dẫn này.");
-            contentRequest.AddPart("Tóm tắt thông tin hữu ích như mã số thuế, tình trạng doanh nghiệp.");
-            contentRequest.AddPart($"Đường dẫn trang web cần phân tích: {link}. Tổng hợp và đánh giá thông tin liên quan đến doanh nghiệp.");
-            contentRequest.AddPart("Nếu không phải là thông tin doanh nghiệp, hãy phân tích như một trang web bình thường.");
-            contentRequest.AddAnalysisPromptGoodAndBad();
-            contentRequest.AddDefaultIgnoreTrashInfoPrompt();
+            foreach (var part in parts)
+            {
+                contentRequest.AddPart(part);
+            }
             this.Contents.Add(contentRequest);
+        }
+
+        private void AddCommonPrompts(string? query = null)
+        {
+            var contentRequest = this.Contents.Last();
+            contentRequest.AddAnalysisPromptGoodAndBad();
+            contentRequest.AddDotmarkUsefulPrompt();
+            contentRequest.AddDefaultIgnoreTrashInfoPrompt();
+            if (query != null)
+            {
+                contentRequest.AddPromptQuerySearch(query);
+            }
         }
 
         [JsonProperty("contents")]
@@ -72,9 +81,9 @@ namespace Api.Services.AIServices.Gemini
             Parts.Add(new PartRequest("Đọc toàn bộ nội dung trong trang web và phân tích tốt xấu hoặc trung bình dựa trên đánh giá của người dùng hoặc bài viết đối với từ khóa tìm kiếm."));
         }
 
-        public void AddDefaultRelatedPrompt()
+        public void AddDotmarkUsefulPrompt()
         {
-            Parts.Add(new PartRequest("Phân tích chung về các thông tin được tìm thấy nhiều nhất và lập mục 'Từ khóa liên quan' ở cuối nội dung."));
+            Parts.Add(new PartRequest("Sử dụng tối đa chức năng của dotmark về việc xuống dòng, đánh dấu nội dung. Vì tôi sử dụng dotmark-it để format về dạng html."));
         }
     }
 

@@ -19,6 +19,8 @@ namespace Api.Data
         }
 
         public DbSet<KeywordModel> Keywords { get; set; }
+        public DbSet<SecretToken> SecretTokens { get; set; } = null!;
+
         // public DbSet<GeminiAIResponse> GeminiAIResponses { get; set; }
         public DbSet<AnalysisLink> AnalysisLinks { get; set; }
 
@@ -35,6 +37,7 @@ namespace Api.Data
                 entity.Property(e => e.UpdatedAt).IsRequired();
                 entity.Property(e => e.Note).IsRequired().HasMaxLength(500);
             });
+
 
             // modelBuilder.Entity<GeminiAIResponse>(entity =>
             // {
