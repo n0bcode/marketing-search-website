@@ -54,6 +54,7 @@ export interface GeneralSearchResult {
   description: string;
   descriptionsource: string;
   url: string;
+  date: string;
   createdAt: Date;
   author: string;
   source: string;

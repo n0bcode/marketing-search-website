@@ -70,6 +70,10 @@ export class GoogleSearchComponent {
     site: '',
   };
 
+  startDate = new Date();
+  endDate = new Date();
+  today = new Date().getDate();
+
   constructor(private apiService: ApiService) {}
 
   // #region [Tìm kiếm Google]
@@ -78,6 +82,17 @@ export class GoogleSearchComponent {
     this.searchParameters.q = this.searchQuery;
     this.searchParameters.num = this.searchNum;
     this.searchResultsList = [];
+
+    // Định dạng lại ngày tháng theo yêu cầu (MM/DD/YYYY)
+    if (this.searchParameters.tbs == 'cdr:1') {
+      const tbsValue = `cdr:1,cd_min:${
+        this.startDate.getMonth() + 1
+      }/${this.startDate.getDate()}/${this.startDate.getFullYear()},cd_max:${
+        this.endDate.getMonth() + 1
+      }/${this.endDate.getDate()}/${this.endDate.getFullYear()}`;
+      this.searchParameters.tbs = tbsValue;
+    }
+
     this.selectedSite = ''; // Reset tab được chọn
 
     this.storeKeyword(this.searchQuery);
@@ -111,9 +126,12 @@ export class GoogleSearchComponent {
             return; // Nếu có lỗi, dừng lại tại đây
           }
           // Kiểm tra xem response có chứa dữ liệu không
-          response.data!.showText = MarkdownItConfig.formatMessageMarkToHtml(
+
+          response.data!.showText =
+            response.data!.candidates[0].content.parts[0].text;
+          /* response.data!.showText = MarkdownItConfig.formatMessageMarkToHtml(
             response.data!.candidates[0].content.parts[0].text
-          );
+          ); */
           // Lưu kết quả vào response
           response.data!.siteSearch = params.site || 'default'; // Lưu site vào response
           response.data!.generalSearchResultsCount =
@@ -324,35 +342,6 @@ export class GoogleSearchComponent {
       console.log('Tên miền đã tồn tại trong từ điển.');
     } else {
       console.log('Vui lòng nhập tên miền hợp lệ.');
-    }
-  }
-  login(website: string) {
-    const email = 'marcus61wolffzvk@hotmail.com'; // Thay bằng email thực tế của bạn
-    const password = 'Ak3O8VBoVrhEiYtESg1R'; // Thay bằng mật khẩu thực tế của bạn
-
-    // Kiểm tra nếu link website chứa facebook.com
-    if (website.includes('facebook.com')) {
-      const script = `
-      document.getElementById('email').value = '${email}';
-      document.getElementById('pass').value = '${password}';
-      document.querySelector('button[name="login"]').click();
-    `;
-
-      // Mở Facebook và thực hiện tự động điền
-      const newWindow = window.open(website, '_blank');
-
-      // 3 giây sau, gửi thông tin vào cửa sổ con
-      setTimeout(() => {
-        if (newWindow) {
-          newWindow.postMessage(
-            { email, password },
-            'https://www.facebook.com'
-          );
-        }
-      }, 3000);
-    } else {
-      console.warn('Đường dẫn không phải là Facebook: ', website);
-      alert('Đường dẫn không phải là Facebook!'); // Hoặc xử lý khác theo yêu cầu
     }
   }
 
