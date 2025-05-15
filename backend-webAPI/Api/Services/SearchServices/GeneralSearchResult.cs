@@ -12,6 +12,7 @@ namespace Api.Services.SearchServices
         public string Title { get; }
         public string Description { get; }
         public string Url { get; }
+        public string Date { get; } = string.Empty;
         public DateTime? CreatedAt { get; }
         public string Author { get; }
         public string Source { get; }
@@ -21,6 +22,7 @@ namespace Api.Services.SearchServices
             string title,
             string description,
             string url,
+            string date,
             DateTime? createdAt,
             string author,
             string source)
@@ -29,6 +31,7 @@ namespace Api.Services.SearchServices
             Title = title;
             Description = description;
             Url = url;
+            Date = date;
             CreatedAt = createdAt;
             Author = author;
             Source = source;
@@ -49,6 +52,7 @@ namespace Api.Services.SearchServices
                 aSearch.Title,
                 aSearch.Snippet,
                 aSearch.Link,
+                aSearch.Date,
                 null,
                 string.Empty,
                 "Google")).ToList();
@@ -66,6 +70,7 @@ namespace Api.Services.SearchServices
                 tweet.Text,
                 tweet.Text,
                 $"https://twitter.com/{tweet.Username}/status/{tweet.Id}",
+                tweet.CreatedAt.ToString("yyyy-MM-dd"),
                 tweet.CreatedAt,
                 tweet.Username,
                 "Twitter")).ToList();
