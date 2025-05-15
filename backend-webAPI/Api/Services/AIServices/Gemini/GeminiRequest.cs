@@ -11,12 +11,12 @@ namespace Api.Services.AIServices.Gemini
 
         public GeminiRequest(string query, string prompt)
         {
-            var initialPrompt = $"Đóng vai trò là chuyên gia phân tích dữ liệu. Dưới đây là thông tin từ API: {prompt}";
+            var initialPrompt = $"Đóng vai trò là chuyên gia phân tích dữ liệu. Dưới đây là thông tin từ API, không cần phân tích riêng từng nội dung tìm kiếm mà hãy phân tích chung: {prompt}";
             var queryPrompt = $"Phân tích và cung cấp thông tin liên quan đến từ khóa '{query}' mà không cần giải thích thêm.";
-            var noDataPrompt = "Nếu không có dữ liệu nào liên quan đến truy vấn, hãy giải thích lý do có thể là do API không tìm thấy thông tin hoặc giới hạn token tài khoản.";
+            var noDataPrompt = "Nếu không có dữ liệu nào liên quan đến truy vấn, hãy giải thích lý do có thể là do API không tìm thấy thông tin, giới hạn token tài khoản.";
 
             InitializeContentRequest(initialPrompt, queryPrompt, noDataPrompt);
-            AddCommonPrompts(query);
+            AddCommonPrompts(query, true);
         }
 
         public GeminiRequest(string link)
@@ -40,12 +40,16 @@ namespace Api.Services.AIServices.Gemini
             this.Contents.Add(contentRequest);
         }
 
-        private void AddCommonPrompts(string? query = null)
+        private void AddCommonPrompts(string? query = null, bool isFormatWithHtml = false)
         {
             var contentRequest = this.Contents.Last();
             contentRequest.AddAnalysisPromptGoodAndBad();
             contentRequest.AddDotmarkUsefulPrompt();
             contentRequest.AddDefaultIgnoreTrashInfoPrompt();
+            if (isFormatWithHtml)
+            {
+                contentRequest.AddFormatHtmllPrompt();
+            }
             if (query != null)
             {
                 contentRequest.AddPromptQuerySearch(query);
@@ -79,6 +83,11 @@ namespace Api.Services.AIServices.Gemini
         public void AddAnalysisPromptGoodAndBad()
         {
             Parts.Add(new PartRequest("Đọc toàn bộ nội dung trong trang web và phân tích tốt xấu hoặc trung bình dựa trên đánh giá của người dùng hoặc bài viết đối với từ khóa tìm kiếm."));
+        }
+
+        public void AddFormatHtmllPrompt()
+        {
+            Parts.Add(new PartRequest("Gửi dữ liệu phân tích với định dạng HTML, không cần có khung html mà chỉ phản hồi body, sử dụng các class từ tailwindcss để format nội dung. Không cần import các thư viện khác. Không cần bao phủ nội dung phản hồi với kiểu code ```html ``` mà chỉ cần phản hồi nội dung html. Không cần có các thẻ head, style, body, html. Chỉ phản hồi với dữ liệu html mà không cần giải thích thêm."));
         }
 
         public void AddDotmarkUsefulPrompt()
