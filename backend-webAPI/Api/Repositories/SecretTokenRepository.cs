@@ -7,6 +7,7 @@ using Api.Data;
 using Api.Helpers;
 using Api.Models;
 using Api.Repositories.IRepositories;
+using Api.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repositories
