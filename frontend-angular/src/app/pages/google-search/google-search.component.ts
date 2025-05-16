@@ -26,6 +26,13 @@ export class GoogleSearchComponent {
   searchResultsList: GeminiResponse[] = []; // Mảng lưu trữ kết quả từ nhiều site
   selectedSite: string = ''; // Lưu site đang được chọn để hiển thị
   analysisLink: AnalysisLink | null = null;
+  waitAnalysisLink: AnalysisLink = {
+    id: 0,
+    link: '',
+    analysisText: 'Vui lòng chờ phân tích...',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
   analysisLinks: AnalysisLink[] = [];
 
   errorMessageResponse: string = '';
@@ -63,6 +70,10 @@ export class GoogleSearchComponent {
     site: '',
   };
 
+  startDate = new Date();
+  endDate = new Date();
+  today = new Date().getDate();
+
   constructor(private apiService: ApiService) {}
 
   // #region [Tìm kiếm Google]
@@ -71,13 +82,27 @@ export class GoogleSearchComponent {
     this.searchParameters.q = this.searchQuery;
     this.searchParameters.num = this.searchNum;
     this.searchResultsList = [];
+
+    // Định dạng lại ngày tháng theo yêu cầu (MM/DD/YYYY)
+    if (this.searchParameters.tbs == 'cdr:1') {
+      const tbsValue = `cdr:1,cd_min:${
+        this.startDate.getMonth() + 1
+      }/${this.startDate.getDate()}/${this.startDate.getFullYear()},cd_max:${
+        this.endDate.getMonth() + 1
+      }/${this.endDate.getDate()}/${this.endDate.getFullYear()}`;
+      this.searchParameters.tbs = tbsValue;
+    }
+
     this.selectedSite = ''; // Reset tab được chọn
 
     this.storeKeyword(this.searchQuery);
 
+    // Kiểm tra xem có từ khóa nào không
     if (this.listSitesSelected.length === 0) {
       this.performSearch({ ...this.searchParameters, site: '' });
-    } else {
+    }
+    // Nếu có từ khóa, thực hiện tìm kiếm cho từng site đã chọn
+    else {
       this.listSitesSelected.forEach((site) => {
         this.performSearch({ ...this.searchParameters, site });
       });
@@ -94,23 +119,31 @@ export class GoogleSearchComponent {
       )
       .subscribe({
         next: (response) => {
+          // Kiểm tra xem response có thành công không
           if (!(response.success || response.data)) {
             this.errorMessageResponse = response.message;
             this.searchResults = null; // Reset kết quả
             return; // Nếu có lỗi, dừng lại tại đây
           }
-          response.data!.showText = MarkdownItConfig.formatMessageMarkToHtml(
+          // Kiểm tra xem response có chứa dữ liệu không
+
+          response.data!.showText =
+            response.data!.candidates[0].content.parts[0].text;
+          /* response.data!.showText = MarkdownItConfig.formatMessageMarkToHtml(
             response.data!.candidates[0].content.parts[0].text
-          );
+          ); */
+          // Lưu kết quả vào response
           response.data!.siteSearch = params.site || 'default'; // Lưu site vào response
+          response.data!.generalSearchResultsCount =
+            response.data!.generalSearchResults.length;
           this.searchResultsList.push(response.data!);
+          // Nếu chưa có site nào được chọn, chọn site đầu tiên
           if (!this.selectedSite) {
             this.selectedSite = response.data!.siteSearch; // Chọn site đầu tiên mặc định
             this.searchResults = response.data!;
           }
-          this.isLoading.set(
-            this.searchResultsList.length < this.listSitesSelected.length
-          );
+          // Nếu đã có site được load thành công, đưa dữ liệu ra ngoài hiển thị
+          this.isLoading.set(false);
           console.log(`Result for site ${params.site || 'default'}:`, response);
         },
         error: (err) => {
@@ -134,6 +167,8 @@ export class GoogleSearchComponent {
     if (existingAnalysis) {
       this.analysisLink = existingAnalysis;
       return;
+    } else {
+      this.analysisLink = this.waitAnalysisLink; // Reset phân tích liên kết trước đó
     }
 
     this.apiService
@@ -309,33 +344,10 @@ export class GoogleSearchComponent {
       console.log('Vui lòng nhập tên miền hợp lệ.');
     }
   }
-  login(website: string) {
-    const email = 'marcus61wolffzvk@hotmail.com'; // Thay bằng email thực tế của bạn
-    const password = 'Ak3O8VBoVrhEiYtESg1R'; // Thay bằng mật khẩu thực tế của bạn
 
-    // Kiểm tra nếu link website chứa facebook.com
-    if (website.includes('facebook.com')) {
-      const script = `
-      document.getElementById('email').value = '${email}';
-      document.getElementById('pass').value = '${password}';
-      document.querySelector('button[name="login"]').click();
-    `;
-
-      // Mở Facebook và thực hiện tự động điền
-      const newWindow = window.open(website, '_blank');
-
-      // 3 giây sau, gửi thông tin vào cửa sổ con
-      setTimeout(() => {
-        if (newWindow) {
-          newWindow.postMessage(
-            { email, password },
-            'https://www.facebook.com'
-          );
-        }
-      }, 3000);
-    } else {
-      console.warn('Đường dẫn không phải là Facebook: ', website);
-      alert('Đường dẫn không phải là Facebook!'); // Hoặc xử lý khác theo yêu cầu
-    }
+  isResponseOfSiteHaveValue(site: string): boolean {
+    return (
+      this.searchResultsList.find((x) => x.siteSearch == site)?.showText == null
+    );
   }
 }

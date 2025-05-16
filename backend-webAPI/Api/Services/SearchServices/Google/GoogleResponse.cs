@@ -31,7 +31,7 @@ namespace Api.Services.SearchServices.Google
             public string Link { get; set; } = string.Empty;
             public string Snippet { get; set; } = string.Empty;
             public int Position { get; set; }
-            public string? Date { get; set; } // Nếu không có, có thể để null
+            public string Date { get; set; } = string.Empty;
         }
         public class RelatedSearch
         {
