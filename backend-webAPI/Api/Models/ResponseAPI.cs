@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api.Constants
+namespace Api.Models
 {
     public class ResponseAPI<T> where T : class
     {
