@@ -32,11 +32,38 @@
             class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           >
             <option value="">Ngẫu nhiên</option>
-            <option value="d">Ngày</option>
-            <option value="w">Tuần</option>
-            <option value="m">Tháng</option>
-            <option value="y">Năm</option>
+            <option value="qdr:d">Trong 1 ngày</option>
+            <option value="qdr:w">Trong 1 tuần</option>
+            <option value="qdr:m">Trong 1 tháng</option>
+            <option value="qdr:y">Trong 1 năm</option>
+            <option value="cdr:1">Tùy chọn lọc theo khoảng thời gian</option>
           </select>
+        </div>
+        <div
+          class="mb-4 border border-gray-300 rounded-md p-2 border-dashed"
+          *ngIf="searchParameters.tbs === 'cdr:1'"
+        >
+          <label class="block mb-2 text-sm font-medium"
+            >Chọn khoảng thời gian:</label
+          >
+
+          <label class="block mb-1 text-sm">Từ:</label>
+          <input
+            type="date"
+            [(ngModel)]="startDate"
+            [min]="'1999-01-01'"
+            [max]="endDate ? endDate : today"
+            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+          />
+
+          <label class="block mb-1 text-sm">Đến:</label>
+          <input
+            type="date"
+            [(ngModel)]="endDate"
+            [min]="startDate | date : 'yyyy-MM-dd'"
+            [max]="today"
+            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+          />
         </div>
 
         <div class="mb-4">
@@ -205,9 +232,14 @@
                 'bg-blue-500 text-white': selectedSite === result.siteSearch,
                 'bg-gray-200 text-gray-700': selectedSite !== result.siteSearch
               }"
+              [disabled]="
+                isResponseOfSiteHaveValue(result.siteSearch) || isLoading()
+              "
               class="px-4 py-2 rounded-md hover:bg-blue-400 transition"
             >
-              {{ result.siteSearch || "Mặc định" }}
+              {{ result.siteSearch || "Mặc định" }} ({{
+                result.generalSearchResultsCount
+              }})
             </button>
           </div>
 
@@ -219,10 +251,10 @@
               </h2>
               <div class="mb-4 p-4 border border-gray-200 rounded-md">
                 <h3 class="font-bold text-lg">Kết quả phân tích:</h3>
-                <p
+                <div
                   *ngIf="searchResults"
                   [innerHTML]="searchResults.showText"
-                ></p>
+                ></div>
                 <p *ngIf="!searchResults">Không có dữ liệu cho site này.</p>
               </div>
             </div>
@@ -235,7 +267,14 @@
                 >
                   <h3 class="font-bold text-lg">{{ result.title }}</h3>
                   <p [innerHTML]="result.description" class="text-gray-700"></p>
+                  <p class="text-gray-500">
+                    <span class="font-semibold">Thời gian:</span>
+                    <span class="text-gray-600">
+                      {{ result.date }}
+                    </span>
+                  </p>
                   <div class="group relative">
+                    <span class="font-semibold">Nguồn:</span>
                     <a
                       [href]="result.url"
                       (mouseenter)="onAnalysisLink(result.url)"
