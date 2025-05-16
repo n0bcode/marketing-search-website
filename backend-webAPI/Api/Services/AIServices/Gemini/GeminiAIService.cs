@@ -1,4 +1,5 @@
 ﻿using Api.Constants;
+using Api.Models;
 using Api.Services.SearchServices;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
