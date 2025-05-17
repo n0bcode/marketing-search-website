@@ -11,9 +11,9 @@ namespace Api.Services.AIServices.Gemini
 
         public GeminiRequest(string query, string prompt)
         {
-            var initialPrompt = $"Đóng vai trò là chuyên gia phân tích dữ liệu. Dưới đây là thông tin từ API, không cần phân tích riêng từng nội dung tìm kiếm mà hãy phân tích chung: {prompt}";
-            var queryPrompt = $"Phân tích và cung cấp thông tin liên quan đến từ khóa '{query}' mà không cần giải thích thêm.";
-            var noDataPrompt = "Nếu không có dữ liệu nào liên quan đến truy vấn, hãy giải thích lý do có thể là do API không tìm thấy thông tin, giới hạn token tài khoản.";
+            var initialPrompt = $"Đóng vai trò là chuyên gia phân tích dữ liệu. Dưới đây là thông tin từ API, hãy phân tích chung mà không cần giải thích từng nội dung: {prompt}";
+            var queryPrompt = $"Phân tích thông tin liên quan đến từ khóa '{query}'.";
+            var noDataPrompt = "Nếu không có dữ liệu liên quan, hãy cho biết lý do khả năng không tìm thấy thông tin.";
 
             InitializeContentRequest(initialPrompt, queryPrompt, noDataPrompt);
             AddCommonPrompts(query, true);
@@ -21,10 +21,8 @@ namespace Api.Services.AIServices.Gemini
 
         public GeminiRequest(string link)
         {
-            var linkAnalysisPrompt = $"Cung cấp phản hồi ngắn gọn (200 ký tự) về tình trạng trang web tại đường dẫn này." +
-                                      $"\nTóm tắt thông tin hữu ích như mã số thuế, tình trạng doanh nghiệp." +
-                                      $"\nĐường dẫn trang web cần phân tích: {link}. Tổng hợp và đánh giá thông tin liên quan đến doanh nghiệp." +
-                                      "\nNếu không phải là thông tin doanh nghiệp, hãy phân tích như một trang web bình thường.";
+            var linkAnalysisPrompt = $"Cung cấp phản hồi ngắn gọn (200 ký tự) về tình trạng trang web tại: {link}. Tóm tắt thông tin như mã số thuế, tình trạng doanh nghiệp." +
+                                      "\nNếu không phải thông tin doanh nghiệp, cần phân tích như một trang web thông thường.";
 
             InitializeContentRequest(linkAnalysisPrompt);
             AddCommonPrompts();
@@ -43,12 +41,12 @@ namespace Api.Services.AIServices.Gemini
         private void AddCommonPrompts(string? query = null, bool isFormatWithHtml = false)
         {
             var contentRequest = this.Contents.Last();
-            contentRequest.AddAnalysisPromptGoodAndBad();
-            contentRequest.AddDotmarkUsefulPrompt();
-            contentRequest.AddDefaultIgnoreTrashInfoPrompt();
+            contentRequest.AddAnalysisPrompt();
+            contentRequest.AddDotmarkPrompt();
+            contentRequest.AddIgnoreTrashInfoPrompt();
             if (isFormatWithHtml)
             {
-                contentRequest.AddFormatHtmllPrompt();
+                contentRequest.AddFormatHtmlPrompt();
             }
             if (query != null)
             {
@@ -75,24 +73,24 @@ namespace Api.Services.AIServices.Gemini
             Parts.Add(new PartRequest($"Người dùng tìm kiếm thông tin theo từ khóa: '{query}'"));
         }
 
-        public void AddDefaultIgnoreTrashInfoPrompt()
+        public void AddIgnoreTrashInfoPrompt()
         {
             Parts.Add(new PartRequest("Bỏ qua các nội dung không liên quan."));
         }
 
-        public void AddAnalysisPromptGoodAndBad()
+        public void AddAnalysisPrompt()
         {
-            Parts.Add(new PartRequest("Đọc toàn bộ nội dung trong trang web và phân tích tốt xấu hoặc trung bình dựa trên đánh giá của người dùng hoặc bài viết đối với từ khóa tìm kiếm."));
+            Parts.Add(new PartRequest("Phân tích tốt xấu dựa trên đánh giá cho từ khóa tìm kiếm. Phân loại nhẹ nhàng các mức độ như sau: Rất tích cực, Tích cực, Bình thường, Tiêu cực, Rất tiêu cực."));
         }
 
-        public void AddFormatHtmllPrompt()
+        public void AddFormatHtmlPrompt()
         {
-            Parts.Add(new PartRequest("Gửi dữ liệu phân tích với định dạng HTML, không cần có khung html mà chỉ phản hồi body, sử dụng các class từ tailwindcss để format nội dung. Không cần import các thư viện khác. Không cần bao phủ nội dung phản hồi với kiểu code ```html ``` mà chỉ cần phản hồi nội dung html. Không cần có các thẻ head, style, body, html. Chỉ phản hồi với dữ liệu html mà không cần giải thích thêm."));
+            Parts.Add(new PartRequest("Gửi dữ liệu phân tích với định dạng HTML, sử dụng các class từ tailwindcss. Chỉ phản hồi nội dung HTML mà không cần giải thích."));
         }
 
-        public void AddDotmarkUsefulPrompt()
+        public void AddDotmarkPrompt()
         {
-            Parts.Add(new PartRequest("Sử dụng tối đa chức năng của dotmark về việc xuống dòng, đánh dấu nội dung. Vì tôi sử dụng dotmark-it để format về dạng html."));
+            Parts.Add(new PartRequest("Sử dụng chức năng dotmark để định dạng nội dung."));
         }
     }
 
