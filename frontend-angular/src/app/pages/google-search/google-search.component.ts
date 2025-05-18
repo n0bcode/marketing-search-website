@@ -64,10 +64,10 @@ export class GoogleSearchComponent {
     num: 10,
     type: 'search',
     engine: 'google',
-    correctPhrase: '',
+    as_epq: '',
     anyWords: '',
     notWords: '',
-    site: '',
+    as_sitesearch: '',
   };
 
   startDate = new Date();
@@ -99,12 +99,12 @@ export class GoogleSearchComponent {
 
     // Kiểm tra xem có từ khóa nào không
     if (this.listSitesSelected.length === 0) {
-      this.performSearch({ ...this.searchParameters, site: '' });
+      this.performSearch({ ...this.searchParameters, as_sitesearch: '' });
     }
     // Nếu có từ khóa, thực hiện tìm kiếm cho từng site đã chọn
     else {
       this.listSitesSelected.forEach((site) => {
-        this.performSearch({ ...this.searchParameters, site });
+        this.performSearch({ ...this.searchParameters, as_sitesearch: site });
       });
     }
   }
@@ -128,12 +128,15 @@ export class GoogleSearchComponent {
           // Kiểm tra xem response có chứa dữ liệu không
 
           response.data!.showText =
-            response.data!.candidates[0].content.parts[0].text;
+            response.data!.candidates[0].content.parts[0].text.replace(
+              /```html|```/g,
+              ''
+            );
           /* response.data!.showText = MarkdownItConfig.formatMessageMarkToHtml(
             response.data!.candidates[0].content.parts[0].text
           ); */
           // Lưu kết quả vào response
-          response.data!.siteSearch = params.site || 'default'; // Lưu site vào response
+          response.data!.siteSearch = params.as_sitesearch || 'default'; // Lưu site vào response
           response.data!.generalSearchResultsCount =
             response.data!.generalSearchResults.length;
           this.searchResultsList.push(response.data!);
@@ -144,12 +147,15 @@ export class GoogleSearchComponent {
           }
           // Nếu đã có site được load thành công, đưa dữ liệu ra ngoài hiển thị
           this.isLoading.set(false);
-          console.log(`Result for site ${params.site || 'default'}:`, response);
+          console.log(
+            `Result for site ${params.as_sitesearch || 'default'}:`,
+            response
+          );
         },
         error: (err) => {
           console.error(
             `Error fetching search results for site ${
-              params.site || 'default'
+              params.as_sitesearch || 'default'
             }:`,
             err
           );
