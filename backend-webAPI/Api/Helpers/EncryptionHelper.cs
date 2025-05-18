@@ -9,8 +9,8 @@ namespace Api.Helpers
 {
     public static class EncryptionHelper
     {
-        private static readonly byte[] Key = Encoding.UTF8.GetBytes("your-32-char-key-here"); // Tạo một khóa 32 ký tự
-        private static readonly byte[] IV = Encoding.UTF8.GetBytes("your-16-char-iv-here"); // Tạo một IV 16 ký tự
+        private static readonly byte[] Key = Encoding.UTF8.GetBytes("PTQl6sELP6x3EnhepoQpabhMsNzQj106"); // Tạo một khóa 32 ký tự
+        private static readonly byte[] IV = Encoding.UTF8.GetBytes("0XR57HTzQYTd55cW"); // Tạo một IV 16 ký tự
 
         public static string Encrypt(string plainText)
         {
