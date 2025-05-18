@@ -79,7 +79,7 @@ namespace Api.Services.SearchServices.Google
         /// </summary>
         /// <returns></returns>
         [NotMapped]
-        public string? correctPhrase { get; set; }
+        public string? as_epq { get; set; }
 
         /// <summary>
         /// Bất kỳ từ nào mà bạn muốn tìm kiếm trong kết quả tìm kiếm.
@@ -104,15 +104,24 @@ namespace Api.Services.SearchServices.Google
         /// <returns>
         ///     Tìm kiếm trên một trang web (như wikipedia.org ) hoặc giới hạn kết quả của bạn ở một miền như .edu, .org hoặc .gov.
         /// </returns>
-        public string? site { get; set; }
+        public string? as_sitesearch { get; set; }
 
         // Phương thức để xây dựng các tham số tìm kiếm
         public Dictionary<string, string> BuildRequestParams()
         {
             var parameters = new Dictionary<string, string>
             {
-                { "q", (string.IsNullOrEmpty(q) ? "site:google.com 'Không tìm thấy'" : (string.IsNullOrEmpty(site) ? "" : $"site:{site} ") + (q)) },
+                { "q", (string.IsNullOrEmpty(q) ? "Không tìm thấy" : q) },
             };
+            if (!string.IsNullOrEmpty(as_epq))
+            {
+                parameters.Add("as_epq", (as_epq));
+            }
+
+            if (!string.IsNullOrEmpty(as_sitesearch))
+            {
+                parameters.Add("as_sitesearch", (as_sitesearch));
+            }
 
             if (!string.IsNullOrEmpty(gl))
             {
@@ -144,10 +153,6 @@ namespace Api.Services.SearchServices.Google
         public GoogleResponse FilterGoogleResponse(GoogleResponse response)
         {
             // Lọc các kết quả tìm kiếm dựa trên các tham số đã cung cấp
-            if (!string.IsNullOrEmpty(correctPhrase))
-            {
-                response.Organic = response.Organic.Where(item => item.Title.Contains(correctPhrase, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
             if (!string.IsNullOrEmpty(anyWords))
             {
                 var words = anyWords.Split(new[] { " OR " }, StringSplitOptions.RemoveEmptyEntries);
@@ -163,9 +168,9 @@ namespace Api.Services.SearchServices.Google
         }
         public GoogleRequest(string q, string? gl = null, string? location = null, string? hl = null, string? tbs = null, int? num = null, string? type = null, string? engine = null)
         {
-            if (this.site != null)
+            if (this.as_sitesearch != null)
             {
-                this.q = $"{q} site:{this.site}";
+                this.q = $"{q} site:{this.as_sitesearch}";
             }
             else
             {
