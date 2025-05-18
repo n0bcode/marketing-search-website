@@ -15,6 +15,29 @@
             class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
         </div>
+        <div class="mb-4">
+          <label class="block mb-2 text-sm font-medium"
+            >Cụm từ chính xác:</label
+          >
+          <input
+            type="text"
+            [(ngModel)]="searchParameters.as_epq"
+            placeholder="Cụm từ chính xác (vd: 'công nghệ xanh')"
+            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+          />
+        </div>
+        <div class="mb-4">
+          <label class="block mb-2 text-sm font-medium"
+            >Số lượng kết quả:</label
+          >
+          <input
+            type="number"
+            [(ngModel)]="searchNum"
+            min="10"
+            placeholder="Số lượng kết quả tối đa (vd: 10)"
+            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+          />
+        </div>
 
         <div class="mb-4">
           <label class="block mb-2 text-sm font-medium">Địa điểm:</label>
@@ -67,19 +90,6 @@
         </div>
 
         <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium"
-            >Số lượng kết quả:</label
-          >
-          <input
-            type="number"
-            [(ngModel)]="searchNum"
-            min="10"
-            placeholder="Số lượng kết quả tối đa (vd: 10)"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
-        </div>
-
-        <div class="mb-4">
           <label class="block mb-2 text-sm font-medium">Ngôn ngữ:</label>
           <select
             [(ngModel)]="searchParameters.hl"
@@ -104,17 +114,6 @@
             <option value="de">Đức</option>
             <option value="jp">Nhật Bản</option>
           </select>
-        </div>
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium"
-            >Cụm từ chính xác:</label
-          >
-          <input
-            type="text"
-            [(ngModel)]="searchParameters.correctPhrase"
-            placeholder="Cụm từ chính xác (vd: 'công nghệ xanh')"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
         </div>
 
         <div class="mb-4">
@@ -216,41 +215,46 @@
       </div>
       <!-- Kết quả phân tích -->
       <div *ngIf="searchResultsList.length > 0" class="p-4">
-        <div
-          *ngIf="isLoading()"
-          class="text-center text-blue-500 font-semibold"
-        >
-          Loading...
+        <!-- Tab để chọn site -->
+        <div class="flex space-x-2 mb-4">
+          <button
+            *ngFor="let result of searchResultsList"
+            (click)="selectSite(result.siteSearch)"
+            [ngClass]="{
+              'bg-blue-500 text-white': selectedSite === result.siteSearch,
+              'bg-gray-200 text-gray-700': selectedSite !== result.siteSearch
+            }"
+            [disabled]="
+              isLoading() || isResponseOfSiteHaveValue(result.siteSearch)
+            "
+            class="px-4 py-2 rounded-md hover:bg-blue-400 transition"
+          >
+            {{ result.siteSearch || "Mặc định" }} ({{
+              result.generalSearchResultsCount
+            }})
+          </button>
         </div>
-        <div *ngIf="!isLoading()">
-          <!-- Tab để chọn site -->
-          <div class="flex space-x-2 mb-4">
-            <button
-              *ngFor="let result of searchResultsList"
-              (click)="selectSite(result.siteSearch)"
-              [ngClass]="{
-                'bg-blue-500 text-white': selectedSite === result.siteSearch,
-                'bg-gray-200 text-gray-700': selectedSite !== result.siteSearch
-              }"
-              [disabled]="
-                isResponseOfSiteHaveValue(result.siteSearch) || isLoading()
-              "
-              class="px-4 py-2 rounded-md hover:bg-blue-400 transition"
-            >
-              {{ result.siteSearch || "Mặc định" }} ({{
-                result.generalSearchResultsCount
-              }})
-            </button>
-          </div>
 
-          <!-- Hiển thị kết quả cho site được chọn -->
-          <div class="flex flex-col md:flex-row">
-            <div class="w-full md:w-2/3 p-2">
-              <h2 class="text-xl font-semibold mb-2">
-                Phân tích dữ liệu của AI
-              </h2>
-              <div class="mb-4 p-4 border border-gray-200 rounded-md">
-                <h3 class="font-bold text-lg">Kết quả phân tích:</h3>
+        <!-- Hiển thị kết quả cho site được chọn -->
+        <div class="flex flex-col md:flex-row">
+          <div class="w-full md:w-2/3 p-2">
+            <h2 class="text-xl font-semibold mb-2">Phân tích dữ liệu của AI</h2>
+            <div class="mb-4 p-4 border border-gray-200 rounded-md">
+              <h3 class="font-bold text-lg">Kết quả phân tích:</h3>
+              <div *ngIf="isLoading()">
+                <div class="text-center text-blue-500 font-semibold">
+                  Loading...
+                </div>
+                <div class="flex justify-center">
+                  <div
+                    class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full text-blue-500"
+                    role="status"
+                  >
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="!isLoading()">
                 <div
                   *ngIf="searchResults"
                   [innerHTML]="searchResults.showText"
@@ -258,45 +262,50 @@
                 <p *ngIf="!searchResults">Không có dữ liệu cho site này.</p>
               </div>
             </div>
-            <div class="w-full md:w-1/3 p-2">
-              <h2 class="text-xl font-semibold mb-2">Kết quả chi tiết:</h2>
-              <div class="h-[100vh] overflow-y-auto">
-                <div
-                  *ngFor="let result of searchResults?.generalSearchResults"
-                  class="mb-4 p-4 border border-gray-200 rounded-md"
-                >
-                  <h3 class="font-bold text-lg">{{ result.title }}</h3>
-                  <p [innerHTML]="result.description" class="text-gray-700"></p>
-                  <p class="text-gray-500">
-                    <span class="font-semibold">Thời gian:</span>
-                    <span class="text-gray-600">
-                      {{ result.date }}
-                    </span>
-                  </p>
-                  <div class="group relative">
-                    <span class="font-semibold">Nguồn:</span>
-                    <a
-                      [href]="result.url"
-                      (mouseenter)="onAnalysisLink(result.url)"
-                      class="text-blue-500 hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Xem thêm
-                    </a>
+          </div>
+          <div class="w-full md:w-1/3 p-2">
+            <h2 class="text-xl font-semibold mb-2">Kết quả chi tiết:</h2>
+            <div class="h-[100vh] overflow-y-auto">
+              <div
+                *ngFor="let result of searchResults?.generalSearchResults"
+                class="mb-4 p-4 border border-gray-200 rounded-md"
+              >
+                <h3 class="font-bold text-lg">{{ result.title }}</h3>
+                <p [innerHTML]="result.description" class="text-gray-700"></p>
+                <p class="text-gray-500">
+                  <span class="font-semibold">Thời gian:</span>
+                  <span class="text-gray-600">
+                    {{ result.date }}
+                  </span>
+                </p>
+                <div class="group relative">
+                  <span class="font-semibold">Nguồn:</span>
+                  <a
+                    [href]="result.url"
+                    (mouseenter)="onAnalysisLink(result.url)"
+                    class="text-blue-500 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Xem thêm
+                  </a>
+                  <div
+                    class="absolute top-full tb-2 w-48 border border-gray-300 rounded-md shadow-lg hidden group-hover:block z-1000"
+                  >
                     <div
-                      class="absolute top-full tb-2 w-48 border border-gray-300 rounded-md shadow-lg hidden group-hover:block z-1000"
-                    >
-                      <div
-                        class="text-gray-700 bg-white p-2"
-                        [innerHTML]="
-                          analysisLink?.analysisText ??
-                          'Hiện chưa thể phân tích'
-                        "
-                      ></div>
-                    </div>
+                      class="text-gray-700 bg-white p-2"
+                      [innerHTML]="
+                        analysisLink?.analysisText ?? 'Hiện chưa thể phân tích'
+                      "
+                    ></div>
                   </div>
                 </div>
+              </div>
+              <div
+                *ngIf="isLoading()"
+                class="text-center text-blue-500 font-semibold"
+              >
+                Loading...
               </div>
             </div>
           </div>

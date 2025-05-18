@@ -55,8 +55,8 @@ export interface GoogleSearchRequest {
   /// <value></value>
   engine: string;
 
-  correctPhrase: string | null;
+  as_epq: string | null;
   anyWords: string | null;
   notWords: string | null;
-  site: string | null;
+  as_sitesearch: string | null;
 }

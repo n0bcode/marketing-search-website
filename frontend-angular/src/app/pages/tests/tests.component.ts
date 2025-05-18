@@ -64,10 +64,10 @@ export class TestsComponent {
     num: 10,
     type: 'search',
     engine: 'google',
-    correctPhrase: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
+    as_epq: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
     anyWords: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
     notWords: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
-    site: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
+    as_sitesearch: '', // Trường này hỗ trợ lọc kết quả tìm kiếm
   };
   twitterSearchParameters: TwitterSearchTweetRequest = {
     query: '',
