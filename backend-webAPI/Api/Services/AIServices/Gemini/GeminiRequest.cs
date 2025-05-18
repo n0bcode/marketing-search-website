@@ -19,9 +19,15 @@ namespace Api.Services.AIServices.Gemini
             AddCommonPrompts(query, true);
         }
 
-        public GeminiRequest(string link)
+        public GeminiRequest(string prompt, bool isNormalPrompt = false)
         {
-            var linkAnalysisPrompt = $"Cung cấp phản hồi ngắn gọn (200 ký tự) về tình trạng trang web tại: {link}. Tóm tắt thông tin như mã số thuế, tình trạng doanh nghiệp." +
+            if (isNormalPrompt)
+            {
+                InitializeContentRequest(prompt);
+                AddCommonPrompts();
+                return;
+            }
+            var linkAnalysisPrompt = $"Cung cấp phản hồi ngắn gọn (200 ký tự) về tình trạng trang web tại: {prompt}. Tóm tắt thông tin như mã số thuế, tình trạng doanh nghiệp." +
                                       "\nNếu không phải thông tin doanh nghiệp, cần phân tích như một trang web thông thường.";
 
             InitializeContentRequest(linkAnalysisPrompt);

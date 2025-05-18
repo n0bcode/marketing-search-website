@@ -268,7 +268,7 @@ namespace Api.Controllers
 
             if (analysisLinkOrNot == null || String.IsNullOrEmpty(analysisLinkOrNot.AnalysisText))
             {
-                GeminiRequest geminiRequest = new GeminiRequest(link);
+                GeminiRequest geminiRequest = new GeminiRequest(link, false);
 
                 var response = await _geminiService.AnalyzeAsync(geminiRequest);
                 if (response == null || response.Data == null)
