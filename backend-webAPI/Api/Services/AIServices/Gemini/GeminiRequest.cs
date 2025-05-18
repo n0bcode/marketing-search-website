@@ -77,15 +77,26 @@ namespace Api.Services.AIServices.Gemini
         {
             Parts.Add(new PartRequest("Bỏ qua các nội dung không liên quan."));
         }
-
         public void AddAnalysisPrompt()
         {
-            Parts.Add(new PartRequest("Phân tích tốt xấu dựa trên đánh giá cho từ khóa tìm kiếm. Phân loại nhẹ nhàng các mức độ như sau: Rất tích cực, Tích cực, Bình thường, Tiêu cực, Rất tiêu cực."));
+            Parts.Add(new PartRequest("Phân tích dữ liệu theo cấu trúc dưới đây cho từ khóa tìm kiếm. Phân loại các đánh giá thành năm mức độ: Rất tích cực, Tích cực, Bình thường, Tiêu cực, Rất tiêu cực. Cấu trúc phân tích sẽ được tổ chức như sau:" +
+                "\n\nTiêu đề nội dung phân tích:" +
+                "\nNguồn gốc:" +
+                "\nĐánh giá kết quả:" +
+                "\n    - Tích cực [Số bài tích cực]:" +
+                "\n        + [link website] (Đánh giá web site vì sao tích cực)" +
+                "\n        + ..." +
+                "\n    - Tiêu cực [Số bài tiêu cực]:" +
+                "\n        + [link website] (Lí do)" +
+                "\n        + ..." +
+                "\nĐánh giá chung:"
+            ));
         }
+
 
         public void AddFormatHtmlPrompt()
         {
-            Parts.Add(new PartRequest("Gửi dữ liệu phân tích với định dạng HTML, sử dụng các class từ tailwindcss. Chỉ phản hồi nội dung HTML mà không cần giải thích."));
+            Parts.Add(new PartRequest("Gửi dữ liệu phân tích với định dạng HTML, sử dụng các class từ tailwindcss để trình bày nội dung phân tích. Chỉ phản hồi nội dung HTML mà không cần giải thích. Không cần format nhiều class cho khung div ngoài cùng."));
         }
 
         public void AddDotmarkPrompt()
