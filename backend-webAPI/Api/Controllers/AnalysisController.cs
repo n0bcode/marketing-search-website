@@ -85,7 +85,7 @@ namespace Api.Controllers
 
                 // Kết hợp kết quả tìm kiếm Google vào kết quả phân tích
                 response.Data.GeneralSearchResults.AddRange(googleResults.ToGeneralSearchResults());
-                response.Data.SiteSearch = query.site;
+                response.Data.SiteSearch = query.as_sitesearch;
 
                 return Ok(response);
             }
