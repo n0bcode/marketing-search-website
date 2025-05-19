@@ -90,10 +90,10 @@ namespace Api.Services.AIServices.Gemini
                 "\nNguồn gốc:" +
                 "\nĐánh giá kết quả:" +
                 "\n    - Tích cực [Số bài tích cực]:" +
-                "\n        + [link website] (Đánh giá web site vì sao tích cực)" +
+                "\n        + [Tóm tắt tiêu đề với khung a có link bao phủ] (Đánh giá web site vì sao tích cực)" +
                 "\n        + ..." +
                 "\n    - Tiêu cực [Số bài tiêu cực]:" +
-                "\n        + [link website] (Lí do)" +
+                "\n        + [Tóm tắt tiêu đề với khung a có link bao phủ] (Lí do)" +
                 "\n        + ..." +
                 "\nĐánh giá chung:"
             ));

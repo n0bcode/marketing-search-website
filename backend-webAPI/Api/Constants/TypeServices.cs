@@ -15,5 +15,10 @@ namespace Api.Constants
         public const string GeminiAI = "GeminiAI";
         public const string GoogleSender = "GoogleSender";
         public const string TwilioSender = "TwilioSender";
+        public static List<string> ActiveServices = new List<string>
+        {
+            GoogleSearch,
+            GeminiAI
+        };
     }
 }
