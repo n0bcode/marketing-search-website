@@ -2,36 +2,51 @@
 
 namespace Api.Services.AIServices.Gemini
 {
-    public class GeminiRequest
+    public class GeminiAIRequest
     {
-        public GeminiRequest(string content, string note = "Không cần trả lời theo yêu cầu mà chỉ thực hiện yêu cầu của tôi. Cảm ơn.", bool isUseNote = false)
-        {
-            InitializeContentRequest($"{content}{(isUseNote ? $"\nChú ý: {note}" : string.Empty)}");
-        }
+        private GeminiAIRequest() { }
 
-        public GeminiRequest(string query, string prompt)
+        public static GeminiAIRequest CreateWithContent(string content, string note = "Không cần trả lời theo yêu cầu mà chỉ thực hiện yêu cầu của tôi. Cảm ơn.", bool isUseNote = false)
         {
+            var req = new GeminiAIRequest();
+            req.InitializeContentRequest($"{content}{(isUseNote ? $"\nChú ý: {note}" : string.Empty)}");
+            return req;
+        }
+        public static GeminiAIRequest CreateWithQueryAndPrompt(string query, string prompt)
+        {
+            var req = new GeminiAIRequest();
             var initialPrompt = $"Đóng vai trò là chuyên gia phân tích dữ liệu. Dưới đây là thông tin từ API, hãy phân tích chung mà không cần giải thích từng nội dung: {prompt}";
             var queryPrompt = $"Phân tích thông tin liên quan đến từ khóa '{query}'.";
             var noDataPrompt = "Nếu không có dữ liệu liên quan, hãy cho biết lý do khả năng không tìm thấy thông tin.";
 
-            InitializeContentRequest(initialPrompt, queryPrompt, noDataPrompt);
-            AddCommonPrompts(query, true);
+            req.InitializeContentRequest(initialPrompt, queryPrompt, noDataPrompt);
+            req.AddCommonPrompts(query, true);
+            return req;
         }
 
-        public GeminiRequest(string prompt, bool isNormalPrompt = false)
+        public static GeminiAIRequest CreateWithPrompt(string prompt, bool isNormalPrompt = false)
         {
+            var req = new GeminiAIRequest();
             if (isNormalPrompt)
             {
-                InitializeContentRequest(prompt);
-                AddCommonPrompts();
-                return;
+                req.InitializeContentRequest(prompt);
+                req.AddCommonPrompts();
+                return req;
             }
             var linkAnalysisPrompt = $"Cung cấp phản hồi ngắn gọn (200 ký tự) về tình trạng trang web tại: {prompt}. Tóm tắt thông tin như mã số thuế, tình trạng doanh nghiệp." +
                                       "\nNếu không phải thông tin doanh nghiệp, cần phân tích như một trang web thông thường.";
 
-            InitializeContentRequest(linkAnalysisPrompt);
-            AddCommonPrompts();
+            req.InitializeContentRequest(linkAnalysisPrompt);
+            req.AddCommonPrompts();
+            return req;
+        }
+        public static GeminiAIRequest CreateWithContentMediaPrompt(string linkMediaSocial, string contentMedia)
+        {
+            var req = new GeminiAIRequest();
+            string mediaPrompt = $"Đây là link bài viết/video của 1 nền tảng mạng xã hội, đây là nội dung của video chính của bài viết này : '{contentMedia}'. Nếu bạn không nhận được nội dung nào trong ngoặc đơn thì có lẽ công cụ không có nội dung hoặc âm thanh trong video có quá nhiều tạp âm nên không thể quét. Bạn sẽ đề phân tích các nội dung khác từ link socical media và đề cử người dùng có thể trực tiếp xem video để hiểu rõ hơn.";
+            req.InitializeContentRequest(mediaPrompt);
+            req.Contents[0].AddIgnoreTrashInfoPrompt();
+            return req;
         }
 
         private void InitializeContentRequest(params string[] parts)

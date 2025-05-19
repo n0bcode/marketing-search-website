@@ -108,12 +108,17 @@ namespace Api.Controllers
 
                 var mediaAnalysisPrompt = $"Phân tích nội dung video từ link: {basedLink}. Nội dung video là: {videoContent}." +
                                       "\nNếu không phải nội dung video, hãy phân tích như một trang web thông thường.";
-                var request = new GeminiRequest(mediaAnalysisPrompt, true);
+                var request = GeminiAIRequest.CreateWithContentMediaPrompt(videoUrl, mediaAnalysisPrompt);
                 var response = await _geminiAIService.AnalyzeAsync(request);
                 if (response == null || !response.Success)
                 {
                     return BadRequest("Không thể phân tích nội dung video.");
                 }
+                if (response.Data == null)
+                {
+                    return BadRequest("Phản hồi không xử lí thành công.");
+                }
+                response.Data.Note = $"Nội dung video: {videoContent}";
                 return Ok(response);
             }
             catch (Exception ex)
@@ -179,6 +184,13 @@ namespace Api.Controllers
             }
         }
 
+        /// <summary>
+        ///     
+        /// </summary>
+        /// <param name="audioUrl"></param>
+        /// <param name="languageCode"></param>
+        /// <param name="isTransLinkToLinkDownload"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> ExtractContentFromLinkVideoFacebookAndAnalysis(string audioUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = false)
         {
@@ -204,12 +216,17 @@ namespace Api.Controllers
 
                 var mediaAnalysisPrompt = $"Phân tích nội dung video từ link: {basedLink}. Nội dung video là: {videoContent}." +
                                       "\nNếu không phải nội dung video, hãy phân tích như một trang web thông thường.";
-                var request = new GeminiRequest(mediaAnalysisPrompt, true);
+                var request = GeminiAIRequest.CreateWithContentMediaPrompt(linkMediaSocial: audioUrl, mediaAnalysisPrompt);
                 var response = await _geminiAIService.AnalyzeAsync(request);
                 if (response == null || !response.Success)
                 {
                     return BadRequest("Không thể phân tích nội dung video.");
                 }
+                if (response.Data == null)
+                {
+                    return BadRequest("Phản hồi không xử lí thành công.");
+                }
+                response.Data.Note = $"Nội dung video: {videoContent}";
                 return Ok(response);
             }
             catch (Exception ex)
