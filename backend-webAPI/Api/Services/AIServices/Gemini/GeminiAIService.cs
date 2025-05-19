@@ -23,7 +23,7 @@ namespace Api.Services.AIServices.Gemini
             _baseUrl = apiSettings.Value.GeminiApi.BaseUrl; // Lưu trữ BaseUrl+
             _unitOfWork = unit;
         }
-        public async Task<ResponseAPI<GeminiAIResponse>> AnalyzeAsync(GeminiRequest prompt)
+        public async Task<ResponseAPI<GeminiAIResponse>> AnalyzeAsync(GeminiAIRequest prompt)
         {
             var responseApi = new ResponseAPI<GeminiAIResponse>();
             GeminiAIResponse? responseObject = new();
@@ -74,7 +74,7 @@ namespace Api.Services.AIServices.Gemini
             responseApi.Errors.Add(responseApi.Message);
             return responseApi;
         }
-        public async Task<ResponseAPI<GeminiAIResponse>> AnalyzeWithTokenUserConfigAsync(GeminiRequest prompt, string tokenId)
+        public async Task<ResponseAPI<GeminiAIResponse>> AnalyzeWithTokenUserConfigAsync(GeminiAIRequest prompt, string tokenId)
         {
             var responseApi = new ResponseAPI<GeminiAIResponse>();
             GeminiAIResponse? responseObject = new();
