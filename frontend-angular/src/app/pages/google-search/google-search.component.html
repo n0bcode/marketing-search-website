@@ -1,4 +1,92 @@
 <div class="container mx-auto">
+  <!-- Thêm khung quản lý Secret Token -->
+  <div class="bg-gray-50 rounded-md shadow-md p-4 mt-6">
+    <h2 class="text-lg font-bold mb-4">Quản lý Secret Token</h2>
+
+    <!-- Danh sách token hiện có -->
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="mb-4 row" *ngFor="let service of listServices">
+        <label class="block mb-2 text-sm font-medium">
+          Chọn Token sử dụng cho {{ service }}:
+        </label>
+        <select
+          [(ngModel)]="listSelectSecretToken[service]"
+          class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+        >
+          <option value="">Mặc định</option>
+          <option
+            *ngFor="let token of listSecretDTOsMap[service]"
+            [value]="token.id"
+          >
+            {{ token.name }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Nút mở form thêm mới -->
+    <button
+      class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition mb-2"
+      (click)="addSecretToken = !addSecretToken"
+      type="button"
+    >
+      {{ addSecretToken ? "Đóng" : "Thêm mới Token" }}
+    </button>
+
+    <!-- Form thêm mới token -->
+    <div
+      *ngIf="addSecretToken"
+      class="mt-4 border border-gray-200 rounded-md p-4 bg-white"
+    >
+      <h3 class="font-semibold mb-2">Thêm mới Secret Token</h3>
+      <div class="mb-2">
+        <label class="block mb-1 text-sm">Tên Token:</label>
+        <input
+          type="text"
+          [(ngModel)]="secretTokenDTO.name"
+          class="border border-gray-300 rounded-md p-2 w-full"
+          placeholder="Nhập tên token"
+        />
+      </div>
+      <div class="mb-2">
+        <label class="block mb-1 text-sm">Token:</label>
+        <input
+          type="text"
+          [(ngModel)]="secretTokenDTO.token"
+          class="border border-gray-300 rounded-md p-2 w-full"
+          placeholder="Nhập giá trị token"
+        />
+      </div>
+      <div class="mb-2">
+        <label class="block mb-1 text-sm">Dịch vụ:</label>
+        <select
+          [(ngModel)]="secretTokenDTO.service"
+          class="border border-gray-300 rounded-md p-2 w-full"
+        >
+          <option value="">-- Chọn dịch vụ --</option>
+          <option *ngFor="let service of listServices" [value]="service">
+            {{ service }}
+          </option>
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="block mb-1 text-sm">Ghi chú:</label>
+        <input
+          type="text"
+          [(ngModel)]="secretTokenDTO.note"
+          class="border border-gray-300 rounded-md p-2 w-full"
+          placeholder="Ghi chú (tuỳ chọn)"
+        />
+      </div>
+      <button
+        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+        (click)="createSecretToken()"
+        type="button"
+      >
+        Lưu Token
+      </button>
+    </div>
+  </div>
   <div class="flex flex-col md:flex-row">
     <!-- Khu vực Nhập Thông Tin -->
     <div class="w-full md:w-1/4 p-4">
@@ -193,9 +281,9 @@
             'bg-gray-300 cursor-not-allowed': isLoading(),
             'bg-blue-500 hover:bg-blue-600': !isLoading()
           }"
-          [textContent]="isLoading() ? 'Đang tìm kiếm...' : 'Tìm kiếm'"
           class="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600 transition"
         >
+          {{ isLoading() ? "Đang tìm kiếm..." : "Tìm kiếm" }}
           <span *ngIf="isLoading()" class="material-icons animate-spin">
             loading
           </span>

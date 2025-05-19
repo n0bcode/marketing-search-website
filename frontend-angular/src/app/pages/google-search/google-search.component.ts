@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { ApiService } from '../../utils/http-client-config';
 import { GoogleSearchRequest } from '../../interfaces/googleSearchService/google-search-request';
 import { GeminiResponse } from '../../interfaces/geminiAiService/gemini-response';
@@ -11,6 +11,9 @@ import { FormsModule } from '@angular/forms';
 import { KeywordModel } from '../../models/keyword-model';
 import { ResponseAPI } from '../../models/response-api';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
+import { SecretTokenRequestDTO } from '../../models/dtos/secret-token-dto/secret-token-request-dto';
+import { TypeServicesConstants } from '../../constants/type-services-constants';
+import { SecretTokenResponseDTO } from '../../models/dtos/secret-token-dto/secret-token-response-dto';
 
 @Component({
   selector: 'app-google-search',
@@ -18,7 +21,13 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
   templateUrl: './google-search.component.html',
   styleUrls: ['./google-search.component.css'],
 })
-export class GoogleSearchComponent {
+export class GoogleSearchComponent implements OnInit {
+  ngOnInit(): void {
+    this.loadSecretTokens();
+    this.listServices.forEach((service) => {
+      this.listSelectSecretToken[service] = '';
+    });
+  }
   isLoading = signal(false);
   searchQuery: string = '';
   searchNum: number = 10;
@@ -74,6 +83,19 @@ export class GoogleSearchComponent {
   endDate = new Date();
   today = new Date().getDate();
 
+  addSecretToken: boolean = false;
+  secretTokenDTO: SecretTokenRequestDTO = {
+    name: '',
+    token: '',
+    service: '',
+    note: '',
+  };
+
+  listServices: string[] = TypeServicesConstants.ActiveServices;
+  listSecretDTOs: SecretTokenResponseDTO[] = [];
+  listSecretDTOsMap: Record<string, SecretTokenResponseDTO[]> = {};
+  listSelectSecretToken: Record<string, string> = {};
+
   constructor(private apiService: ApiService) {}
 
   // #region [Tìm kiếm Google]
@@ -113,7 +135,11 @@ export class GoogleSearchComponent {
   private performSearch(params: GoogleSearchRequest) {
     this.apiService
       .postToApi<ResponseAPI<GeminiResponse>>(
-        '/Analysis/SearchGoogleAndAnalysis',
+        `/Analysis/SearchGoogleAndAnalysis?idTokenGoogleChange=${
+          this.listSelectSecretToken[TypeServicesConstants.GoogleSearch]
+        }&idTokenGeminiChange=${
+          this.listSelectSecretToken[TypeServicesConstants.GeminiAI]
+        }`,
         params,
         ConfigsRequest.getSkipAuthConfig()
       )
@@ -179,7 +205,11 @@ export class GoogleSearchComponent {
 
     this.apiService
       .postToApi<AnalysisLink>(
-        `/Analysis/AnalysisLink?link=${link}`,
+        `/Analysis/AnalysisLink?link=${encodeURIComponent(
+          link
+        )}&idTokenChange=${
+          this.listSelectSecretToken[TypeServicesConstants.GeminiAI]
+        }`,
         '',
         ConfigsRequest.getSkipAuthConfig()
       )
@@ -355,5 +385,70 @@ export class GoogleSearchComponent {
     return (
       this.searchResultsList.find((x) => x.siteSearch == site)?.showText == null
     );
+  }
+
+  /**
+   * Gửi yêu cầu tạo mới SecretToken về phía API.
+   */
+  createSecretToken() {
+    this.apiService
+      .postToApi<ResponseAPI<string>>(
+        '/SecretToken/Upsert', // Đường dẫn API backend xử lý tạo/cập nhật token
+        this.secretTokenDTO,
+        ConfigsRequest.getSkipAuthConfig()
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            alert('Tạo mới Secret Token thành công!');
+            this.addSecretToken = false;
+            // Reset form hoặc load lại danh sách token nếu cần
+          } else {
+            alert('Tạo mới thất bại: ' + response.message);
+          }
+        },
+        error: (err) => {
+          alert(
+            'Có lỗi xảy ra khi tạo Secret Token: ' +
+              (err.message || 'Lỗi không xác định')
+          );
+          console.error('Error creating secret token:', err);
+        },
+      });
+  }
+  /**
+   * Lấy danh sách SecretToken từ API khi load trang.
+   */
+  loadSecretTokens() {
+    this.apiService
+      .getFromApi<ResponseAPI<SecretTokenResponseDTO[]>>(
+        '/SecretToken/GetAll',
+        ConfigsRequest.getSkipAuthConfig()
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Danh sách Secret Token:', response);
+          if (response.success && response.data) {
+            this.listSecretDTOsMap = {};
+            this.listServices.forEach((service) => {
+              this.listSecretDTOsMap[service] = response.data!.filter(
+                (x) => x.service === service
+              );
+            });
+            this.listSecretDTOs = response.data;
+          } else {
+            this.listSecretDTOs = [];
+            this.listSecretDTOsMap = {};
+            console.warn(
+              'Không lấy được danh sách Secret Token:',
+              response.message
+            );
+          }
+        },
+        error: (err) => {
+          this.listSecretDTOs = [];
+          console.error('Lỗi khi lấy danh sách Secret Token:', err);
+        },
+      });
   }
 }
