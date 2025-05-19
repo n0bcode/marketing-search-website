@@ -39,13 +39,19 @@ namespace Api.Controllers
         [ProducesResponseType(typeof(GeminiAIResponse), 200)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [HttpPost]
-        public async Task<IActionResult> SearchGoogleAndAnalysis(GoogleRequest query)
+        public async Task<IActionResult> SearchGoogleAndAnalysis([FromBody] GoogleRequest query, [FromQuery] string? idTokenGoogleChange, [FromQuery] string? idTokenGeminiChange)
         {
             ResponseAPI<GeminiAIResponse>? response = new();
             try
             {
                 // 1. Tìm kiếm
-                var googleResults = await _searchService.SearchAsync(query);
+                GoogleResponse? googleResults = new();
+                if (string.IsNullOrEmpty(idTokenGoogleChange))
+                {
+                    googleResults = await _searchService.SearchAsync(query);
+                }
+                else googleResults = await _searchService.SearchWithUserTokenCofigAsync(query, idTokenGoogleChange);
+
 
                 // Kiểm tra kết quả tìm kiếm
                 if (googleResults == null || googleResults.Organic == null || !googleResults.Organic.Any())
@@ -64,8 +70,11 @@ namespace Api.Controllers
                 string analysisInput = $"Số liệu tìm kiếm phía Google: {GetAnalysisInput(query.FilterGoogleResponse(googleResults))}";
 
                 // 3. Phân tích
-                response = await _geminiService.AnalyzeAsync(new GeminiRequest(query.q, analysisInput));
-
+                if (string.IsNullOrEmpty(idTokenGeminiChange))
+                {
+                    response = await _geminiService.AnalyzeAsync(new GeminiRequest(query.q, analysisInput));
+                }
+                else response = await _geminiService.AnalyzeWithTokenUserConfigAsync(new GeminiRequest(query.q, analysisInput), idTokenGeminiChange);
                 // 4. Xử lý kết quả
                 if (response == null)
                 {
@@ -260,7 +269,7 @@ namespace Api.Controllers
         [ProducesResponseType(typeof(GeminiAIResponse), 200)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [HttpPost]
-        public async Task<IActionResult> AnalysisLink(string? link)
+        public async Task<IActionResult> AnalysisLink(string? link, string? idTokenChange)
         {
             if (link == null) return StatusCode(500);
 
@@ -270,7 +279,16 @@ namespace Api.Controllers
             {
                 GeminiRequest geminiRequest = new GeminiRequest(link, false);
 
-                var response = await _geminiService.AnalyzeAsync(geminiRequest);
+                ResponseAPI<GeminiAIResponse>? response = new();
+                if (string.IsNullOrEmpty(idTokenChange))
+                {
+                    response = await _geminiService.AnalyzeAsync(geminiRequest);
+                }
+                else
+                {
+                    response = await _geminiService.AnalyzeWithTokenUserConfigAsync(geminiRequest, idTokenChange);
+                }
+
                 if (response == null || response.Data == null)
                 {
                     _logger.LogWarning("Không tìm thấy kết quả phân tích cho liên kết: {Link}", link);
