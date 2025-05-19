@@ -14,10 +14,18 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { SecretTokenRequestDTO } from '../../models/dtos/secret-token-dto/secret-token-request-dto';
 import { TypeServicesConstants } from '../../constants/type-services-constants';
 import { SecretTokenResponseDTO } from '../../models/dtos/secret-token-dto/secret-token-response-dto';
+import { ModalAnalysisMediaSocialComponent } from '../../components/modal-analysis-media-social/modal-analysis-media-social.component';
 
 @Component({
   selector: 'app-google-search',
-  imports: [CommonModule, MatInputModule, FormsModule, MatIcon, MatIconModule],
+  imports: [
+    CommonModule,
+    MatInputModule,
+    FormsModule,
+    MatIcon,
+    MatIconModule,
+    ModalAnalysisMediaSocialComponent,
+  ],
   templateUrl: './google-search.component.html',
   styleUrls: ['./google-search.component.css'],
 })
@@ -90,11 +98,16 @@ export class GoogleSearchComponent implements OnInit {
     service: '',
     note: '',
   };
+  isShowViewSettingToken: boolean = false;
 
   listServices: string[] = TypeServicesConstants.ActiveServices;
   listSecretDTOs: SecretTokenResponseDTO[] = [];
   listSecretDTOsMap: Record<string, SecretTokenResponseDTO[]> = {};
   listSelectSecretToken: Record<string, string> = {};
+
+  mainDataAnalysisLinkSocialVideo: GeminiResponse | null = null;
+  isShowModal: boolean = false;
+  isLoadingDataForModal: boolean = true;
 
   constructor(private apiService: ApiService) {}
 
@@ -450,5 +463,99 @@ export class GoogleSearchComponent implements OnInit {
           console.error('Lỗi khi lấy danh sách Secret Token:', err);
         },
       });
+  }
+  /**
+   * Xác định link có thể là video content chính hay không.
+   * Trả về 'tiktok', 'youtube', 'facebook', 'google', hoặc 'other'.
+   */
+  getVideoPlatformType(link: string): string {
+    if (!link) return 'other';
+    const url = link.toLowerCase();
+    if (url.includes('tiktok.com')) return 'tiktok';
+    if (url.includes('youtube.com') || url.includes('youtu.be'))
+      return 'youtube';
+    if (url.includes('facebook.com')) return 'facebook';
+    if (url.includes('google.com')) return 'google';
+    return 'other';
+  }
+  /**
+   * Kiểm tra link có nằm trong số dịch vụ xử lí phân tích dữ liệu cùng video
+   */
+  isInSeviceSupport(link: string) {
+    const supportServices: string[] = ['tiktok.com', 'facebook.com'];
+    return supportServices.some((ss) => link.includes(ss));
+  }
+
+  /**
+   * Phân tích link dựa vào nền tảng video.
+   */
+  analyzeVideoLink(link: string) {
+    const platform = this.getVideoPlatformType(link);
+
+    try {
+      switch (platform) {
+        case 'tiktok':
+          this.apiService
+            .postToApi<ResponseAPI<GeminiResponse>>(
+              `/VideoProcessing/ExtractContentFromLinkVideoTikTokAndAnalysis?videoUrl=${decodeURIComponent(
+                link
+              )}`,
+              '',
+              ConfigsRequest.getSkipAuthConfig()
+            )
+            .subscribe({
+              next: (res) => {
+                // Xử lý kết quả TikTok
+                this.mainDataAnalysisLinkSocialVideo = res.data;
+                this.mainDataAnalysisLinkSocialVideo!.showText =
+                  MarkdownItConfig.formatMessageMarkToHtml(
+                    res.data!.candidates[0].content.parts[0].text
+                  );
+                console.log('Kết quả TikTok:', res);
+              },
+              error: (err) => {
+                console.error('Lỗi TikTok:', err);
+              },
+            });
+          break;
+        case 'facebook':
+          this.apiService
+            .postToApi<ResponseAPI<GeminiResponse>>(
+              `/VideoProcessing/ExtractContentFromLinkVideoFacebookAndAnalysis?audioUrl=${decodeURIComponent(
+                link
+              )}`,
+              '',
+              ConfigsRequest.getSkipAuthConfig()
+            )
+            .subscribe({
+              next: (res) => {
+                // Xử lý kết quả Facebook
+                this.mainDataAnalysisLinkSocialVideo = res.data;
+                this.mainDataAnalysisLinkSocialVideo!.showText =
+                  MarkdownItConfig.formatMessageMarkToHtml(
+                    res.data!.candidates[0].content.parts[0].text
+                  );
+                console.log('Kết quả Facebook:', res);
+              },
+              error: (err) => {
+                console.error('Lỗi Facebook:', err);
+              },
+            });
+          break;
+        case 'google':
+          // Nếu là link Google, xử lý như tìm kiếm Google
+          this.onAnalysisLink(link);
+          break;
+        default:
+          // Nếu không phải video platform, xử lý mặc định
+          this.onAnalysisLink(link);
+          break;
+      }
+    } catch (err) {
+      alert('Hiện không thể xử lí phân tích trang web của bạn');
+      console.warn(err);
+    } finally {
+      this.isLoadingDataForModal = false;
+    }
   }
 }

@@ -56,7 +56,7 @@ namespace Api.Controllers
         /// <param name="isTransLinkToLinkDownload"> Có cần chuyển đổi link thành link có thể download video? </param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> ExtractContentFromLinkVideoTikTok(string videoUrl, string languageCode, bool isTransLinkToLinkDownload = false)
+        public async Task<IActionResult> ExtractContentFromLinkVideoTikTok(string videoUrl, string languageCode, bool isTransLinkToLinkDownload = true)
         {
             // Kiểm tra URL có hợp lệ không
             if (string.IsNullOrEmpty(videoUrl))
@@ -84,7 +84,7 @@ namespace Api.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> ExtractContentFromLinkVideoTikTokAndAnalysis(string videoUrl, string languageCode, bool isTransLinkToLinkDownload = false)
+        public async Task<IActionResult> ExtractContentFromLinkVideoTikTokAndAnalysis(string videoUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = true)
         {
             // Kiểm tra URL có hợp lệ không
             if (string.IsNullOrEmpty(videoUrl))
@@ -156,7 +156,7 @@ namespace Api.Controllers
         /// <param name="isTransLinkToLinkDownload">Có chuyển đổi video gốc thành link tải được video?</param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> ExtractContentFromLinkVideoFacebook(string audioUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = false)
+        public async Task<IActionResult> ExtractContentFromLinkVideoFacebook(string audioUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = true)
         {
             // Kiểm tra URL có hợp lệ không
             if (string.IsNullOrEmpty(audioUrl))
@@ -192,7 +192,7 @@ namespace Api.Controllers
         /// <param name="isTransLinkToLinkDownload"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> ExtractContentFromLinkVideoFacebookAndAnalysis(string audioUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = false)
+        public async Task<IActionResult> ExtractContentFromLinkVideoFacebookAndAnalysis(string audioUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = true)
         {
             // Kiểm tra URL có hợp lệ không
             if (string.IsNullOrEmpty(audioUrl))

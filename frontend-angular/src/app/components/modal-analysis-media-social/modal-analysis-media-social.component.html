@@ -1,0 +1,54 @@
+<!-- Nút mở modal -->
+<button
+  class="bg-blue-500 text-white px-4 py-2 rounded-md"
+  (click)="isShowModal = true"
+  *ngIf="!isShowModal"
+>
+  Phân tích cụ thể
+</button>
+
+<!-- Modal overlay -->
+<div
+  class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+  *ngIf="isShowModal"
+>
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
+    <!-- Nút đóng modal -->
+    <button
+      class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl"
+      (click)="isShowModal = false"
+      aria-label="Đóng"
+    >
+      &times;
+    </button>
+
+    <h2 class="text-lg font-bold mb-4">Phân tích mạng xã hội</h2>
+
+    <!-- Đang load -->
+    <div *ngIf="isLoading" class="flex items-center gap-2 text-blue-600">
+      <span class="loader"></span>
+      <span>Đang tải dữ liệu, vui lòng chờ...</span>
+    </div>
+
+    <!-- Không có dữ liệu -->
+    <div *ngIf="!isLoading && !data">
+      <span class="text-gray-500">Không có dữ liệu để hiển thị.</span>
+    </div>
+
+    <!-- Có dữ liệu -->
+    <div
+      *ngIf="!isLoading && data"
+      class="bg-gray-100 rounded p-2 text-sm overflow-x-auto"
+    >
+      <div [innerHTML]="data.showText"></div>
+      <hr />
+      <div>{{ data.note }}</div>
+    </div>
+    <div>
+      <!-- 
+      {{ isLoading }}<br />
+      {{ isShowModal }}<br />
+      {{ data | json }} -->
+    </div>
+  </div>
+</div>
