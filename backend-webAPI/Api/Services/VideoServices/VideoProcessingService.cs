@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.Cloud.Speech.V1;
+using FFMpegCore;
+using FFMpegCore.Pipes;
 
 namespace Api.Services.VideoServices
 {
@@ -159,6 +161,30 @@ namespace Api.Services.VideoServices
                 if (File.Exists(audioFilePath))
                     File.Delete(audioFilePath);
             }
+        }
+
+        public async Task<string> ExtractContentFromAudioUrl(string audioUrl, string languageCode = "vi-VN")
+        {
+            using var httpClient = new HttpClient();
+            using var audioStream = await httpClient.GetStreamAsync(audioUrl);
+
+            // Chuyển đổi stream sang wav bằng FFMpegCore (in-memory)
+            using var outputStream = new MemoryStream();
+            await FFMpegArguments
+                .FromPipeInput(new StreamPipeSource(audioStream))
+                .OutputToPipe(new StreamPipeSink(outputStream), options => options
+                    .WithAudioCodec("pcm_s16le")
+                    .WithCustomArgument("-ar 16000 -ac 1"))
+                .ProcessAsynchronously();
+
+            outputStream.Position = 0;
+
+            // Gửi outputStream vào Google Speech API (nếu API hỗ trợ stream)
+            // Nếu không, lưu tạm vào file hệ thống tạm thời (Path.GetTempFileName()), nhưng nên xóa ngay sau khi dùng
+
+            // ... gọi Google Speech API với outputStream ...
+
+            return "text result";
         }
     }
 }
