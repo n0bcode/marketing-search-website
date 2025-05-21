@@ -403,7 +403,12 @@ export class GoogleSearchComponent implements OnInit {
   /**
    * Gửi yêu cầu tạo mới SecretToken về phía API.
    */
-  createSecretToken() {
+  createSecretToken(service: string | null) {
+    if (service == null) {
+      alert('Thông số dịch vụ không xác định, vui lòng thử lại.');
+      return;
+    }
+    this.secretTokenDTO.service = service!;
     this.apiService
       .postToApi<ResponseAPI<string>>(
         '/SecretToken/Upsert', // Đường dẫn API backend xử lý tạo/cập nhật token
