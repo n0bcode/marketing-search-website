@@ -12,7 +12,7 @@ namespace Api.Services.VideoServices
     public class VideoProcessingService
     {
         // Đường dẫn đến FFMpeg
-        private const string ffmpegPath = @"D:\Download\ffmpeg-2025-05-15-git-12b853530a-essentials_build\bin\ffmpeg.exe";
+        private static string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"ffmpeg.exe");
 
         public async Task<string> ExtractContentFromVideo(string videoUrl, string languageCode)
         {
