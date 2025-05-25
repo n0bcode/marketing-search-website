@@ -74,7 +74,6 @@ namespace Api.Automations
             ResponseAPI<string> response = new();
             // Cài đặt các tùy chọn cho trình duyệt Brave
             var options = new ChromeOptions();
-            options.BinaryLocation = @"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Brave.lnk"; // Tùy chỉnh đường dẫn nếu cần
             options.AddArgument("--headless"); // Chạy không có giao diện
 
             string? downloadLink = null;
@@ -109,7 +108,6 @@ namespace Api.Automations
 
                     // Tìm nút Download
                     var downloadButton = driver.FindElement(By.XPath("//a[contains(@class, 'download-file')]"));
-                    downloadButton.Click(); // Nhấn nút Download
 
                     await Task.Delay(5000); // Đợi 5 giây
 
@@ -121,6 +119,7 @@ namespace Api.Automations
                     }
                     response.SetSuccessResponse("Lấy link tải về thành công!");
                     response.SetData(downloadLink);
+                    Console.WriteLine("Success extract link download video tiktok!");
                 }
                 catch (NoSuchElementException e)
                 {
@@ -150,7 +149,6 @@ namespace Api.Automations
             ResponseAPI<string> response = new();
             // Cài đặt các tùy chọn cho trình duyệt Brave
             var options = new ChromeOptions();
-            options.BinaryLocation = @"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Brave.lnk"; // Tùy chỉnh đường dẫn nếu cần
             options.AddArgument("--headless"); // Chạy không có giao diện (nếu cần)
             // Khởi tạo ChromeDriver
             using (IWebDriver driver = new ChromeDriver(options))
@@ -221,6 +219,7 @@ namespace Api.Automations
 
                             response.SetSuccessResponse("Lấy link tải về thành công!");
                             response.SetData(jsonData.fileUrl);
+                            Console.WriteLine("Success extract link download video facebook!");
                         }
                         else
                         {
