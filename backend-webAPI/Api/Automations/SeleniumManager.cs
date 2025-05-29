@@ -131,6 +131,7 @@ namespace Api.Automations
                     Console.WriteLine("Một phần tử chặn nhấp chuột: " + e.Message);
                     response.SetErrorResponse(e);
                 }
+                driver.Quit(); // Đóng trình duyệt
             }
 
             return response;
@@ -235,6 +236,7 @@ namespace Api.Automations
                 {
                     Console.WriteLine("Một phần tử chặn nhấp chuột: " + e.Message);
                 }
+                driver.Quit(); // Đóng trình duyệt
             }
             return response;
         }

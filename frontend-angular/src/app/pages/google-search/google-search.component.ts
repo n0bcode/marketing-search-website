@@ -376,6 +376,7 @@ export class GoogleSearchComponent implements OnInit {
   }
   // #endregion
 
+  // #region [Thêm tên miền vào từ điển]
   addDomainToDictionary() {
     if (this.newDomain && !this.dictionaryListSites[this.newDomain]) {
       // Thêm tên miền vào dictionaryListSites với giá trị mặc định (có thể tùy chỉnh)
@@ -393,12 +394,15 @@ export class GoogleSearchComponent implements OnInit {
       console.log('Vui lòng nhập tên miền hợp lệ.');
     }
   }
+  // #endregion
 
+  // #region [Kiểm tra xem response của site có giá trị hay không]
   isResponseOfSiteHaveValue(site: string): boolean {
     return (
       this.searchResultsList.find((x) => x.siteSearch == site)?.showText == null
     );
   }
+  // #endregion
 
   /**
    * Gửi yêu cầu tạo mới SecretToken về phía API.
@@ -491,11 +495,22 @@ export class GoogleSearchComponent implements OnInit {
     return supportServices.some((ss) => link.includes(ss));
   }
 
+  // Thêm biến cache vào class
+  analysisVideoCache: Record<string, GeminiResponse> = {};
+
   /**
-   * Phân tích link dựa vào nền tảng video.
+   * Phân tích link dựa vào nền tảng video, có lưu cache.
    */
   analyzeVideoLink(link: string) {
+    // Nếu đã có kết quả phân tích, trả về luôn
+    if (this.analysisVideoCache[link]) {
+      this.mainDataAnalysisLinkSocialVideo = this.analysisVideoCache[link];
+      return;
+    }
+
     const platform = this.getVideoPlatformType(link);
+    this.isLoadingDataForModal = true;
+    this.isShowModal = true;
 
     try {
       switch (platform) {
@@ -516,10 +531,14 @@ export class GoogleSearchComponent implements OnInit {
                   MarkdownItConfig.formatMessageMarkToHtml(
                     res.data!.candidates[0].content.parts[0].text
                   );
-                console.log('Kết quả TikTok:', res);
+                // Lưu vào cache
+                this.analysisVideoCache[link] =
+                  this.mainDataAnalysisLinkSocialVideo!;
+                this.isLoadingDataForModal = false;
               },
               error: (err) => {
                 console.error('Lỗi TikTok:', err);
+                this.isLoadingDataForModal = false;
               },
             });
           break;
@@ -540,26 +559,31 @@ export class GoogleSearchComponent implements OnInit {
                   MarkdownItConfig.formatMessageMarkToHtml(
                     res.data!.candidates[0].content.parts[0].text
                   );
-                console.log('Kết quả Facebook:', res);
+                // Lưu vào cache
+                this.analysisVideoCache[link] =
+                  this.mainDataAnalysisLinkSocialVideo!;
+                this.isLoadingDataForModal = false;
               },
               error: (err) => {
                 console.error('Lỗi Facebook:', err);
+                this.isLoadingDataForModal = false;
               },
             });
           break;
         case 'google':
           // Nếu là link Google, xử lý như tìm kiếm Google
           this.onAnalysisLink(link);
+          this.isLoadingDataForModal = false;
           break;
         default:
           // Nếu không phải video platform, xử lý mặc định
           this.onAnalysisLink(link);
+          this.isLoadingDataForModal = false;
           break;
       }
     } catch (err) {
       alert('Hiện không thể xử lí phân tích trang web của bạn');
       console.warn(err);
-    } finally {
       this.isLoadingDataForModal = false;
     }
   }
