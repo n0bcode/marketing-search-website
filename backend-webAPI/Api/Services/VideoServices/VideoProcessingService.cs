@@ -56,14 +56,21 @@ namespace Api.Services.VideoServices
                 CleanUpTempFiles(videoFilePath, audioFilePath);
             }
         }
-
         public async Task<string> ExtractContentFromAudio(string audioUrl, string languageCode = "vi-VN")
         {
-            string audioFilePath = Path.Combine(Path.GetTempPath(), "temp_audio.wav");
+            string tempAudioFilePath = Path.Combine(Path.GetTempPath(), "temp_audio.m4a"); // Tệp âm thanh tạm thời
+            string convertedAudioFilePath = Path.Combine(Path.GetTempPath(), "temp_audio.wav"); // Tệp âm thanh đã chuyển đổi
+
             try
             {
-                await DownloadFile(audioUrl, audioFilePath);
-                return await ConvertAudioToText(audioFilePath, languageCode);
+                // Tải tệp âm thanh gốc về
+                await DownloadFile(audioUrl, tempAudioFilePath);
+
+                // Chuyển đổi âm thanh từ M4A sang WAV
+                await ConvertAudioFormat(tempAudioFilePath, convertedAudioFilePath);
+
+                // Chuyển đổi âm thanh đã chuyển đổi sang văn bản
+                return await ConvertAudioToText(convertedAudioFilePath, languageCode);
             }
             catch (HttpRequestException httpEx)
             {
@@ -75,9 +82,23 @@ namespace Api.Services.VideoServices
             }
             finally
             {
-                CleanUpFile(audioFilePath);
+                // Dọn dẹp các tệp tạm thời
+                CleanUpFile(tempAudioFilePath);
+                CleanUpFile(convertedAudioFilePath);
             }
         }
+
+        // Phương thức để chuyển đổi định dạng âm thanh
+        private static async Task ConvertAudioFormat(string inputFilePath, string outputFilePath)
+        {
+            await FFMpegArguments
+                .FromFileInput(inputFilePath)
+                .OutputToFile(outputFilePath, true, options => options
+                    .WithAudioCodec("pcm_s16le")
+                    .WithCustomArgument("-ar 16000 -ac 1"))
+                .ProcessAsynchronously();
+        }
+
 
         private static string GenerateCacheKey(string url, string languageCode) =>
             $"video_analysis_{url}_{languageCode}";
