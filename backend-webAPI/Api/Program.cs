@@ -1,3 +1,5 @@
+
+using System;
 using Api.Data;
 using Api.Services;
 using Microsoft.CodeAnalysis.Options;
@@ -12,6 +14,12 @@ using Api.Repositories;
 using Api.Repositories.IRepositories;
 using Api.Services.RedisCacheService;
 using Api.DbInitializer;
+using Api.Services.VideoServices;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using Microsoft.Extensions.Hosting;
 
 namespace Api
 {
@@ -50,6 +58,7 @@ namespace Api
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
+            builder.Services.AddScoped<VideoProcessingService>();
 
             builder.Services.AddScoped<IDbInitializer, DbInitializer.DbInitializer>();
 
@@ -59,6 +68,8 @@ namespace Api
                 options.InstanceName = builder.Configuration["Redis:InstanceName"];
             });
 
+            builder.Services.AddMemoryCache();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -67,19 +78,6 @@ namespace Api
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
-
-                //// Chỉ áp dụng HTTPS redirection cho các yêu cầu không phải OPTIONS trong Development
-                //app.Use(async (context, next) =>
-                //{
-                //    if (context.Request.Method != "OPTIONS")
-                //    {
-                //        await next();
-                //    }
-                //    else
-                //    {
-                //        context.Response.StatusCode = 200; // Trả về OK cho OPTIONS request
-                //    }
-                //});
             }
 
             app.UseHttpsRedirection();
