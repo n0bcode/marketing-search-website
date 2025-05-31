@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Automations;
+using Api.Models;
 using Api.Repositories.IRepositories;
 using Api.Services.AIServices.Gemini;
 using Api.Services.VideoServices;
@@ -34,13 +35,12 @@ namespace Api.Controllers
         [HttpPost]
         public async Task<IActionResult> GetLinkDownloadTikTokVideo(string videoUrl)
         {
-            // Kiểm tra URL có hợp lệ không
             if (string.IsNullOrEmpty(videoUrl) || !videoUrl.Contains("tiktok.com"))
             {
                 return BadRequest("URL không hợp lệ.");
             }
 
-            var downloadUrl = await _seleniumManager.GetTikTokDownloadLink(videoUrl);
+            var downloadUrl = await _videoProcessingService.GetTikTokDownloadLink(videoUrl); // Sử dụng dịch vụ ở đây
             if (downloadUrl != null)
             {
                 return Ok(new { DownloadUrl = downloadUrl });
@@ -58,24 +58,23 @@ namespace Api.Controllers
         [HttpPost]
         public async Task<IActionResult> ExtractContentFromLinkVideoTikTok(string videoUrl, string languageCode, bool isTransLinkToLinkDownload = true)
         {
-            // Kiểm tra URL có hợp lệ không
+            ResponseAPI<string> downloadLink = new();
             if (string.IsNullOrEmpty(videoUrl))
             {
                 return BadRequest("URL không hợp lệ.");
             }
             if (isTransLinkToLinkDownload)
             {
-                videoUrl = _seleniumManager.GetTikTokDownloadLink(videoUrl).Result?.Data ?? string.Empty;
-                // Kiểm tra xem videoUrl có hợp lệ không
-                if (string.IsNullOrEmpty(videoUrl))
-                {
-                    return BadRequest("Không thể lấy link tải về.");
-                }
+                downloadLink = await _videoProcessingService.GetTikTokDownloadLink(videoUrl); // Sử dụng dịch vụ ở đây
             }
 
+            if (string.IsNullOrEmpty(downloadLink.Data))
+            {
+                return BadRequest("Không thể lấy link tải về.");
+            }
             try
             {
-                var textContent = await _videoProcessingService.ExtractContentFromVideo(videoUrl, languageCode);
+                var textContent = await _videoProcessingService.ExtractContentFromVideo(downloadLink.Data, languageCode, "tiktok");
                 return Ok(new { TextContent = textContent });
             }
             catch (Exception ex)
@@ -83,6 +82,7 @@ namespace Api.Controllers
                 return StatusCode(500, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> ExtractContentFromLinkVideoTikTokAndAnalysis(string videoUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = true)
         {
@@ -134,13 +134,12 @@ namespace Api.Controllers
         [HttpPost]
         public async Task<IActionResult> GetLinkDownloadFacebookVideo(string videoUrl)
         {
-            // Kiểm tra URL có hợp lệ không
             if (string.IsNullOrEmpty(videoUrl) || !videoUrl.Contains("facebook.com"))
             {
                 return BadRequest("URL không hợp lệ.");
             }
 
-            var downloadResponse = await _seleniumManager.GetFacebookDownloadLink(videoUrl);
+            var downloadResponse = await _videoProcessingService.GetFacebookDownloadLink(videoUrl); // Sử dụng dịch vụ ở đây
             if (downloadResponse != null)
             {
                 return Ok(downloadResponse);
@@ -158,24 +157,22 @@ namespace Api.Controllers
         [HttpPost]
         public async Task<IActionResult> ExtractContentFromLinkVideoFacebook(string audioUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = true)
         {
-            // Kiểm tra URL có hợp lệ không
+            ResponseAPI<string> downloadAudioLink = new();
             if (string.IsNullOrEmpty(audioUrl))
             {
                 return BadRequest("URL không hợp lệ.");
             }
             if (isTransLinkToLinkDownload)
             {
-                audioUrl = _seleniumManager.GetFacebookDownloadLink(audioUrl).Result?.Data ?? string.Empty;
-                // Kiểm tra xem audioUrl có hợp lệ không
-                if (string.IsNullOrEmpty(audioUrl))
-                {
-                    return BadRequest("Không thể lấy link tải về.");
-                }
+                downloadAudioLink = await _videoProcessingService.GetFacebookDownloadLink(audioUrl); // Sử dụng dịch vụ ở đây
             }
-
+            if (string.IsNullOrEmpty(downloadAudioLink.Data))
+            {
+                return BadRequest("Không thể lấy link tải về.");
+            }
             try
             {
-                var textContent = await _videoProcessingService.ExtractContentFromAudio(audioUrl, languageCode);
+                var textContent = await _videoProcessingService.ExtractContentFromAudio(downloadAudioLink.Data, languageCode, "facebook");
                 return Ok(new { TextContent = textContent });
             }
             catch (Exception ex)
@@ -183,7 +180,6 @@ namespace Api.Controllers
                 return StatusCode(500, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
-
         /// <summary>
         ///     
         /// </summary>

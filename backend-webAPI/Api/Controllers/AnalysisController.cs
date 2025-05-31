@@ -132,7 +132,7 @@ namespace Api.Controllers
                     _logger.LogWarning("Không tìm thấy kết quả phân tích cho liên kết: {Link}", link);
                     return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả phân tích."));
                 }
-                var analysisLink = await _unit.AnalysisLinks.AddOrUpdateText(new AnalysisLink() { Link = link, AnalysisText = String.Join("", response.Data.Candidates[0].Content.Parts.Select(x => x.Text)) });
+                var analysisLink = await _unit.AnalysisLinks.AddOrUpdateText(new AnalysisLink() { LinkOrKeyword = link, AnalysisText = String.Join("", response.Data.Candidates[0].Content.Parts.Select(x => x.Text)) });
                 analysisLinkOrNot = analysisLink;
             }
 
