@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using Microsoft.Extensions.Hosting;
+using Api.Automations;
 
 namespace Api
 {
@@ -33,6 +34,9 @@ namespace Api
             builder.Services.AddHttpClient<TwitterSearchService>();
 
             builder.Services.AddHttpClient<GeminiAIService>();
+
+            builder.Services.AddScoped<SeleniumManager>();
+            builder.Services.AddScoped<VideoProcessingService>();
 
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
