@@ -19,10 +19,10 @@ namespace Api.Controllers
         private readonly Automations.SeleniumManager _seleniumManager;
         private readonly VideoProcessingService _videoProcessingService;
         private readonly GeminiAIService _geminiAIService;
-        public VideoProcessingController(GeminiAIService geminiAIService)
+        public VideoProcessingController(GeminiAIService geminiAIService, VideoProcessingService videoProcessingService)
         {
             _seleniumManager = new Automations.SeleniumManager(); // Khởi tạo SeleniumManager
-            _videoProcessingService = new VideoProcessingService(); // Khởi tạo VideoProcessingService
+            _videoProcessingService = videoProcessingService; // Khởi tạo VideoProcessingService
             _geminiAIService = geminiAIService; // Khởi tạo GeminiAIService
         }
         #region [Public API]
