@@ -1,0 +1,188 @@
+<!-- search-form.component.html -->
+<div class="bg-gray-50 rounded-lg shadow-md p-6">
+  <h2 class="text-lg font-semibold mb-4">Tìm Kiếm Thông Tin</h2>
+  <form class="space-y-4">
+    <div>
+      <label class="block mb-1 text-sm font-medium">Từ khóa tìm kiếm:</label>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        name="searchQuery"
+        placeholder="Nhập từ khóa tìm kiếm (vd: công nghệ, sức khỏe)"
+        class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium">Cụm từ chính xác:</label>
+      <input
+        type="text"
+        [(ngModel)]="searchParameters.as_epq"
+        name="as_epq"
+        placeholder="Cụm từ chính xác (vd: 'công nghệ xanh')"
+        class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium">Số lượng kết quả:</label>
+      <input
+        type="number"
+        [(ngModel)]="searchNum"
+        name="searchNum"
+        min="10"
+        placeholder="Số lượng kết quả tối đa (vd: 10)"
+        class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium">Địa điểm:</label>
+      <input
+        type="text"
+        [(ngModel)]="searchParameters.location"
+        name="location"
+        placeholder="Địa điểm (vd: New York, Hà Nội)"
+        class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium">Thời gian:</label>
+      <select
+        [(ngModel)]="searchParameters.tbs"
+        name="tbs"
+        class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">Ngẫu nhiên</option>
+        <option value="qdr:d">Trong 1 ngày</option>
+        <option value="qdr:w">Trong 1 tuần</option>
+        <option value="qdr:m">Trong 1 tháng</option>
+        <option value="qdr:y">Trong 1 năm</option>
+        <option value="cdr:1">Tùy chọn lọc theo khoảng thời gian</option>
+      </select>
+    </div>
+    <div
+      *ngIf="searchParameters.tbs === 'cdr:1'"
+      class="border border-gray-300 rounded-md p-4 border-dashed"
+    >
+      <label class="block mb-1 text-sm font-medium"
+        >Chọn khoảng thời gian:</label
+      >
+      <div class="space-y-2">
+        <div>
+          <label class="block mb-1 text-sm">Từ:</label>
+          <input
+            type="date"
+            [(ngModel)]="startDate"
+            name="startDate"
+            [min]="'1999-01-01'"
+            [max]="endDate ? endDate : today"
+            class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label class="block mb-1 text-sm">Đến:</label>
+          <input
+            type="date"
+            [(ngModel)]="endDate"
+            name="endDate"
+            [min]="startDate | date : 'yyyy-MM-dd'"
+            [max]="today"
+            class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium">Ngôn ngữ:</label>
+      <select
+        [(ngModel)]="searchParameters.hl"
+        name="hl"
+        class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="en">Tiếng Anh</option>
+        <option value="vi">Tiếng Việt</option>
+        <option value="fr">Tiếng Pháp</option>
+        <option value="es">Tiếng Tây Ban Nha</option>
+      </select>
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium">Quốc gia:</label>
+      <select
+        [(ngModel)]="searchParameters.gl"
+        name="gl"
+        class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="us">Hoa Kỳ</option>
+        <option value="vn">Việt Nam</option>
+        <option value="fr">Pháp</option>
+        <option value="de">Đức</option>
+        <option value="jp">Nhật Bản</option>
+      </select>
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium">Bất kỳ từ nào:</label>
+      <input
+        type="text"
+        [(ngModel)]="searchParameters.anyWords"
+        name="anyWords"
+        placeholder="Bất kỳ từ nào (vd: từ1 OR từ2)"
+        class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium">Không có từ nào:</label>
+      <input
+        type="text"
+        [(ngModel)]="searchParameters.notWords"
+        name="notWords"
+        placeholder="Không có từ nào (vd: -từ1)"
+        class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium"
+        >Chọn trang web hoặc tên miền:</label
+      >
+      <div class="flex flex-wrap gap-2">
+        <label
+          *ngFor="let site of dictionaryListSites | keyvalue"
+          class="flex items-center border border-gray-300 rounded-md p-2 transition-colors duration-200"
+          [ngClass]="{ 'bg-blue-100': isSelected(site.key) }"
+        >
+          <input
+            type="checkbox"
+            [value]="site.key"
+            [checked]="isSelected(site.key)"
+            (change)="updateSites.emit($event)"
+            class="mr-2 focus:ring-2 focus:ring-blue-500"
+          />
+          <span class="text-gray-700 truncate">{{ site.value }}</span>
+        </label>
+        <div class="flex items-center border border-gray-300 rounded-md p-2">
+          <input
+            type="text"
+            [(ngModel)]="newDomain"
+            name="newDomain"
+            class="mr-2 p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Nhập tên miền mới"
+          />
+          <button
+            class="text-gray-700 bg-green-200 hover:bg-green-100 rounded-md p-1"
+            (click)="addDomain.emit()"
+          >
+            <span class="material-icons">add</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <button
+      (click)="search.emit()"
+      [disabled]="isLoading"
+      class="bg-blue-500 text-white rounded-md px-4 py-2 flex items-center justify-center gap-2 hover:bg-blue-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+    >
+      <span>{{ isLoading ? "Đang tìm kiếm..." : "Tìm kiếm" }}</span>
+      <span *ngIf="isLoading" class="material-icons animate-spin"
+        >autorenew</span
+      >
+      <span *ngIf="!isLoading" class="material-icons">search</span>
+    </button>
+  </form>
+</div>

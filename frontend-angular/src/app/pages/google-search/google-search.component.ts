@@ -15,6 +15,10 @@ import { SecretTokenRequestDTO } from '../../models/dtos/secret-token-dto/secret
 import { TypeServicesConstants } from '../../constants/type-services-constants';
 import { SecretTokenResponseDTO } from '../../models/dtos/secret-token-dto/secret-token-response-dto';
 import { ModalAnalysisMediaSocialComponent } from '../../components/modal-analysis-media-social/modal-analysis-media-social.component';
+import { SecretTokenPanelComponent } from '../../components/secret-token-panel/secret-token-panel.component';
+import { SearchResultsComponent } from '../../components/search-results/search-results.component';
+import { SearchHistoryComponent } from '../../components/search-history/search-history.component';
+import { SearchFormComponent } from '../../components/search-form/search-form.component';
 
 @Component({
   selector: 'app-google-search',
@@ -22,9 +26,11 @@ import { ModalAnalysisMediaSocialComponent } from '../../components/modal-analys
     CommonModule,
     MatInputModule,
     FormsModule,
-    MatIcon,
     MatIconModule,
-    ModalAnalysisMediaSocialComponent,
+    SearchFormComponent,
+    SecretTokenPanelComponent,
+    SearchResultsComponent,
+    SearchHistoryComponent,
   ],
   templateUrl: './google-search.component.html',
   styleUrls: ['./google-search.component.css'],
@@ -54,7 +60,7 @@ export class GoogleSearchComponent implements OnInit {
 
   errorMessageResponse: string = '';
 
-  keywordModels: KeywordModel[] | null = null;
+  keywordModels: KeywordModel[] | any[] = [];
   showKeywordHistory: boolean = false;
   storedKeywords: string[] = [];
   listSitesSelected: string[] = [];
@@ -89,7 +95,7 @@ export class GoogleSearchComponent implements OnInit {
 
   startDate = new Date();
   endDate = new Date();
-  today = new Date().getDate();
+  today = new Date();
 
   addSecretToken: boolean = false;
   secretTokenDTO: SecretTokenRequestDTO = {
@@ -282,7 +288,7 @@ export class GoogleSearchComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.keywordModels = response.data;
+          this.keywordModels = response.data!; // ? Not good set
           console.log(this.keywordModels);
         },
         error: (err) => {
