@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { ApiService } from '../../utils/http-client-config';
 import { GoogleSearchRequest } from '../../interfaces/googleSearchService/google-search-request';
 import { GeminiResponse } from '../../interfaces/geminiAiService/gemini-response';
@@ -14,7 +14,6 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { SecretTokenRequestDTO } from '../../models/dtos/secret-token-dto/secret-token-request-dto';
 import { TypeServicesConstants } from '../../constants/type-services-constants';
 import { SecretTokenResponseDTO } from '../../models/dtos/secret-token-dto/secret-token-response-dto';
-import { ModalAnalysisMediaSocialComponent } from '../../components/modal-analysis-media-social/modal-analysis-media-social.component';
 import { SecretTokenPanelComponent } from '../../components/secret-token-panel/secret-token-panel.component';
 import { SearchResultsComponent } from '../../components/search-results/search-results.component';
 import { SearchHistoryComponent } from '../../components/search-history/search-history.component';
@@ -43,8 +42,6 @@ export class GoogleSearchComponent implements OnInit {
     });
   }
   isLoading = signal(false);
-  searchQuery: string = '';
-  searchNum: number = 10;
   searchResults: GeminiResponse | null = null;
   searchResultsList: GeminiResponse[] = []; // Mảng lưu trữ kết quả từ nhiều site
   selectedSite: string = ''; // Lưu site đang được chọn để hiển thị
@@ -97,6 +94,7 @@ export class GoogleSearchComponent implements OnInit {
   endDate = new Date();
   today = new Date();
 
+  // ------ Secret Token Management ------
   addSecretToken: boolean = false;
   secretTokenDTO: SecretTokenRequestDTO = {
     name: '',
@@ -120,8 +118,9 @@ export class GoogleSearchComponent implements OnInit {
   // #region [Tìm kiếm Google]
   onSearch() {
     this.isLoading.set(true);
+    /* 
     this.searchParameters.q = this.searchQuery;
-    this.searchParameters.num = this.searchNum;
+    this.searchParameters.num = this.searchNum; */
     this.searchResultsList = [];
 
     // Định dạng lại ngày tháng theo yêu cầu (MM/DD/YYYY)
@@ -136,7 +135,7 @@ export class GoogleSearchComponent implements OnInit {
 
     this.selectedSite = ''; // Reset tab được chọn
 
-    this.storeKeyword(this.searchQuery);
+    this.storeKeyword(this.searchParameters.q);
 
     // Kiểm tra xem có từ khóa nào không
     if (this.listSitesSelected.length === 0) {
@@ -190,12 +189,6 @@ export class GoogleSearchComponent implements OnInit {
             this.selectedSite = response.data!.siteSearch; // Chọn site đầu tiên mặc định
             this.searchResults = response.data!;
           }
-          // Nếu đã có site được load thành công, đưa dữ liệu ra ngoài hiển thị
-          this.isLoading.set(false);
-          console.log(
-            `Result for site ${params.as_sitesearch || 'default'}:`,
-            response
-          );
         },
         error: (err) => {
           console.error(
@@ -289,7 +282,6 @@ export class GoogleSearchComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.keywordModels = response.data!; // ? Not good set
-          console.log(this.keywordModels);
         },
         error: (err) => {
           console.error('Error fetching search results:', err);
@@ -300,7 +292,6 @@ export class GoogleSearchComponent implements OnInit {
 
   // #region [Lấy danh sách từ khóa từ API]
   loadOldAnalysis(keywordId: string) {
-    console.log(keywordId);
     this.apiService
       .getFromApi<GeminiResponse[]>(
         `/Analysis/GetOldAnalysis/${keywordId}`,
@@ -309,7 +300,6 @@ export class GoogleSearchComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.searchResults = response[0];
-          console.log(this.searchResults);
           this.processSearchResults(this.searchResults);
         },
         error: (err) => {
@@ -321,7 +311,6 @@ export class GoogleSearchComponent implements OnInit {
 
   // #region [Phương thức để xử lý kết quả tìm kiếm]
   processSearchResults(response: GeminiResponse): void {
-    console.log(response);
     if (
       response &&
       Array.isArray(response.candidates) &&
@@ -357,8 +346,6 @@ export class GoogleSearchComponent implements OnInit {
     } else {
       this.listSitesSelected = this.listSitesSelected.filter((s) => s !== site);
     }
-
-    console.log('Selected sites:', this.listSitesSelected);
   }
   // #endregion
   // #region [Chọn site để hiển thị kết quả]
@@ -397,7 +384,7 @@ export class GoogleSearchComponent implements OnInit {
     } else if (this.dictionaryListSites[this.newDomain]) {
       console.log('Tên miền đã tồn tại trong từ điển.');
     } else {
-      console.log('Vui lòng nhập tên miền hợp lệ.');
+      console.log('Vui lòng nhập tên miền hợp lệ.', this.newDomain);
     }
   }
   // #endregion
@@ -455,7 +442,6 @@ export class GoogleSearchComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          console.log('Danh sách Secret Token:', response);
           if (response.success && response.data) {
             this.listSecretDTOsMap = {};
             this.listServices.forEach((service) => {

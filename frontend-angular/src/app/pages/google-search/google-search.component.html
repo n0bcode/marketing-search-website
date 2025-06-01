@@ -15,13 +15,13 @@
     <!-- Form Tìm kiếm -->
     <app-search-form
       class="w-full md:w-1/4"
-      [searchQuery]="searchQuery"
       [searchParameters]="searchParameters"
-      [searchNum]="searchNum"
+      (searchParametersChange)="searchParameters = $event"
       [startDate]="startDate"
       [endDate]="endDate"
       [today]="today"
       [dictionaryListSites]="dictionaryListSites"
+      [listSitesSelected]="listSitesSelected"
       [newDomain]="newDomain"
       [isLoading]="isLoading()"
       (search)="onSearch()"

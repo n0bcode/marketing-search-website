@@ -22,12 +22,13 @@ export class SearchResultsComponent {
   @Output() analyzeVideo = new EventEmitter<string>();
 
   isResponseOfSiteHaveValue(site: string): boolean {
-    // Logic kiểm tra giá trị response của site
-    return false; // Thay bằng logic thực tế
+    return (
+      this.searchResultsList.find((x) => x.siteSearch == site)?.showText == null
+    );
   }
 
-  isInSeviceSupport(url: string): boolean {
-    // Logic kiểm tra URL có được hỗ trợ
-    return false; // Thay bằng logic thực tế
+  isInSeviceSupport(link: string): boolean {
+    const supportServices: string[] = ['tiktok.com', 'facebook.com'];
+    return supportServices.some((ss) => link.includes(ss));
   }
 }
