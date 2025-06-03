@@ -41,6 +41,9 @@ export class GoogleSearchComponent implements OnInit {
       this.listSelectSecretToken[service] = '';
     });
   }
+  // ------ Các biến và trạng thái của component ------
+
+  // #region [Các biến và trạng thái của component]
   isLoading = signal(false);
   searchResults: GeminiResponse | null = null;
   searchResultsList: GeminiResponse[] = []; // Mảng lưu trữ kết quả từ nhiều site
@@ -93,6 +96,7 @@ export class GoogleSearchComponent implements OnInit {
   startDate = new Date();
   endDate = new Date();
   today = new Date();
+  // #endregion
 
   // ------ Secret Token Management ------
   addSecretToken: boolean = false;
@@ -397,6 +401,7 @@ export class GoogleSearchComponent implements OnInit {
   }
   // #endregion
 
+  // #region [Xử lí Token Secret]
   /**
    * Gửi yêu cầu tạo mới SecretToken về phía API.
    */
@@ -465,6 +470,9 @@ export class GoogleSearchComponent implements OnInit {
         },
       });
   }
+  // #endregion
+
+  // #region [Xác định link có thể là video content chính hay không.]
   /**
    * Xác định link có thể là video content chính hay không.
    * Trả về 'tiktok', 'youtube', 'facebook', 'google', hoặc 'other'.
@@ -479,6 +487,9 @@ export class GoogleSearchComponent implements OnInit {
     if (url.includes('google.com')) return 'google';
     return 'other';
   }
+  // #endregion
+
+  // #region [Kiểm tra link có nằm trong số dịch vụ xử lí phân tích dữ liệu cùng video]
   /**
    * Kiểm tra link có nằm trong số dịch vụ xử lí phân tích dữ liệu cùng video
    */
@@ -486,7 +497,9 @@ export class GoogleSearchComponent implements OnInit {
     const supportServices: string[] = ['tiktok.com', 'facebook.com'];
     return supportServices.some((ss) => link.includes(ss));
   }
+  // #endregion
 
+  // #region [Phân tích video media]
   // Thêm biến cache vào class
   analysisVideoCache: Record<string, GeminiResponse> = {};
 
@@ -579,4 +592,5 @@ export class GoogleSearchComponent implements OnInit {
       this.isLoadingDataForModal = false;
     }
   }
+  // #endregion
 }
