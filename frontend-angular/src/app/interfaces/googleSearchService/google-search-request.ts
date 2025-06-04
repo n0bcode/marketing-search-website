@@ -56,7 +56,7 @@ export interface GoogleSearchRequest {
   engine: string;
 
   as_epq: string | null;
-  anyWords: string | null;
-  notWords: string | null;
+  as_oq: string | null;
+  as_eq: string | null;
   as_sitesearch: string | null;
 }

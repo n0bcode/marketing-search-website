@@ -86,7 +86,7 @@ namespace Api.Services.SearchServices.Google
         /// </summary>
         /// <returns>Nhập OR giữa tất cả các từ mà bạn muốn: thu nhỏ OR tiêu chuẩn.</returns>
         [NotMapped]
-        public string? anyWords { get; set; }
+        public string? as_oq { get; set; }
 
         /// <summary>
         /// Không có từ nào mà bạn không muốn tìm kiếm trong kết quả tìm kiếm.
@@ -96,7 +96,7 @@ namespace Api.Services.SearchServices.Google
         ///         -loài gặm nhấm, 
         ///         -"Jack Russell"
         /// </returns>
-        public string? notWords { get; set; }
+        public string? as_eq { get; set; }
 
         /// <summary>
         /// Trang web hoặc tên miền mà bạn muốn tìm kiếm trong kết quả tìm kiếm.
@@ -116,6 +116,16 @@ namespace Api.Services.SearchServices.Google
             if (!string.IsNullOrEmpty(as_epq))
             {
                 parameters.Add("as_epq", (as_epq));
+            }
+
+            if (!string.IsNullOrEmpty(as_oq))
+            {
+                parameters.Add("as_oq", (as_oq));
+            }
+
+            if (!string.IsNullOrEmpty(as_eq))
+            {
+                parameters.Add("as_eq", (as_eq));
             }
 
             if (!string.IsNullOrEmpty(as_sitesearch))
@@ -149,22 +159,6 @@ namespace Api.Services.SearchServices.Google
             }
 
             return parameters;
-        }
-        public GoogleResponse FilterGoogleResponse(GoogleResponse response)
-        {
-            // Lọc các kết quả tìm kiếm dựa trên các tham số đã cung cấp
-            if (!string.IsNullOrEmpty(anyWords))
-            {
-                var words = anyWords.Split(new[] { " OR " }, StringSplitOptions.RemoveEmptyEntries);
-                response.Organic = response.Organic.Where(item => words.All(word => item.Title.Contains(word, StringComparison.OrdinalIgnoreCase))).ToList();
-            }
-            if (!string.IsNullOrEmpty(notWords))
-            {
-                var words = notWords.Split(new[] { " OR " }, StringSplitOptions.RemoveEmptyEntries);
-                response.Organic = response.Organic.Where(item => !words.Any(word => item.Title.Contains(word, StringComparison.OrdinalIgnoreCase))).ToList();
-            }
-
-            return response;
         }
         public GoogleRequest(string q, string? gl = null, string? location = null, string? hl = null, string? tbs = null, int? num = null, string? type = null, string? engine = null)
         {
