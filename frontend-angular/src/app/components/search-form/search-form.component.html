@@ -121,8 +121,8 @@
       <label class="block mb-1 text-sm font-medium">Bất kỳ từ nào:</label>
       <input
         type="text"
-        [(ngModel)]="searchParameters.anyWords"
-        name="anyWords"
+        [(ngModel)]="searchParameters.as_oq"
+        name="as_oq"
         placeholder="Bất kỳ từ nào (vd: từ1 OR từ2)"
         class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
@@ -131,8 +131,8 @@
       <label class="block mb-1 text-sm font-medium">Không có từ nào:</label>
       <input
         type="text"
-        [(ngModel)]="searchParameters.notWords"
-        name="notWords"
+        [(ngModel)]="searchParameters.as_eq"
+        name="as_eq"
         placeholder="Không có từ nào (vd: -từ1)"
         class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
       />

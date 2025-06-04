@@ -67,7 +67,7 @@ namespace Api.Controllers
                 });
 
                 // 2. Chuẩn bị dữ liệu cho phân tích
-                string analysisInput = $"Số liệu tìm kiếm phía Google: {GetAnalysisInput(query.FilterGoogleResponse(googleResults))}";
+                string analysisInput = $"Số liệu tìm kiếm phía Google: {GetAnalysisInput(googleResults)}";
 
                 // 3. Phân tích
                 if (string.IsNullOrEmpty(idTokenGeminiChange))

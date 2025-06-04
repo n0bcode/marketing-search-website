@@ -88,8 +88,8 @@ export class GoogleSearchComponent implements OnInit {
     type: 'search',
     engine: 'google',
     as_epq: '',
-    anyWords: '',
-    notWords: '',
+    as_oq: '',
+    as_eq: '',
     as_sitesearch: '',
   };
 
