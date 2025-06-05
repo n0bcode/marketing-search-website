@@ -122,9 +122,6 @@ export class GoogleSearchComponent implements OnInit {
   // #region [Tìm kiếm Google]
   onSearch() {
     this.isLoading.set(true);
-    /* 
-    this.searchParameters.q = this.searchQuery;
-    this.searchParameters.num = this.searchNum; */
     this.searchResultsList = [];
 
     // Định dạng lại ngày tháng theo yêu cầu (MM/DD/YYYY)
@@ -140,6 +137,9 @@ export class GoogleSearchComponent implements OnInit {
     this.selectedSite = ''; // Reset tab được chọn
 
     this.storeKeyword(this.searchParameters.q);
+
+    console.log(this.searchParameters); // ! Over there!!!
+    return
 
     // Kiểm tra xem có từ khóa nào không
     if (this.listSitesSelected.length === 0) {
