@@ -1,349 +1,66 @@
-<div class="container mx-auto">
-  <div class="flex flex-col md:flex-row">
-    <!-- Khu vực Nhập Thông Tin -->
-    <div class="w-full md:w-1/4 p-4">
-      <div class="bg-gray-50 rounded-md shadow-md p-4">
-        <h2 class="text-lg font-bold mb-4">Tìm Kiếm Thông Tin</h2>
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium"
-            >Từ khóa tìm kiếm:</label
-          >
-          <input
-            type="text"
-            [(ngModel)]="searchQuery"
-            placeholder="Nhập từ khóa tìm kiếm (vd: công nghệ, sức khỏe)"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
-        </div>
+<div class="container mx-auto p-4 space-y-6 g-3">
+  <!-- Panel Quản lý Secret Token -->
+  <app-secret-token-panel
+    [isShowViewSettingToken]="isShowViewSettingToken"
+    [listServices]="listServices"
+    [listSecretDTOsMap]="listSecretDTOsMap"
+    [listSelectSecretToken]="listSelectSecretToken"
+    [secretTokenDTO]="secretTokenDTO"
+    (toggleSettings)="isShowViewSettingToken = !isShowViewSettingToken"
+    (createToken)="createSecretToken($event)"
+  ></app-secret-token-panel>
 
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium">Địa điểm:</label>
-          <input
-            type="text"
-            [(ngModel)]="searchParameters.location"
-            placeholder="Địa điểm (vd: New York, Hà Nội)"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
-        </div>
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium">Thời gian:</label>
-          <select
-            [(ngModel)]="searchParameters.tbs"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          >
-            <option value="">Ngẫu nhiên</option>
-            <option value="qdr:d">Trong 1 ngày</option>
-            <option value="qdr:w">Trong 1 tuần</option>
-            <option value="qdr:m">Trong 1 tháng</option>
-            <option value="qdr:y">Trong 1 năm</option>
-            <option value="cdr:1">Tùy chọn lọc theo khoảng thời gian</option>
-          </select>
-        </div>
-        <div
-          class="mb-4 border border-gray-300 rounded-md p-2 border-dashed"
-          *ngIf="searchParameters.tbs === 'cdr:1'"
-        >
-          <label class="block mb-2 text-sm font-medium"
-            >Chọn khoảng thời gian:</label
-          >
+  <!-- Khu vực Tìm kiếm và Kết quả -->
+  <div class="flex flex-col md:flex-row gap-6">
+    <!-- Form Tìm kiếm -->
+    <app-search-form
+      class="w-full md:w-1/4"
+      [searchParameters]="searchParameters"
+      (searchParametersChange)="searchParameters = $event"
+      [startDate]="startDate"
+      [endDate]="endDate"
+      [today]="today"
+      [dictionaryListSites]="dictionaryListSites"
+      [listSitesSelected]="listSitesSelected"
+      [newDomain]="newDomain"
+      [isLoading]="isLoading()"
+      (search)="onSearch()"
+      (updateSites)="updateSelectedSites($event)"
+      (addDomain)="addDomainToDictionary()"
+    ></app-search-form>
 
-          <label class="block mb-1 text-sm">Từ:</label>
-          <input
-            type="date"
-            [(ngModel)]="startDate"
-            [min]="'1999-01-01'"
-            [max]="endDate ? endDate : today"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
-
-          <label class="block mb-1 text-sm">Đến:</label>
-          <input
-            type="date"
-            [(ngModel)]="endDate"
-            [min]="startDate | date : 'yyyy-MM-dd'"
-            [max]="today"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium"
-            >Số lượng kết quả:</label
-          >
-          <input
-            type="number"
-            [(ngModel)]="searchNum"
-            min="10"
-            placeholder="Số lượng kết quả tối đa (vd: 10)"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium">Ngôn ngữ:</label>
-          <select
-            [(ngModel)]="searchParameters.hl"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          >
-            <option value="en">Tiếng Anh</option>
-            <option value="vi">Tiếng Việt</option>
-            <option value="fr">Tiếng Pháp</option>
-            <option value="es">Tiếng Tây Ban Nha</option>
-          </select>
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium">Quốc gia:</label>
-          <select
-            [(ngModel)]="searchParameters.gl"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          >
-            <option value="us">Hoa Kỳ</option>
-            <option value="vn">Việt Nam</option>
-            <option value="fr">Pháp</option>
-            <option value="de">Đức</option>
-            <option value="jp">Nhật Bản</option>
-          </select>
-        </div>
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium"
-            >Cụm từ chính xác:</label
-          >
-          <input
-            type="text"
-            [(ngModel)]="searchParameters.correctPhrase"
-            placeholder="Cụm từ chính xác (vd: 'công nghệ xanh')"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium">Bất kỳ từ nào:</label>
-          <input
-            type="text"
-            [(ngModel)]="searchParameters.anyWords"
-            placeholder="Bất kỳ từ nào (vd: từ1 OR từ2)"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium">Không có từ nào:</label>
-          <input
-            type="text"
-            [(ngModel)]="searchParameters.notWords"
-            placeholder="Không có từ nào (vd: -từ1)"
-            class="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-2 text-sm font-medium"
-            >Chọn trang web hoặc tên miền để tìm kiếm:</label
-          >
-          <div class="flex flex-row gap-2 flex-wrap space-y-2">
-            <!-- <label class="flex items-center">
-              <input
-                type="checkbox"
-                (change)="updateSelectedSites($event)"
-                class="mr-2 focus:ring-2 focus:ring-blue-500"
-              />
-              <span class="text-gray-700 text-left">Tất cả</span>
-            </label> -->
-            <label
-              class="flex items-center border border-gray-300 rounded-md p-2 transition-colors duration-200"
-              [ngClass]="{ 'bg-blue-100': isSelected(site.key) }"
-              *ngFor="let site of dictionaryListSites | keyvalue"
-            >
-              <input
-                type="checkbox"
-                [value]="site.key"
-                [checked]="isSelected(site.key)"
-                (change)="updateSelectedSites($event)"
-                class="mr-2 focus:ring-2 focus:ring-blue-500"
-              />
-              <span class="text-gray-700 text-left truncate">{{
-                site.value
-              }}</span>
-            </label>
-            <div>
-              <label
-                class="flex items-center border border-gray-300 rounded-md p-2 transition-colors duration-200"
-              >
-                <input
-                  type="text"
-                  [(ngModel)]="newDomain"
-                  class="mr-2 p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nhập tên miền mới"
-                />
-                <button
-                  class="text-gray-700 bg-green-200 hover:bg-green-100 rounded-md cursor-pointer"
-                  (click)="addDomainToDictionary()"
-                >
-                  <span class="material-icons">add</span>
-                </button>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <button
-          (click)="onSearch()"
-          [disabled]="isLoading()"
-          [ngClass]="{
-            'bg-gray-300 cursor-not-allowed': isLoading(),
-            'bg-blue-500 hover:bg-blue-600': !isLoading()
-          }"
-          [textContent]="isLoading() ? 'Đang tìm kiếm...' : 'Tìm kiếm'"
-          class="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600 transition"
-        >
-          <span *ngIf="isLoading()" class="material-icons animate-spin">
-            loading
-          </span>
-          <span *ngIf="!isLoading()" class="material-icons">search</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Khu vực Kết Quả và Lịch Sử -->
-    <div class="w-full md:w-3/4 flex flex-col">
-      <!-- Thêm phần hiển thị thông báo lỗi -->
+    <!-- Kết quả và Lịch sử -->
+    <div class="w-full md:w-3/4 space-y-6">
+      <!-- Thông báo lỗi -->
       <div
         *ngIf="errorMessageResponse"
-        class="text-red-500 font-semibold w-100vh"
+        class="text-red-500 font-semibold p-4 bg-red-50 rounded-md"
       >
         {{ errorMessageResponse }}
       </div>
-      <!-- Kết quả phân tích -->
-      <div *ngIf="searchResultsList.length > 0" class="p-4">
-        <div
-          *ngIf="isLoading()"
-          class="text-center text-blue-500 font-semibold"
-        >
-          Loading...
-        </div>
-        <div *ngIf="!isLoading()">
-          <!-- Tab để chọn site -->
-          <div class="flex space-x-2 mb-4">
-            <button
-              *ngFor="let result of searchResultsList"
-              (click)="selectSite(result.siteSearch)"
-              [ngClass]="{
-                'bg-blue-500 text-white': selectedSite === result.siteSearch,
-                'bg-gray-200 text-gray-700': selectedSite !== result.siteSearch
-              }"
-              [disabled]="
-                isResponseOfSiteHaveValue(result.siteSearch) || isLoading()
-              "
-              class="px-4 py-2 rounded-md hover:bg-blue-400 transition"
-            >
-              {{ result.siteSearch || "Mặc định" }} ({{
-                result.generalSearchResultsCount
-              }})
-            </button>
-          </div>
 
-          <!-- Hiển thị kết quả cho site được chọn -->
-          <div class="flex flex-col md:flex-row">
-            <div class="w-full md:w-2/3 p-2">
-              <h2 class="text-xl font-semibold mb-2">
-                Phân tích dữ liệu của AI
-              </h2>
-              <div class="mb-4 p-4 border border-gray-200 rounded-md">
-                <h3 class="font-bold text-lg">Kết quả phân tích:</h3>
-                <div
-                  *ngIf="searchResults"
-                  [innerHTML]="searchResults.showText"
-                ></div>
-                <p *ngIf="!searchResults">Không có dữ liệu cho site này.</p>
-              </div>
-            </div>
-            <div class="w-full md:w-1/3 p-2">
-              <h2 class="text-xl font-semibold mb-2">Kết quả chi tiết:</h2>
-              <div class="h-[100vh] overflow-y-auto">
-                <div
-                  *ngFor="let result of searchResults?.generalSearchResults"
-                  class="mb-4 p-4 border border-gray-200 rounded-md"
-                >
-                  <h3 class="font-bold text-lg">{{ result.title }}</h3>
-                  <p [innerHTML]="result.description" class="text-gray-700"></p>
-                  <p class="text-gray-500">
-                    <span class="font-semibold">Thời gian:</span>
-                    <span class="text-gray-600">
-                      {{ result.date }}
-                    </span>
-                  </p>
-                  <div class="group relative">
-                    <span class="font-semibold">Nguồn:</span>
-                    <a
-                      [href]="result.url"
-                      (mouseenter)="onAnalysisLink(result.url)"
-                      class="text-blue-500 hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Xem thêm
-                    </a>
-                    <div
-                      class="absolute top-full tb-2 w-48 border border-gray-300 rounded-md shadow-lg hidden group-hover:block z-1000"
-                    >
-                      <div
-                        class="text-gray-700 bg-white p-2"
-                        [innerHTML]="
-                          analysisLink?.analysisText ??
-                          'Hiện chưa thể phân tích'
-                        "
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Kết quả tìm kiếm -->
+      <app-search-results
+        [searchResultsList]="searchResultsList"
+        [selectedSite]="selectedSite"
+        [searchResults]="searchResults"
+        [isLoading]="isLoading()"
+        [analysisLink]="analysisLink"
+        [mainDataAnalysisLinkSocialVideo]="mainDataAnalysisLinkSocialVideo"
+        [isShowModal]="isShowModal"
+        [isLoadingDataForModal]="isLoadingDataForModal"
+        (selectSite)="selectSite($event)"
+        (analyzeLink)="onAnalysisLink($event)"
+        (analyzeVideo)="analyzeVideoLink($event)"
+      ></app-search-results>
 
       <!-- Lịch sử tìm kiếm -->
-      <div class="p-4">
-        <div class="bg-gray-100 p-4 border border-gray-300 rounded-md shadow">
-          <button
-            (click)="toggleKeywordHistory(); onTakeKeywordGoogle()"
-            class="flex items-center text-blue-500 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <span class="material-icons mr-2">
-              <mat-icon>{{
-                showKeywordHistory ? "arrow_down" : "arrow_right"
-              }}</mat-icon>
-            </span>
-            <span>{{
-              showKeywordHistory
-                ? "Ẩn lịch sử tìm kiếm"
-                : "Hiện lịch sử tìm kiếm"
-            }}</span>
-          </button>
-          <div
-            [ngClass]="{
-              'h-0 overflow-hidden': !showKeywordHistory,
-              'transition-all duration-300': true
-            }"
-          >
-            <h3 class="font-bold mb-2">Lịch sử tìm kiếm:</h3>
-            <ul>
-              <li
-                *ngFor="let keyword of keywordModels"
-                (click)="loadOldAnalysis(keyword.id)"
-                class="mb-1 p-2 rounded-md bg-white border border-gray-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              >
-                <span class="text-gray-700">{{ keyword.keyword }}</span>
-                <br />
-                <span class="text-gray-500 text-sm">
-                  ({{ keyword.updatedAt | date : "short" }})
-                </span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <app-search-history
+        [showKeywordHistory]="showKeywordHistory"
+        [keywordModels]="keywordModels"
+        (toggleHistory)="toggleKeywordHistory(); onTakeKeywordGoogle()"
+        (loadAnalysis)="loadOldAnalysis($event)"
+      ></app-search-history>
     </div>
   </div>
 </div>

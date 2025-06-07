@@ -12,6 +12,7 @@ namespace Api.Repositories.IRepositories
         IKeywordRepository Keywords { get; }
         // IGeminiAIRepository GeminiAIResponses { get; }
         IAnalysisLinkRepository AnalysisLinks { get; }
+        ISecretTokenRepository SecretTokens { get; }
         Task SaveAsync();
     }
 }

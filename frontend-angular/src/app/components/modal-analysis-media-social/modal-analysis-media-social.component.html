@@ -1,0 +1,81 @@
+<!-- Nút mở modal -->
+<button
+  *ngIf="!isShowModal"
+  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+  (click)="openModal()"
+  aria-label="Phân tích cụ thể"
+>
+  Phân tích cụ thể
+</button>
+
+<!-- Modal overlay -->
+<div
+  *ngIf="isShowModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300"
+  [ngClass]="{
+    'opacity-100': isShowModal,
+    'opacity-0': !isShowModal
+  }"
+  (click)="closeModal()"
+>
+  <div
+    class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg relative transform transition-transform duration-300"
+    [ngClass]="{
+      'scale-100': isShowModal,
+      'scale-95': !isShowModal
+    }"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Nút đóng modal -->
+    <button
+      class="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition text-2xl focus:outline-none"
+      (click)="closeModal()"
+      aria-label="Đóng modal"
+    >
+      <span class="material-icons">close</span>
+    </button>
+
+    <!-- Tiêu đề -->
+    <h2 class="text-xl font-semibold mb-4 text-gray-800">
+      Phân tích mạng xã hội
+    </h2>
+
+    <!-- Trạng thái loading -->
+    <div
+      *ngIf="isLoading"
+      class="flex items-center gap-3 text-blue-600 p-4 bg-blue-50 rounded-md"
+    >
+      <span class="animate-spin material-icons">autorenew</span>
+      <span>Đang tải dữ liệu, vui lòng chờ...</span>
+    </div>
+
+    <!-- Không có dữ liệu -->
+    <div
+      *ngIf="!isLoading && !data"
+      class="text-gray-500 p-4 bg-gray-50 rounded-md text-center"
+    >
+      Không có dữ liệu để hiển thị.
+    </div>
+
+    <!-- Có dữ liệu -->
+    <div
+      *ngIf="!isLoading && data"
+      class="bg-gray-100 rounded-lg p-4 text-sm overflow-x-auto"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div
+          [innerHTML]="data.showText"
+          class="prose prose-sm max-w-none text-gray-700"
+        ></div>
+        <div class="text-gray-600">{{ data.note }}</div>
+      </div>
+    </div>
+
+    <!-- Debug info (ẩn trong production) -->
+    <!-- <div *ngIf="isDebug" class="mt-4 text-xs text-gray-500">
+      <p>Loading: {{ isLoading }}</p>
+      <p>Modal Visible: {{ isShowModal }}</p>
+      <p>Data: {{ data | json }}</p>
+    </div> -->
+  </div>
+</div>
