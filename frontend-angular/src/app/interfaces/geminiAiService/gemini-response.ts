@@ -6,6 +6,7 @@ export interface GeminiResponse {
   generalSearchResults: GeneralSearchResult[];
   generalSearchResultsCount: number;
   siteSearch: string;
+  note: string;
 }
 
 // #region [MAIN INTERFACE]

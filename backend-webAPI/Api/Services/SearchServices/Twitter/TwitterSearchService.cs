@@ -53,7 +53,7 @@ namespace Api.Services.SearchServices.Twitter
                 else if ((int)response.StatusCode == 429)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Error content: {JsonConvert.DeserializeObject<ErrorResponse>(errorContent)!}");
+                    Console.WriteLine($"Error content: {errorContent}");
                 }
                 else
                 {

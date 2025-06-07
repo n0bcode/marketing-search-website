@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Api.Helpers;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
@@ -28,6 +29,18 @@ namespace Api.Controllers
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+        [HttpGet("test-encrypt")]
+        public IActionResult TestEncrypt(string samplePassword)
+        {
+            var encryptedPassword = EncryptionHelper.Encrypt(samplePassword);
+            return Ok(new { EncryptedPassword = encryptedPassword });
+        }
+        [HttpGet("test-decrypt")]
+        public IActionResult TestDecrypt(string encryptedPassword)
+        {
+            var decryptedPassword = EncryptionHelper.Decrypt(encryptedPassword);
+            return Ok(new { DecryptedPassword = decryptedPassword });
         }
     }
 }

@@ -39,13 +39,19 @@ namespace Api.Controllers
         [ProducesResponseType(typeof(GeminiAIResponse), 200)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [HttpPost]
-        public async Task<IActionResult> SearchGoogleAndAnalysis(GoogleRequest query)
+        public async Task<IActionResult> SearchGoogleAndAnalysis([FromBody] GoogleRequest query, [FromQuery] string? idTokenGoogleChange, [FromQuery] string? idTokenGeminiChange)
         {
             ResponseAPI<GeminiAIResponse>? response = new();
             try
             {
                 // 1. Tìm kiếm
-                var googleResults = await _searchService.SearchAsync(query);
+                GoogleResponse? googleResults = new();
+                if (string.IsNullOrEmpty(idTokenGoogleChange))
+                {
+                    googleResults = await _searchService.SearchAsync(query);
+                }
+                else googleResults = await _searchService.SearchWithUserTokenCofigAsync(query, idTokenGoogleChange);
+
 
                 // Kiểm tra kết quả tìm kiếm
                 if (googleResults == null || googleResults.Organic == null || !googleResults.Organic.Any())
@@ -61,11 +67,14 @@ namespace Api.Controllers
                 });
 
                 // 2. Chuẩn bị dữ liệu cho phân tích
-                string analysisInput = $"Số liệu tìm kiếm phía Google: {GetAnalysisInput(query.FilterGoogleResponse(googleResults))}";
+                string analysisInput = $"Số liệu tìm kiếm phía Google: {GetAnalysisInput(googleResults)}";
 
                 // 3. Phân tích
-                response = await _geminiService.AnalyzeAsync(new GeminiRequest(query.q, analysisInput));
-
+                if (string.IsNullOrEmpty(idTokenGeminiChange))
+                {
+                    response = await _geminiService.AnalyzeAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query.q, analysisInput));
+                }
+                else response = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query.q, analysisInput), idTokenGeminiChange);
                 // 4. Xử lý kết quả
                 if (response == null)
                 {
@@ -85,7 +94,7 @@ namespace Api.Controllers
 
                 // Kết hợp kết quả tìm kiếm Google vào kết quả phân tích
                 response.Data.GeneralSearchResults.AddRange(googleResults.ToGeneralSearchResults());
-                response.Data.SiteSearch = query.site;
+                response.Data.SiteSearch = query.as_sitesearch;
 
                 return Ok(response);
             }
@@ -95,172 +104,10 @@ namespace Api.Controllers
                 return BadRequest(response);
             }
         }
-
         [ProducesResponseType(typeof(GeminiAIResponse), 200)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [HttpPost]
-        public async Task<IActionResult> SearchTwitterAndAnalysis(TwitterSearchTweetRequest twitterRequest)
-        {
-            try
-            {
-                // 1. Tìm kiếm
-                var resultTwitter = await _searchServiceTwitter.SearchAsync(twitterRequest);
-
-                // Kiểm tra kết quả tìm kiếm
-                if (resultTwitter == null || resultTwitter.Data == null || !resultTwitter.Data.Any())
-                {
-                    _logger.LogWarning("Không có kết quả tìm kiếm Twitter cho truy vấn: {Query}", twitterRequest.Query);
-                    return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả tìm kiếm Twitter."));
-                }
-
-                var responseAddKey = await _unit.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
-                {
-                    Keyword = twitterRequest.Query,
-                    Source = $"Twitter-Tweet",
-                });
-
-                // 2. Chuẩn bị dữ liệu cho phân tích
-                string analysisInput = $"Số liệu tìm kiếm phía Twitter: {GetAnalysisInput(resultTwitter)}";
-
-                // 3. Phân tích
-                var analysisResult = await _geminiService.AnalyzeAsync(new GeminiRequest(twitterRequest.Query, analysisInput));
-
-                // 4. Xử lý kết quả
-                if (analysisResult == null)
-                {
-                    _logger.LogWarning("Không tìm thấy kết quả phân tích cho truy vấn: {Query}", twitterRequest.Query);
-                    return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả phân tích."));
-                }
-
-                if (analysisResult.Data == null)
-                {
-                    _logger.LogWarning("Không có dữ liệu phân tích cho truy vấn: {Query}", twitterRequest.Query);
-                    return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không có dữ liệu phân tích."));
-                }
-
-                analysisResult.Data.KeywordId = responseAddKey.Data!; // Gán ID từ bảng Keywords vào kết quả phân tích
-                DataSaver.SaveData(analysisResult, $"Gemini-Tweet", responseAddKey.Data!);
-                DataSaver.SaveData(resultTwitter!, $"Twitter-Tweet", responseAddKey.Data!);
-
-                // Kết hợp kết quả tìm kiếm Twitter vào kết quả phân tích
-                analysisResult.Data.GeneralSearchResults.AddRange(resultTwitter.ToGeneralSearchResults());
-
-                return Ok(analysisResult);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Đã xảy ra lỗi trong quá trình tìm kiếm và phân tích Twitter cho truy vấn: {Query}", twitterRequest.Query);
-                return StatusCode(500, ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 500, title: "Lỗi máy chủ nội bộ.", detail: "Đã xảy ra lỗi không mong muốn."));
-            }
-        }
-
-        [ProducesResponseType(typeof(GeminiAIResponse), 200)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [HttpPost]
-        public async Task<IActionResult> SearchAllPlatformAndAnalysis(AllRequestPlatform request)
-        {
-            try
-            {
-                // 1. Tìm kiếm trên Google
-                var googleResults = await _searchService.SearchAsync(request.GoogleRequest);
-
-                // Kiểm tra kết quả tìm kiếm Google
-                if (googleResults == null || googleResults.Organic == null || !googleResults.Organic.Any())
-                {
-                    _logger.LogWarning("Không có kết quả tìm kiếm Google cho truy vấn: {Query}", request.GoogleRequest.q);
-                    return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả tìm kiếm Google."));
-                }
-
-                var responseAddKeyGoogle = await _unit.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
-                {
-                    Keyword = request.GoogleRequest.q,
-                    Source = $"Google-{request.GoogleRequest.type}",
-                });
-
-                // 2. Tìm kiếm trên Twitter
-                if (string.IsNullOrEmpty(request.TwitterSearchTweetRequest.Query))
-                {
-                    _logger.LogWarning("Không có truy vấn tìm kiếm Twitter.");
-                    return BadRequest(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 400, title: "Truy vấn tìm kiếm Twitter không hợp lệ."));
-                }
-                var resultTwitter = await _searchServiceTwitter.SearchAsync(request.TwitterSearchTweetRequest);
-
-                // Kiểm tra kết quả tìm kiếm Twitter
-                if (resultTwitter == null || resultTwitter.Data == null || !resultTwitter.Data.Any())
-                {
-                    _logger.LogWarning("Không có kết quả tìm kiếm Twitter cho truy vấn: {Query}", request.TwitterSearchTweetRequest.Query);
-                    return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả tìm kiếm Twitter."));
-                }
-
-                var responseAddKeyTwitter = await _unit.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
-                {
-                    Keyword = request.TwitterSearchTweetRequest.Query,
-                    Source = $"Twitter-Tweet",
-                });
-
-                // 3. Chuẩn bị dữ liệu cho phân tích
-                string googleAnalysisInput = $"Số liệu tìm kiếm phía Google: {GetAnalysisInput(googleResults!)}";
-                string twitterAnalysisInput = $"Số liệu tìm kiếm phía Twitter: {GetAnalysisInput(resultTwitter)}";
-
-                // 4. Phân tích
-                var googleAnalysisResult = await _geminiService.AnalyzeAsync(new GeminiRequest(request.GoogleRequest.q, googleAnalysisInput));
-                var twitterAnalysisResult = await _geminiService.AnalyzeAsync(new GeminiRequest(request.TwitterSearchTweetRequest.Query, twitterAnalysisInput));
-
-                // 5. Xử lý kết quả Google
-                if (googleAnalysisResult == null)
-                {
-                    _logger.LogWarning("Không tìm thấy kết quả phân tích cho truy vấn Google: {Query}", request.GoogleRequest.q);
-                    return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả phân tích Google."));
-                }
-
-                // 6. Xử lý kết quả Twitter
-                if (twitterAnalysisResult == null)
-                {
-                    _logger.LogWarning("Không tìm thấy kết quả phân tích cho truy vấn Twitter: {Query}", request.TwitterSearchTweetRequest.Query);
-                    return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả phân tích Twitter."));
-                }
-
-                if (googleAnalysisResult.Data == null)
-                {
-                    _logger.LogWarning("Không có dữ liệu phân tích cho truy vấn Google: {Query}", request.GoogleRequest.q);
-                    return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không có dữ liệu phân tích Google."));
-                }
-                if (twitterAnalysisResult.Data == null)
-                {
-                    _logger.LogWarning("Không có dữ liệu phân tích cho truy vấn Twitter: {Query}", request.TwitterSearchTweetRequest.Query);
-                    return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không có dữ liệu phân tích Twitter."));
-                }
-
-                // 7. Gán ID từ bảng Keywords vào kết quả phân tích
-                googleAnalysisResult.Data.KeywordId = responseAddKeyGoogle.Data!;
-                twitterAnalysisResult.Data.KeywordId = responseAddKeyTwitter.Data!;
-
-                // 8. Lưu dữ liệu phân tích
-                DataSaver.SaveData(googleAnalysisResult, $"Gemini-Google", responseAddKeyGoogle.Data!);
-                DataSaver.SaveData(twitterAnalysisResult, $"Gemini-Twitter", responseAddKeyTwitter.Data!);
-
-                // 9. Kết hợp kết quả tìm kiếm vào kết quả phân tích
-                googleAnalysisResult.Data.GeneralSearchResults.AddRange(googleResults.ToGeneralSearchResults());
-                twitterAnalysisResult.Data.GeneralSearchResults.AddRange(resultTwitter.ToGeneralSearchResults());
-
-                // 10. Trả về kết quả phân tích
-                return Ok(new
-                {
-                    GoogleAnalysisResult = googleAnalysisResult,
-                    TwitterAnalysisResult = twitterAnalysisResult
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Đã xảy ra lỗi trong quá trình tìm kiếm và phân tích trên cả hai nền tảng.");
-                return StatusCode(500, ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 500, title: "Lỗi máy chủ nội bộ.", detail: "Đã xảy ra lỗi không mong muốn."));
-            }
-        }
-
-        [ProducesResponseType(typeof(GeminiAIResponse), 200)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [HttpPost]
-        public async Task<IActionResult> AnalysisLink(string? link)
+        public async Task<IActionResult> AnalysisLink(string? link, string? idTokenChange)
         {
             if (link == null) return StatusCode(500);
 
@@ -268,15 +115,24 @@ namespace Api.Controllers
 
             if (analysisLinkOrNot == null || String.IsNullOrEmpty(analysisLinkOrNot.AnalysisText))
             {
-                GeminiRequest geminiRequest = new GeminiRequest(link);
+                GeminiAIRequest geminiRequest = GeminiAIRequest.CreateWithPrompt(link, false);
 
-                var response = await _geminiService.AnalyzeAsync(geminiRequest);
+                ResponseAPI<GeminiAIResponse>? response = new();
+                if (string.IsNullOrEmpty(idTokenChange))
+                {
+                    response = await _geminiService.AnalyzeAsync(geminiRequest);
+                }
+                else
+                {
+                    response = await _geminiService.AnalyzeWithTokenUserConfigAsync(geminiRequest, idTokenChange);
+                }
+
                 if (response == null || response.Data == null)
                 {
                     _logger.LogWarning("Không tìm thấy kết quả phân tích cho liên kết: {Link}", link);
                     return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả phân tích."));
                 }
-                var analysisLink = await _unit.AnalysisLinks.AddOrUpdateText(new AnalysisLink() { Link = link, AnalysisText = String.Join("", response.Data.Candidates[0].Content.Parts.Select(x => x.Text)) });
+                var analysisLink = await _unit.AnalysisLinks.AddOrUpdateText(new AnalysisLink() { LinkOrKeyword = link, AnalysisText = String.Join("", response.Data.Candidates[0].Content.Parts.Select(x => x.Text)) });
                 analysisLinkOrNot = analysisLink;
             }
 

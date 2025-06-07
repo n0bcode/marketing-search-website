@@ -24,6 +24,7 @@ namespace Api.Data
         // public DbSet<GeminiAIResponse> GeminiAIResponses { get; set; }
         public DbSet<AnalysisLink> AnalysisLinks { get; set; }
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<KeywordModel>(entity =>

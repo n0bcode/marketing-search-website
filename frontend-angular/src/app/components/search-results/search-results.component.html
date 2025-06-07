@@ -1,0 +1,91 @@
+<!-- search-results.component.html -->
+<div *ngIf="searchResultsList.length > 0" class="space-y-4">
+  <!-- Tab chọn site -->
+  <div class="flex flex-wrap gap-2">
+    <button
+      *ngFor="let result of searchResultsList"
+      (click)="selectSite.emit(result.siteSearch)"
+      [ngClass]="{
+        'bg-blue-500 text-white': selectedSite === result.siteSearch,
+        'bg-gray-200 text-gray-700': selectedSite !== result.siteSearch
+      }"
+      [disabled]="isLoading || isResponseOfSiteHaveValue(result.siteSearch)"
+      class="px-4 py-2 rounded-md hover:bg-blue-400 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+    >
+      {{ result.siteSearch || "Mặc định" }} ({{
+        result.generalSearchResultsCount
+      }})
+    </button>
+  </div>
+
+  <!-- Kết quả phân tích -->
+  <div class="flex flex-col md:flex-row gap-4">
+    <div class="w-full md:w-2/3 p-4 bg-gray-50 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-2">Phân tích dữ liệu của AI</h2>
+      <div class="p-4 border border-gray-200 rounded-md">
+        <h3 class="font-bold text-lg">Kết quả phân tích:</h3>
+        <div *ngIf="isLoading" class="text-center">
+          <span class="text-blue-500 font-semibold">Loading...</span>
+          <div
+            class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full text-blue-500"
+          ></div>
+        </div>
+        <div *ngIf="!isLoading">
+          <div *ngIf="searchResults" [innerHTML]="searchResults.showText"></div>
+          <p *ngIf="!searchResults" class="text-gray-500">
+            Không có dữ liệu cho site này.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="w-full md:w-1/3 p-4">
+      <h2 class="text-xl font-semibold mb-2">Kết quả chi tiết:</h2>
+      <div class="max-h-[70vh] overflow-y-auto space-y-4">
+        <div
+          *ngFor="let result of searchResults?.generalSearchResults"
+          class="p-4 border border-gray-200 rounded-md"
+        >
+          <h3 class="font-bold text-lg">{{ result.title }}</h3>
+          <p [innerHTML]="result.description" class="text-gray-700"></p>
+          <p class="text-gray-500">
+            <span class="font-semibold">Thời gian:</span> {{ result.date }}
+          </p>
+          <div class="flex flex-col gap-2">
+            <div class="group relative">
+              <span class="font-semibold">Nguồn:</span>
+              <a
+                [href]="result.url"
+                (mouseenter)="analyzeLink.emit(result.url)"
+                class="text-blue-500 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Xem thêm
+              </a>
+              <div
+                class="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg hidden group-hover:block z-10 p-2"
+              >
+                <div
+                  [innerHTML]="
+                    analysisLink?.analysisText ?? 'Hiện chưa thể phân tích'
+                  "
+                ></div>
+              </div>
+            </div>
+            <div *ngIf="isInSeviceSupport(result.url)">
+              <app-modal-analysis-media-social
+                [data]="mainDataAnalysisLinkSocialVideo"
+                [isShowModal]="isShowModal"
+                [isLoading]="isLoadingDataForModal"
+                (click)="analyzeVideo.emit(result.url)"
+              ></app-modal-analysis-media-social>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="isLoading" class="text-center text-blue-500 font-semibold">
+          Loading...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
