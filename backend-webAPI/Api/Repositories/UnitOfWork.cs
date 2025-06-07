@@ -18,12 +18,14 @@ namespace Api.Repositories
             _context = context;
             Keywords = new KeywordRepository(_context);
             AnalysisLinks = new AnalysisLinkRepository(_context);
+            SecretTokens = new SecretTokenRepository(_context);
             // GeminiAIResponses = new GeminiAIRepository(_context);
         }
 
         public IKeywordRepository Keywords { get; private set; }
         // public IGeminiAIRepository GeminiAIResponses { get; private set; }
         public IAnalysisLinkRepository AnalysisLinks { get; private set; }
+        public ISecretTokenRepository SecretTokens { get; private set; }
 
         public async Task SaveAsync()
         {

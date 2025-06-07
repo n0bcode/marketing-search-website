@@ -1,12 +1,13 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using Api.DTOs.SecretTokenDTO;
 
 namespace Api.Models
 {
     public class SecretToken
     {
         [Key]
-        public Guid Id { get; set; } = Guid.NewGuid(); // Sử dụng GUID cho Id
+        public string Id { get; set; } = Guid.NewGuid().ToString(); // Sử dụng GUID cho Id
 
         [Required]
         [StringLength(100)] // Giới hạn chiều dài
@@ -14,7 +15,7 @@ namespace Api.Models
 
         [Required]
         [StringLength(500)] // Giới hạn chiều dài
-        public string Token { get; set; } = string.Empty; // Nên mã hóa token
+        public string Token { get; set; } = string.Empty; // Mã hóa token
 
         [Required]
         public string Service { get; set; } = string.Empty;
@@ -26,7 +27,18 @@ namespace Api.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public bool IsActive { get; set; } = true; // Trạng thái token
-
-        public DateTime? ExpirationDate { get; set; } // Ngày hết hạn
+    }
+    public static class SecretTokenReponseDTOExtensions
+    {
+        public static SecretTokenResponseDTO Format(this SecretToken secretToken)
+        {
+            return new SecretTokenResponseDTO
+            (
+                secretToken.Id,
+                secretToken.Name,
+                secretToken.Service,
+                secretToken.Note
+            );
+        }
     }
 }

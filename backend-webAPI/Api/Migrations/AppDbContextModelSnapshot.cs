@@ -30,7 +30,15 @@ namespace Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Link")
+                    b.Property<string>("LinkOrKeyword")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResultData")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -86,14 +94,10 @@ namespace Api.Migrations
 
             modelBuilder.Entity("Api.Models.SecretToken", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("ExpirationDate")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
