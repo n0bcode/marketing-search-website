@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Api.Models
 {
     public class AnalysisLink
     {
         [Key]
+        [BsonId]
         public int Id { get; set; }
         public string LinkOrKeyword { get; set; } = string.Empty;
         public string Platform { get; set; } = string.Empty;

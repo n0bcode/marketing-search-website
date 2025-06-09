@@ -1,6 +1,7 @@
 ﻿using Api.Constants;
 using Api.Models;
 using Api.Repositories.IRepositories;
+using Api.Repositories.MongoDb;
 using Api.Services.AIServices.Gemini;
 using Api.Services.SearchServices;
 using Api.Services.SearchServices.Google;
@@ -21,14 +22,21 @@ namespace Api.Controllers
         private readonly TwitterSearchService _searchServiceTwitter;
         private readonly GeminiAIService _geminiService;
         private readonly IUnitOfWork _unit;
+        private readonly IUnitOfWorkMongo _unitMongo;
         private readonly ILogger<SearchController> _logger; // Thêm logger
 
-        public AnalysisController(GoogleSearchService searchService, TwitterSearchService searchServiceTwitter, GeminiAIService geminiAIService, IUnitOfWork unitOfWork, ILogger<SearchController> logger)
+        public AnalysisController(GoogleSearchService searchService,
+                                  TwitterSearchService searchServiceTwitter,
+                                  GeminiAIService geminiAIService,
+                                  IUnitOfWork unitOfWork,
+                                  IUnitOfWorkMongo unitOfWorkMongo,
+                                  ILogger<SearchController> logger)
         {
             _searchService = searchService;
             _searchServiceTwitter = searchServiceTwitter;
             _geminiService = geminiAIService;
             _unit = unitOfWork;
+            _unitMongo = unitOfWorkMongo;
             _logger = logger;
         }
         [HttpGet]
@@ -36,6 +44,29 @@ namespace Api.Controllers
         {
             return Ok("Good@");
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="idTokenGoogleChange"></param>
+        /// <param name="idTokenGeminiChange"></param>
+        /// <remarks>
+        /// {
+        ///   "q": "Cảm giác mệt và nóng người thì cần làm gì",
+        ///   "gl": "VN",
+        ///   "location": "Hà Nội",
+        ///   "hl": "vi",
+        ///   "tbs": "qdr:d",
+        ///   "num": 10,
+        ///   "type": "text",
+        ///   "engine": "search",
+        ///   "as_epq": "",
+        ///   "as_oq": "",
+        ///   "as_eq": "",
+        ///   "as_sitesearch": ""
+        /// }
+        /// </remarks>
+        /// <returns></returns>
         [ProducesResponseType(typeof(GeminiAIResponse), 200)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [HttpPost]
@@ -60,7 +91,7 @@ namespace Api.Controllers
                     throw new Exception("Không có kết quả tìm kiếm Google cho truy vấn: " + query.q);
                 }
 
-                var responseAddKey = await _unit.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
+                var responseAddKey = await _unitMongo.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
                 {
                     Keyword = query.q,
                     Source = $"Google-{query.type}",
@@ -111,7 +142,7 @@ namespace Api.Controllers
         {
             if (link == null) return StatusCode(500);
 
-            AnalysisLink? analysisLinkOrNot = await _unit.AnalysisLinks.GetAnalysisLinkOrNot(link);
+            AnalysisLink? analysisLinkOrNot = await _unitMongo.AnalysisLinks.GetAnalysisLinkOrNot(link);
 
             if (analysisLinkOrNot == null || String.IsNullOrEmpty(analysisLinkOrNot.AnalysisText))
             {
@@ -132,7 +163,7 @@ namespace Api.Controllers
                     _logger.LogWarning("Không tìm thấy kết quả phân tích cho liên kết: {Link}", link);
                     return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả phân tích."));
                 }
-                var analysisLink = await _unit.AnalysisLinks.AddOrUpdateText(new AnalysisLink() { LinkOrKeyword = link, AnalysisText = String.Join("", response.Data.Candidates[0].Content.Parts.Select(x => x.Text)) });
+                var analysisLink = await _unitMongo.AnalysisLinks.AddOrUpdateText(new AnalysisLink() { LinkOrKeyword = link, AnalysisText = String.Join("", response.Data.Candidates[0].Content.Parts.Select(x => x.Text)) });
                 analysisLinkOrNot = analysisLink;
             }
 

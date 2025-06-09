@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Api.Repositories;
 using Api.Services.AIServices.Gemini;
+using MongoDB.Bson.Serialization.Attributes;
 
 
 namespace Api.Models
@@ -14,6 +15,7 @@ namespace Api.Models
     public class KeywordModel
     {
         [Key]
+        [BsonId]
         public string Id { get; set; } = Guid.NewGuid().ToString(); // Ensure Id is set to a new Guid
 
         [Required]

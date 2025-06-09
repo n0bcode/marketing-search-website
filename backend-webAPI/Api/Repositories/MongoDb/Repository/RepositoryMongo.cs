@@ -4,18 +4,36 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Api.Data;
-using Api.Repositories.IRepositories;
+using Api.Models;
 using MongoDB.Driver;
 
-namespace Api.Repositories
+namespace Api.Repositories.MongoDb
 {
     public class RepositoryMongo<T> : IRepositoryMongo<T> where T : class
     {
         protected readonly IMongoCollection<T> _collection;
+        private IMongoCollection<KeywordModel> keywords;
+        private IMongoCollection<AnalysisLink> analysisLinks;
+        private IMongoCollection<SecretToken> secretTokens;
 
         public RepositoryMongo(MongoDbContext context, string collectionName)
         {
             _collection = context.GetType().GetProperty(collectionName).GetValue(context) as IMongoCollection<T>;
+        }
+
+        public RepositoryMongo(IMongoCollection<KeywordModel> keywords)
+        {
+            this.keywords = keywords;
+        }
+
+        public RepositoryMongo(IMongoCollection<AnalysisLink> analysisLinks)
+        {
+            this.analysisLinks = analysisLinks;
+        }
+
+        public RepositoryMongo(IMongoCollection<SecretToken> secretTokens)
+        {
+            this.secretTokens = secretTokens;
         }
 
         public async Task AddAsync(T entity)
@@ -40,14 +58,14 @@ namespace Api.Repositories
             return await _collection.Find(filter).AnyAsync();
         }
 
-        public void Remove(T entity)
+        public async Task RemoveAsync(Expression<Func<T, bool>> filter)
         {
-            // Cần xác định khóa chính để xóa
+            await _collection.DeleteOneAsync(filter);
         }
 
-        public void RemoveRange(IEnumerable<T> entities)
+        public async Task RemoveRangeAsync(Expression<Func<T, bool>> filter)
         {
-            // Cần xác định khóa chính để xóa nhiều
+            await _collection.DeleteManyAsync(filter);
         }
     }
 }
