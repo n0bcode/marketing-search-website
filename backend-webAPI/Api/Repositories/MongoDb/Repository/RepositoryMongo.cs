@@ -12,28 +12,10 @@ namespace Api.Repositories.MongoDb
     public class RepositoryMongo<T> : IRepositoryMongo<T> where T : class
     {
         protected readonly IMongoCollection<T> _collection;
-        private IMongoCollection<KeywordModel> keywords;
-        private IMongoCollection<AnalysisLink> analysisLinks;
-        private IMongoCollection<SecretToken> secretTokens;
 
         public RepositoryMongo(MongoDbContext context, string collectionName)
         {
             _collection = context.GetType().GetProperty(collectionName).GetValue(context) as IMongoCollection<T>;
-        }
-
-        public RepositoryMongo(IMongoCollection<KeywordModel> keywords)
-        {
-            this.keywords = keywords;
-        }
-
-        public RepositoryMongo(IMongoCollection<AnalysisLink> analysisLinks)
-        {
-            this.analysisLinks = analysisLinks;
-        }
-
-        public RepositoryMongo(IMongoCollection<SecretToken> secretTokens)
-        {
-            this.secretTokens = secretTokens;
         }
 
         public async Task AddAsync(T entity)

@@ -10,7 +10,7 @@ namespace Api.Repositories.MongoDb
 {
     public class AnalysisLinkRepositoryMongo : RepositoryMongo<AnalysisLink>, IAnalysisLinkRepositoryMongo
     {
-        public AnalysisLinkRepositoryMongo(MongoDbContext context) : base(context.AnalysisLinks) { }
+        public AnalysisLinkRepositoryMongo(MongoDbContext context) : base(context, "AnalysisLinks") { }
 
         public async Task<AnalysisLink?> GetAnalysisLinkOrNot(string linkOrKeyword)
         {

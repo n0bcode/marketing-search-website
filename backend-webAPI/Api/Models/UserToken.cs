@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Constants;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Api.Models
@@ -15,7 +16,8 @@ namespace Api.Models
     {
         [Key]
         [BsonId]
-        public int Id { get; set; } // Khóa chính
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? Id { get; set; } // = Guid.NewGuid().ToString(); // Ensure Id is set to a new Guid
 
         /// <summary>
         ///     Token mà người dùng cung cập cho dịch vụ.

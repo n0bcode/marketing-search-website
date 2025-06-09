@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Api.Repositories;
 using Api.Services.AIServices.Gemini;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 
 
 namespace Api.Models
@@ -16,7 +17,8 @@ namespace Api.Models
     {
         [Key]
         [BsonId]
-        public string Id { get; set; } = Guid.NewGuid().ToString(); // Ensure Id is set to a new Guid
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? Id { get; set; } // = Guid.NewGuid().ToString(); // Ensure Id is set to a new Guid
 
         [Required]
         [StringLength(100)]
