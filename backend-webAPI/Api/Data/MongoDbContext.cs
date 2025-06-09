@@ -16,7 +16,7 @@ namespace Api.Data
             _db = client.GetDatabase("marketingSearch");
         }
 
-        public IMongoCollection<AnalysisLink> AnalysisLinks => _db.GetCollection<AnalysisLink>("AnalysisLink");
+        public IMongoCollection<AnalysisLink> AnalysisLinks => _db.GetCollection<AnalysisLink>("AnalysisLinks");
         public IMongoCollection<KeywordModel> Keywords => _db.GetCollection<KeywordModel>("Keywords");
         public IMongoCollection<SecretToken> SecretTokens => _db.GetCollection<SecretToken>("SecretTokens");
     }

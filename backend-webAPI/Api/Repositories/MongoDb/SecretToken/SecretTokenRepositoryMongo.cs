@@ -15,7 +15,7 @@ namespace Api.Repositories.MongoDb
 {
     public class SecretTokenRepositoryMongo : RepositoryMongo<SecretToken>, ISecretTokenRepositoryMongo
     {
-        public SecretTokenRepositoryMongo(MongoDbContext context) : base(context.SecretTokens) { }
+        public SecretTokenRepositoryMongo(MongoDbContext context) : base(context, "SecretTokens") { }
 
 
         public async Task<SecretToken?> GetByIdAsync(string id)
