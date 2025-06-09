@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using Microsoft.Extensions.Hosting;
 using Api.Automations;
+using Api.Repositories.MongoDb;
 
 namespace Api
 {

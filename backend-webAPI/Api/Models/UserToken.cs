@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Constants;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Api.Models
 {
@@ -13,6 +14,7 @@ namespace Api.Models
     public class UserToken
     {
         [Key]
+        [BsonId]
         public int Id { get; set; } // Khóa chính
 
         /// <summary>
