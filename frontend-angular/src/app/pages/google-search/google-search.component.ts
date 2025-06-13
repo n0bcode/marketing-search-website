@@ -19,9 +19,6 @@ import { SearchResultsComponent } from '../../components/search-results/search-r
 import { SearchHistoryComponent } from '../../components/search-history/search-history.component';
 import { SearchFormComponent } from '../../components/search-form/search-form.component';
 
-import * as XLSX from 'xlsx';
-import * as FileSaver from 'file-saver';
-
 @Component({
   selector: 'app-google-search',
   imports: [
@@ -142,7 +139,7 @@ export class GoogleSearchComponent implements OnInit {
     this.storeKeyword(this.searchParameters.q);
 
     console.log(this.searchParameters); // ! Over there!!!
-    return;
+    // return;
 
     // Kiểm tra xem có từ khóa nào không
     if (this.listSitesSelected.length === 0) {
@@ -594,34 +591,6 @@ export class GoogleSearchComponent implements OnInit {
       console.warn(err);
       this.isLoadingDataForModal = false;
     }
-  }
-  // #endregion
-
-  // #region [Xử lí xuất dữ liệu tìm kiếm ra file excel]
-  exportToExcel(): void {
-    // Chọn dữ liệu muốn xuất, ví dụ: this.searchResultsList hoặc this.keywordModels
-    const data = this.searchResultsList.map((item) => ({
-      'Từ khóa': item.siteSearch,
-      'Kết quả': item.showText,
-      // Thêm các trường khác nếu muốn
-    }));
-
-    // Tạo worksheet và workbook
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
-    const workbook: XLSX.WorkBook = {
-      Sheets: { 'Kết quả tìm kiếm': worksheet },
-      SheetNames: ['Kết quả tìm kiếm'],
-    };
-
-    // Xuất file
-    const excelBuffer: any = XLSX.write(workbook, {
-      bookType: 'xlsx',
-      type: 'array',
-    });
-    const blob: Blob = new Blob([excelBuffer], {
-      type: 'application/octet-stream',
-    });
-    FileSaver.saveAs(blob, 'ket-qua-tim-kiem.xlsx');
   }
   // #endregion
 }
