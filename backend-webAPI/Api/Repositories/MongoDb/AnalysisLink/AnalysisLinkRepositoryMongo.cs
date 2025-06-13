@@ -29,8 +29,21 @@ namespace Api.Repositories.MongoDb
 
         public async Task<AnalysisLink> AddOrUpdateText(AnalysisLink analysisLink)
         {
-            // Nếu đã có thì update, chưa có thì insert
+            // Tìm bản ghi hiện tại theo LinkOrKeyword
             var filter = Builders<AnalysisLink>.Filter.Eq(x => x.LinkOrKeyword, analysisLink.LinkOrKeyword);
+            var existing = await _collection.Find(filter).FirstOrDefaultAsync();
+
+            if (existing != null)
+            {
+                // Giữ lại Id cũ để update đúng document
+                analysisLink.Id = existing.Id;
+            }
+            else
+            {
+                // Để Id là null để MongoDB tự sinh khi insert mới
+                analysisLink.Id = null;
+            }
+
             var options = new ReplaceOptions { IsUpsert = true };
             await _collection.ReplaceOneAsync(filter, analysisLink, options);
             return analysisLink;
