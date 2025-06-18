@@ -35,17 +35,17 @@ namespace Api.Repositories.MongoDb
 
             if (existing != null)
             {
-                // Giữ lại Id cũ để update đúng document
+                // Update: giữ lại Id cũ
                 analysisLink.Id = existing.Id;
+                var options = new ReplaceOptions { IsUpsert = false };
+                await _collection.ReplaceOneAsync(filter, analysisLink, options);
             }
             else
             {
-                // Để Id là null để MongoDB tự sinh khi insert mới
-                analysisLink.Id = null;
+                // Insert mới: KHÔNG gán Id, để MongoDB tự sinh
+                // analysisLink.Id = null;
+                await _collection.InsertOneAsync(analysisLink);
             }
-
-            var options = new ReplaceOptions { IsUpsert = true };
-            await _collection.ReplaceOneAsync(filter, analysisLink, options);
             return analysisLink;
         }
     }
