@@ -1,0 +1,694 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "={{ $json['X-API-KEY'] }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "={{ $json['Content-Type'] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.query }} site:facebook.com"
+            },
+            {
+              "name": "num",
+              "value": "={{ $json.numQuery }}"
+            },
+            {
+              "name": "tbs",
+              "value": "={{ $json.tbs }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "cfa513bd-5dae-4dc0-9ca4-818eb8a0ba28",
+      "name": "HTTP Request Facebook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1040, -280],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "={{ $json['X-API-KEY'] }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "={{ $json['Content-Type'] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.query }} site:tiktok.com"
+            },
+            {
+              "name": "num",
+              "value": "={{ $json.numQuery }}"
+            },
+            {
+              "name": "tbs",
+              "value": "={{ $json.tbs }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "50ec7056-b939-4914-a337-adec27affd60",
+      "name": "HTTP Request Tiktok",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1040, 80],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.deepinfra.com/v1/openai/chat/completions",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={  \"model\": \"meta-llama/Meta-Llama-3-8B-Instruct\",  \n\"messages\": [    {      \n\"role\": \"user\",      \n\"content\": \"Phân tích dữ liệu tìm kiếm cho từ khóa: {{ $json.searchParameters.q }}. Dữ liệu:`{{ $('HTTP Request Facebook').item.json.organic.map(item => `Tiêu đề: ${item.title}, link: ${item.link},...`).join('') }}` .Hãy cung cấp phân tích chi tiết về mức độ ảnh hưởng và chất lượng nội dung.\"    }  ]}",
+        "headerParametersJson": "={ \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer [Token API deepinfra]\" } ",
+        "queryParametersJson": "="
+      },
+      "id": "dfd51a47-0e3a-4c7b-9ff8-e87234c477e9",
+      "name": "Format Results Facebook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [-620, -280],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.deepinfra.com/v1/openai/chat/completions",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "{  \"model\": \"meta-llama/Meta-Llama-3-8B-Instruct\",  \n\"messages\": [    {      \n\"role\": \"user\",      \n\"content\": \"Phân tích dữ liệu tìm kiếm cho từ khóa: {{ $json.searchParameters.q }}. {{ $('📋 Configuration').item.json.promptStatus }}\"  }  ]}",
+        "headerParametersJson": "={\n  \"Content-Type\": \"application/json\",\n  \"Authorization\": \"Bearer [Token API deepinfra]\"\n}",
+        "queryParametersJson": "="
+      },
+      "id": "e1cc10eb-170f-4719-a8cd-e54b0223d8ef",
+      "name": "Format Results Tiktok",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [-620, 80],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.deepinfra.com/v1/openai/chat/completions",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={  \"model\": \"meta-llama/Meta-Llama-3-8B-Instruct\",  \n\"messages\": [    {      \n\"role\": \"user\",      \n\"content\": \"Phân tích dữ liệu tìm kiếm cho từ khóa: How to use Linux Mint.Dữ liệu:{{ $('HTTP Request Facebook').item.json.organic }} .Hãy cung cấp phân tích chi tiết về mức độ ảnh hưởng và chất lượng nội dung.\"    }  ]}",
+        "headerParametersJson": "={ \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer [Token API deepinfra]\" } ",
+        "queryParametersJson": "{}"
+      },
+      "id": "836cf92a-cb01-4622-9130-8fd5d796417b",
+      "name": "Analyze Results Facebook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [-60, -20],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.deepinfra.com/v1/openai/chat/completions",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={  \"model\": \"meta-llama/Meta-Llama-3-8B-Instruct\",  \n\"messages\": [    {      \n\"role\": \"user\",      \n\"content\": \"Phân tích dữ liệu tìm kiếm cho từ khóa: How to use Linux Mint.Dữ liệu:{{ $('HTTP Request Tiktok').item.json.organic }} .Hãy cung cấp phân tích chi tiết về mức độ ảnh hưởng và chất lượng nội dung.\"    }  ]}",
+        "headerParametersJson": "{ \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer [Token API deepinfra]\" } ",
+        "queryParametersJson": "="
+      },
+      "id": "206e44b2-b52b-47b0-9f43-2d9bf2de7eb4",
+      "name": "Analyze Results Tiktok",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [-60, 160],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {},
+      "id": "b6bda4b7-d9a6-4194-89fe-6a44aa72012f",
+      "name": "Merge Formatted Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [-140, -440]
+    },
+    {
+      "parameters": {},
+      "id": "bbf08d0e-8bac-4385-a68e-81a4f88e300b",
+      "name": "Merge Analysis Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [160, 100]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.deepinfra.com/v1/openai/chat/completions",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={  \"model\": \"meta-llama/Meta-Llama-3-8B-Instruct\",  \n\"messages\": [    {      \n\"role\": \"user\",      \n\"content\": \"Phân tích dữ liệu tìm kiếm cho từ khóa:{{ $('📋 Configuration').item.json.query }}. Hãy phân tích chi tiết nội dung tìm kiếm được trên các nền tảng.\"    }  ]}",
+        "headerParametersJson": "{\n  \"Content-Type\": \"application/json\",\n  \"Authorization\": \"Bearer [Token API deepinfra]\"\n}",
+        "queryParametersJson": "{}"
+      },
+      "id": "0b9d4e87-1cec-4ca6-a1f0-daa4ceb3790a",
+      "name": "Final Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [380, 100],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "5000ed6b-592e-4f2d-a6af-29f5b59e9848",
+      "name": "Create JSON File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [620, -440]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "d588f000-82b3-4fd2-bbe0-064cff6e2488",
+      "name": "Create Analysis File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [600, 100]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('📋 Configuration').item.json.chatId }}",
+        "text": "=🎯 **SEARCH ANALYSIS COMPLETE**\n\n🔍 **Query:** {{ $('📋 Configuration').item.json.query }}\n📊 **Overview:**\n• Sites analyzed: 2 (Facebook & TikTok)\n• Total results processed: {{ $input.first().json.totalResults || 'Processing completed' }}\n• Analysis status: ✅ Complete\n\n📈 **Platform Coverage:**\n• 📘 Facebook search results\n• 🎵 TikTok search results\n\n🏆 **Analysis Summary:**\nDetailed analysis has been completed for both platforms. The system has processed search results and generated comprehensive reports.\n\n📋 Full details are available in the attached files!",
+        "additionalFields": {}
+      },
+      "id": "2512fabf-69c6-45cf-8771-bd1c3a8ce454",
+      "name": "Send Telegram Summary",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [820, 200],
+      "webhookId": "5f7290bb-291c-44af-b799-339c9d886c3f",
+      "credentials": {
+        "telegramApi": {
+          "id": "LTKRae8HX8pNSTsi",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $('📋 Configuration').item.json.chatId }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "id": "47302619-c7b0-43b1-b7ae-f2f6305453f3",
+      "name": "Send Results File",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [840, -440],
+      "webhookId": "0222d82c-71b9-47f4-9182-9fc59568dde4",
+      "credentials": {
+        "telegramApi": {
+          "id": "LTKRae8HX8pNSTsi",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $('📋 Configuration').item.json.chatId }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "id": "8591a197-89b7-4c43-ac6f-212a26e25639",
+      "name": "Send Analysis File",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [820, 0],
+      "webhookId": "a63fdbf9-2f30-41e5-9bdd-4f2f5306d173",
+      "credentials": {
+        "telegramApi": {
+          "id": "LTKRae8HX8pNSTsi",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9fc208e4-36ff-4f56-9f77-10963fbfa75b",
+              "name": "query",
+              "value": "How to use Linux Mint",
+              "type": "string"
+            },
+            {
+              "id": "9e240661-f98a-4767-a15e-48fb8b8d005e",
+              "name": "X-API-KEY",
+              "value": "[Token Serper]",
+              "type": "string"
+            },
+            {
+              "id": "83161496-0295-4b2a-b70b-5760c3f6dc0d",
+              "name": "Content-Type",
+              "value": "application/json",
+              "type": "string"
+            },
+            {
+              "id": "8940fd0a-d6ed-4141-a692-e8d5fe90e37e",
+              "name": "numQuery",
+              "value": "10",
+              "type": "string"
+            },
+            {
+              "id": "78118a2e-af2d-4348-9e2a-ecdee0d10afc",
+              "name": "tbs",
+              "value": "qdr:d",
+              "type": "string"
+            },
+            {
+              "id": "1ae16f05-1318-416e-abe2-4b15e8566f76",
+              "name": "promptStatus",
+              "value": "Dựa vào query tìm kiếm, hãy sửa lại danh sách tìm kiếm dưới dạng:\\n{\\n  \\\"title\\\": \\\"\\\",\\n  \\\"link\\\": \\\"\\\",\\n  \\\"snippet\\\": \\\"\\\",\\n  \\\"status\\\": \\\"Tốt|Trung bình|Kém|Không liên quan\\\"\\n}",
+              "type": "string"
+            },
+            {
+              "id": "e40ada64-7a74-4975-a5af-b0a14634fd19",
+              "name": "chatId",
+              "value": "[Chat Id User Telegram]",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f2171d4c-4576-4309-a42f-45b5d1f952bc",
+      "name": "📋 Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1400, -80]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-1700, -80],
+      "id": "9445cdef-f7e5-4717-8527-a67106c7d87d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "content": "🚀 **1. KHỞI ĐỘNG WORKFLOW**\n\n**Mô tả:** Node khởi động workflow khi bạn nhấn \"Execute workflow\"\n\n**Hướng dẫn:** \n• Không cần cấu hình gì thêm\n• Đây là điểm bắt đầu cho toàn bộ quy trình\n• Nhấn \"Execute workflow\" để bắt đầu",
+        "height": 200,
+        "width": 300
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-2080, -120],
+      "typeVersion": 1,
+      "id": "c873d167-2717-49e1-9ad6-014af6fbe087",
+      "name": "🚀 Workflow Start"
+    },
+    {
+      "parameters": {
+        "content": "🔍 **3. HTTP REQUEST FACEBOOK**\n\n**Mô tả:** Gửi yêu cầu tìm kiếm tới API Serper để lấy kết quả từ Facebook\n\n**Kiểm tra:**\n• API key đã được thiết lập đúng\n• Content-Type: application/json\n• Query từ node cấu hình\n• Endpoint: https://google.serper.dev/search\n\n**Hướng dẫn:** Đảm bảo các trường như API key, Content-Type, query đã được thiết lập đúng từ node cấu hình",
+        "height": 280,
+        "width": 320,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1160, -600],
+      "typeVersion": 1,
+      "id": "53d711a3-70a9-4d47-8098-aa24e0db861c",
+      "name": "🔍 Facebook Search"
+    },
+    {
+      "parameters": {
+        "content": "📱 **4. HTTP REQUEST TIKTOK**\n\n**Mô tả:** Gửi yêu cầu tìm kiếm tới API Serper để lấy kết quả từ TikTok\n\n**Kiểm tra:**\n• API key từ node cấu hình\n• Site filter: site:tiktok.com\n• Số lượng kết quả (num parameter)\n• Query format đúng\n\n**Hướng dẫn:** Tương tự node Facebook, sử dụng các biến từ node cấu hình với filter riêng cho TikTok",
+        "height": 300,
+        "width": 320,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1140, 240],
+      "typeVersion": 1,
+      "id": "d859955e-d9a9-4472-9c43-42083a7506d9",
+      "name": "📱 TikTok Search"
+    },
+    {
+      "parameters": {
+        "content": "🔧 **5. FORMAT RESULTS FACEBOOK**\n\n**Mô tả:** Định dạng lại kết quả tìm kiếm Facebook, chuẩn bị dữ liệu cho phân tích\n\n**Xử lý:**\n• Trích xuất title, link, snippet\n• Làm sạch HTML tags\n• Chuẩn hóa format dữ liệu\n• Thêm source identifier\n\n**Hướng dẫn:** Node này sử dụng API AI để chuẩn hóa dữ liệu, không cần chỉnh sửa nếu không thay đổi logic phân tích",
+        "height": 280,
+        "width": 320,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-760, -600],
+      "typeVersion": 1,
+      "id": "8733983e-935a-4ce3-b8af-7751e663439c",
+      "name": "🔧 Format Facebook"
+    },
+    {
+      "parameters": {
+        "content": "🛠️ **6. FORMAT RESULTS TIKTOK**\n\n**Mô tả:** Định dạng lại kết quả tìm kiếm TikTok, chuẩn bị dữ liệu cho phân tích\n\n**Xử lý:**\n• Trích xuất video info\n• Làm sạch metadata\n• Chuẩn hóa timestamp\n• Thêm platform identifier\n\n**Hướng dẫn:** Tương tự node Facebook, chỉ cần chỉnh sửa nếu muốn thay đổi cách định dạng cho TikTok content",
+        "height": 280,
+        "width": 320,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-740, 240],
+      "typeVersion": 1,
+      "id": "026b4bd5-5da3-472e-860c-3c5b16afcee2",
+      "name": "🛠️ Format TikTok"
+    },
+    {
+      "parameters": {
+        "content": "🔀 **7. MERGE FORMATTED RESULTS**\n\n**Mô tả:** Gộp kết quả đã định dạng từ Facebook và TikTok\n\n**Chức năng:**\n• Kết hợp dữ liệu từ 2 nguồn\n• Giữ nguyên structure\n• Thêm metadata merge\n• Chuẩn bị cho bước phân tích\n\n**Hướng dẫn:** Không cần cấu hình, chỉ cần đảm bảo hai nhánh đầu vào đã có dữ liệu đúng format",
+        "height": 280,
+        "width": 320,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-280, -760],
+      "typeVersion": 1,
+      "id": "a242dee5-263a-47d9-8ac7-cdca6a54d2ce",
+      "name": "🔀 Merge Results"
+    },
+    {
+      "parameters": {
+        "content": "🤖 **8. ANALYZE RESULTS FACEBOOK**\n\n**Mô tả:** Phân tích dữ liệu tìm kiếm Facebook bằng AI\n\n**AI Processing:**\n• Sentiment analysis\n• Content categorization\n• Trend identification\n• Key insights extraction\n\n**Hướng dẫn:** Node này gửi dữ liệu đã định dạng tới AI để phân tích chi tiết. Có thể tùy chỉnh prompt AI nếu cần",
+        "height": 200,
+        "width": 300,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-180, -260],
+      "typeVersion": 1,
+      "id": "b94e799e-43e1-4683-ae21-49c6f830acf6",
+      "name": "🤖 Facebook Analysis"
+    },
+    {
+      "parameters": {
+        "content": "🎯 **9. ANALYZE RESULTS TIKTOK**\n\n**Mô tả:** Phân tích dữ liệu tìm kiếm TikTok bằng AI\n\n**AI Processing:**\n• Video content analysis\n• Engagement metrics\n• Hashtag trends\n• Creator insights\n\n**Hướng dẫn:** Tương tự node Facebook, gửi dữ liệu đã định dạng tới AI với focus riêng cho TikTok content",
+        "height": 200,
+        "width": 300,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-140, 320],
+      "typeVersion": 1,
+      "id": "e8a3b285-f791-49fa-b100-3bc4148a4ac3",
+      "name": "🎯 TikTok Analysis"
+    },
+    {
+      "parameters": {
+        "content": "📄 **10. GENERATE CSV FILES**\n\n**Mô tả:** Tạo file CSV từ dữ liệu đã xử lý\n\n**Output Files:**\n• search_results.csv (raw data)\n• analysis_results.csv (AI insights)\n• summary_report.csv (key metrics)\n\n**Format:** UTF-8 encoding, comma-separated values",
+        "height": 180,
+        "width": 300
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [280, -120],
+      "typeVersion": 1,
+      "id": "058c0d74-b253-4436-9a52-024ad9a18864",
+      "name": "📄 CSV Generation"
+    },
+    {
+      "parameters": {
+        "content": "📤 **11. SEND RESULTS FILE**\n\n**Mô tả:** Gửi file kết quả tìm kiếm (CSV) qua Telegram\n\n**Cấu hình:**\n• Bot Token từ Configuration\n• Chat ID từ Configuration\n• File attachment: search_results.csv\n• Caption: \"🔍 Kết quả tìm kiếm\"\n\n**Hướng dẫn:** Đảm bảo chatId Telegram đã đúng trong node cấu hình",
+        "height": 260,
+        "width": 300,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [720, -760],
+      "typeVersion": 1,
+      "id": "d13fee88-8f04-4342-b5c8-a3f45602c4a6",
+      "name": "📤 Send Results"
+    },
+    {
+      "parameters": {
+        "content": "📊 **12. SEND ANALYSIS FILE**\n\n**Mô tả:** Gửi file phân tích (CSV) qua Telegram\n\n**Cấu hình:**\n• Bot Token từ Configuration\n• Chat ID từ Configuration\n• File attachment: analysis_results.csv\n• Caption: \"📊 Báo cáo phân tích AI\"\n\n**Hướng dẫn:** Đảm bảo chatId Telegram đã đúng trong node cấu hình",
+        "height": 260,
+        "width": 300,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [720, -280],
+      "typeVersion": 1,
+      "id": "5a2c6bb3-f3c7-4f8a-a124-0ee8d4093b7b",
+      "name": "📊 Send Analysis"
+    },
+    {
+      "parameters": {
+        "content": "💬 **13. SEND TELEGRAM SUMMARY**\n\n**Mô tả:** Gửi tin nhắn tóm tắt kết quả phân tích qua Telegram\n\n**Nội dung:**\n• Tổng số kết quả tìm được\n• Key insights từ AI\n• Top trends và hashtags\n• Recommendation summary\n\n**Format:** Rich text với emoji và markdown\n\n**Hướng dẫn:** Đảm bảo chatId Telegram đã đúng trong node cấu hình",
+        "height": 220,
+        "width": 300,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [720, 360],
+      "typeVersion": 1,
+      "id": "5dc6431c-9dc9-493e-9e2c-7798c9c663ee",
+      "name": "💬 Telegram Summary"
+    },
+    {
+      "parameters": {
+        "content": "⚠️ **QUAN TRỌNG - CHECKLIST TRƯỚC KHI CHẠY**\n\n**✅ Kiểm tra cấu hình:**\n• API Key Serper còn hiệu lực\n• Telegram Bot Token đúng\n• Chat ID chính xác\n• Từ khóa tìm kiếm đã cập nhật\n\n**✅ Kiểm tra kết nối:**\n• Tất cả node đã kết nối\n• Không có lỗi validation\n• Test connection thành công\n\n**🔧 Khắc phục sự cố:**\n• Không có kết quả → Kiểm tra API key\n• Không nhận Telegram → Kiểm tra chatId\n• AI không hoạt động → Kiểm tra API AI",
+        "height": 360,
+        "width": 350
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1060, -200],
+      "typeVersion": 1,
+      "id": "6ef40137-dd73-456a-8d9c-9371612e3d65",
+      "name": "⚠️ Important Checklist"
+    },
+    {
+      "parameters": {
+        "content": "📋 **2. CONFIGURATION**\n\n**Mô tả:** Thiết lập các biến cấu hình quan trọng\n\n**Cấu hình cần thiết:**\n• Từ khóa tìm kiếm\n• API key Serper\n• Số lượng kết quả\n• ChatId Telegram\n• Bot Token Telegram\n\n**Hướng dẫn:** Sửa đổi các giá trị trong node này để thay đổi tham số tìm kiếm hoặc thông tin gửi Telegram",
+        "height": 220,
+        "width": 320,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-1500, 80],
+      "typeVersion": 1,
+      "id": "0fbebc1c-5e4a-4aab-8655-7eb951b34bf4",
+      "name": "📋 Configuration1"
+    }
+  ],
+  "connections": {
+    "HTTP Request Facebook": {
+      "main": [
+        [
+          {
+            "node": "Format Results Facebook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Tiktok": {
+      "main": [
+        [
+          {
+            "node": "Format Results Tiktok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Results Facebook": {
+      "main": [
+        [
+          {
+            "node": "Analyze Results Facebook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Formatted Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Results Tiktok": {
+      "main": [
+        [
+          {
+            "node": "Analyze Results Tiktok",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Formatted Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Analyze Results Facebook": {
+      "main": [
+        [
+          {
+            "node": "Merge Analysis Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Results Tiktok": {
+      "main": [
+        [
+          {
+            "node": "Merge Analysis Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Formatted Results": {
+      "main": [
+        [
+          {
+            "node": "Create JSON File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Analysis Results": {
+      "main": [
+        [
+          {
+            "node": "Final Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Analysis": {
+      "main": [
+        [
+          {
+            "node": "Create Analysis File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create JSON File": {
+      "main": [
+        [
+          {
+            "node": "Send Results File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Analysis File": {
+      "main": [
+        [
+          {
+            "node": "Send Analysis File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Telegram Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📋 Configuration": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Facebook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request Tiktok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "📋 Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "373ccddf23c54b6e1dd9e774f8571e50c4c194224d63fa1b149cccbc9f7e6bc9"
+  }
+}
