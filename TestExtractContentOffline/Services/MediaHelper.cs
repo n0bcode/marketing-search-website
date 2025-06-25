@@ -7,6 +7,17 @@ namespace VideoSubtitleExtractor.Services
 {
     public static class MediaHelper
     {
+        // Sinh tên file ổn định dựa trên hash của URL (dùng cho media/audio và transcript)
+        public static string GetStableFileNameFromUrl(string url, string ext)
+        {
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(url));
+                string hashStr = BitConverter.ToString(hash).Replace("-", "").ToLower();
+                return $"media_{hashStr}{ext}";
+            }
+        }
+
         public static string GetFileNameFromUrl(string url)
         {
             Uri uri = new Uri(url);
