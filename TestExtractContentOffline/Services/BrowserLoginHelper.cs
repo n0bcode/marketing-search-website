@@ -19,7 +19,27 @@ namespace VideoSubtitleExtractor.Services
             }
             using (var driver = new ChromeDriver(options))
             {
-                driver.Navigate().GoToUrl(url);
+                bool success = false;
+                do
+                {
+                    try
+                    {
+                        driver.Navigate().GoToUrl(url);
+                        success = true;
+                    }
+                    catch (WebDriverException ex)
+                    {
+                        Console.WriteLine($"Lỗi khi truy cập URL: {ex.Message}");
+                        Console.WriteLine("Có thể trang web không phản hồi, timeout hoặc trình duyệt bị chặn. Thử lại? (Y/N)");
+                        string retry = Console.ReadLine()?.Trim().ToUpper();
+                        if (retry != "Y")
+                        {
+                            Console.WriteLine("Bỏ qua đăng nhập nền tảng này.");
+                            return;
+                        }
+                    }
+                } while (!success);
+
                 Console.WriteLine("Hãy đăng nhập trong trình duyệt. Khi hoàn tất, nhấn Enter ở đây để lưu cookie...");
                 Console.ReadLine();
 

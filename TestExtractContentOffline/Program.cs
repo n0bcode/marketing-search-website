@@ -45,9 +45,28 @@ namespace VideoSubtitleExtractor
                             profileDir = VideoSubtitleExtractor.Services.BrowserLoginHelper.GetProfileDir("custom");
                             break;
                     }
-                    VideoSubtitleExtractor.Services.BrowserLoginHelper.LaunchAndLogin(loginUrl, cookieFile, profileDir);
-                    Console.WriteLine("Sau khi đăng nhập xong, nhấn Enter để tiếp tục...");
-                    Console.ReadLine();
+                    bool hasCookie = File.Exists(cookieFile) && new FileInfo(cookieFile).Length > 0;
+                    if (hasCookie)
+                    {
+                        Console.WriteLine($"Đã tìm thấy file cookie ({cookieFile}). Dùng lại session cũ? (Y/N)");
+                        string reuse = Console.ReadLine()?.Trim().ToUpper();
+                        if (reuse == "Y")
+                        {
+                            Console.WriteLine($"Sử dụng lại session đã đăng nhập từ {cookieFile}.");
+                        }
+                        else
+                        {
+                            VideoSubtitleExtractor.Services.BrowserLoginHelper.LaunchAndLogin(loginUrl, cookieFile, profileDir);
+                            Console.WriteLine("Sau khi đăng nhập xong, nhấn Enter để tiếp tục...");
+                            Console.ReadLine();
+                        }
+                    }
+                    else
+                    {
+                        VideoSubtitleExtractor.Services.BrowserLoginHelper.LaunchAndLogin(loginUrl, cookieFile, profileDir);
+                        Console.WriteLine("Sau khi đăng nhập xong, nhấn Enter để tiếp tục...");
+                        Console.ReadLine();
+                    }
                 }
 
                 string cookies = null;
@@ -88,31 +107,70 @@ namespace VideoSubtitleExtractor
                     }
                 }
 
-                fileName = MediaHelper.GetFileNameFromUrl(mediaUrl);
-                string baseName = Path.GetFileNameWithoutExtension(fileName);
-                string inputFile = fileName;
+                // Sử dụng tên file ổn định dựa trên hash URL
                 string outputDir = "outputs";
-
                 if (!Directory.Exists(outputDir))
                     Directory.CreateDirectory(outputDir);
+                string stableMediaFile = Path.Combine(outputDir, MediaHelper.GetStableFileNameFromUrl(mediaUrl, ".mp4"));
+                string stableAudioFile = Path.Combine(outputDir, MediaHelper.GetStableFileNameFromUrl(mediaUrl, ".wav"));
+                string stableTranscriptFile = Path.Combine(outputDir, MediaHelper.GetStableFileNameFromUrl(mediaUrl, ".txt"));
 
-                string audioFile = Path.Combine(outputDir, baseName + ".wav");
-                string transcriptFile = Path.Combine(outputDir, baseName + ".txt");
-
-                await Downloader.DownloadFileWithHttpClientAsync(mediaUrl, inputFile, cookies);
-
-                try
+                // Xóa các file media/audio dở quá 1 ngày
+                foreach (var file in Directory.GetFiles(outputDir, "media_*.mp4"))
                 {
-                    await AudioConverter.ConvertToWavWithFFMpegCore(inputFile, audioFile);
+                    var info = new FileInfo(file);
+                    if (info.Exists && info.LastWriteTime < DateTime.Now.AddDays(-1))
+                    {
+                        try { File.Delete(file); } catch { }
+                    }
                 }
-                catch (Exception ex)
+                foreach (var file in Directory.GetFiles(outputDir, "media_*.wav"))
                 {
-                    Console.WriteLine("FFmpeg failed to convert audio: " + ex.Message);
-                    continue;
+                    var info = new FileInfo(file);
+                    if (info.Exists && info.LastWriteTime < DateTime.Now.AddDays(-1))
+                    {
+                        try { File.Delete(file); } catch { }
+                    }
                 }
 
-                Console.WriteLine("Transcribing audio with Whisper.NET...");
-                await WhisperTranscriber.TranscribeAsync(audioFile, transcriptFile);
+                // Nếu đã có transcript thì dùng lại, không xử lý lại
+                if (File.Exists(stableTranscriptFile))
+                {
+                    Console.WriteLine($"Đã có transcript: {stableTranscriptFile}. Không cần xử lý lại.");
+                }
+                else
+                {
+                    // Nếu có file media/audio dở (chưa quá 1 ngày), dùng lại, nếu không thì tải mới
+                    if (!File.Exists(stableMediaFile))
+                    {
+                        await Downloader.DownloadFileWithHttpClientAsync(mediaUrl, stableMediaFile, cookies);
+                    }
+                    try
+                    {
+                        await AudioConverter.ConvertToWavWithFFMpegCore(stableMediaFile, stableAudioFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("FFmpeg failed to convert audio: " + ex.Message);
+                        Console.WriteLine($"Giữ lại file media/audio dở: {stableMediaFile}");
+                        continue;
+                    }
+
+                    Console.WriteLine("Transcribing audio with Whisper.NET...");
+                    try
+                    {
+                        await WhisperTranscriber.TranscribeAsync(stableAudioFile, stableTranscriptFile);
+                        // Xóa file media/audio sau khi xử lý xong
+                        try { File.Delete(stableMediaFile); } catch { }
+                        try { File.Delete(stableAudioFile); } catch { }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Lỗi khi trích xuất transcript: " + ex.Message);
+                        Console.WriteLine($"Giữ lại file media/audio dở: {stableMediaFile}, {stableAudioFile}");
+                        continue;
+                    }
+                }
 
                 Console.WriteLine("Bạn có muốn mở lại trang web với session đã đăng nhập? (Y/N)");
                 string openWeb = Console.ReadLine()?.Trim().ToUpper();
