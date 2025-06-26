@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
 using VideoSubtitleExtractor.Services;
-
 
 namespace VideoSubtitleExtractor
 {
@@ -20,8 +20,9 @@ namespace VideoSubtitleExtractor
                 Console.WriteLine("\n=== MENU CHÍNH ===");
                 Console.WriteLine("1. Đăng nhập/lưu phiên truy cập mạng xã hội");
                 Console.WriteLine("2. Đưa link chứa video và xử lý");
-                Console.WriteLine("3. Thoát");
-                Console.Write("Chọn option (1/2/3): ");
+                Console.WriteLine("3. Tìm kiếm thông tin trên mạng xã hội (Facebook, TikTok, ...)");
+                Console.WriteLine("4. Thoát");
+                Console.Write("Chọn option (1/2/3/4): ");
                 string mainChoice = Console.ReadLine()?.Trim();
                 switch (mainChoice)
                 {
@@ -238,6 +239,81 @@ namespace VideoSubtitleExtractor
                         }
                         break;
                     case "3":
+                        Console.WriteLine("\n=== GOOGLE ADVANCED SEARCH ===");
+
+                        Console.Write("Chọn công cụ tìm kiếm (1. Google, 2. Bing) [mặc định: Bing]: ");
+                        string engineChoice = Console.ReadLine()?.Trim();
+                        string engine = (engineChoice == "1" || engineChoice?.ToLower() == "google") ? "google" : "bing";
+
+                        Console.Write("Nhập từ khóa tìm kiếm: ");
+                        string keyword = Console.ReadLine();
+                        if (string.IsNullOrWhiteSpace(keyword))
+                        {
+                            Console.WriteLine("Từ khóa không hợp lệ.");
+                            break;
+                        }
+                        Console.Write("Nhập số lượng kết quả tối đa muốn lấy (0 = lấy hết): ");
+                        int maxResults = 0;
+                        int.TryParse(Console.ReadLine(), out maxResults);
+                        if (maxResults < 0) maxResults = 0;
+                        Console.Write("Nhập site cần tìm kiếm (bỏ trống nếu không): ");
+                        string site = Console.ReadLine();
+                        Console.Write("Nhập khoảng thời gian (ví dụ: past year, past month, past 24 hours, bỏ trống nếu không): ");
+                        string timeRange = Console.ReadLine();
+                        Console.Write("Nhập loại file cần tìm (ví dụ: pdf, docx, xlsx, bỏ trống nếu không): ");
+                        string filetype = Console.ReadLine();
+                        Console.Write("Bật chế độ nâng cao? (Y/N): ");
+                        string advMode = Console.ReadLine()?.Trim().ToUpper();
+                        string allWords = "", exactPhrase = "", anyWords = "", noneWords = "", region = "", language = "";
+                        if (advMode == "Y")
+                        {
+                            Console.Write("Từ khóa phải chứa tất cả các từ (all these words): ");
+                            allWords = Console.ReadLine();
+                            Console.Write("Cụm từ chính xác (exact phrase): ");
+                            exactPhrase = Console.ReadLine();
+                            Console.Write("Chứa bất kỳ từ nào (any of these words): ");
+                            anyWords = Console.ReadLine();
+                            Console.Write("Không chứa các từ này (none of these words): ");
+                            noneWords = Console.ReadLine();
+                            Console.Write("Ngôn ngữ (ví dụ: lang_vi, lang_en, bỏ trống nếu không): ");
+                            language = Console.ReadLine();
+                            Console.Write("Khu vực (region, ví dụ: countryVN, countryUS, bỏ trống nếu không): ");
+                            region = Console.ReadLine();
+                        }
+                        // Build Google search URL
+                        var urlParams = new List<string>();
+                        if (!string.IsNullOrWhiteSpace(allWords)) urlParams.Add(Uri.EscapeDataString(allWords));
+                        if (!string.IsNullOrWhiteSpace(exactPhrase)) urlParams.Add("\"" + Uri.EscapeDataString(exactPhrase) + "\"");
+                        if (!string.IsNullOrWhiteSpace(anyWords)) urlParams.Add(string.Join(" ", anyWords.Split(' ').Select(w => Uri.EscapeDataString(w))));
+                        if (!string.IsNullOrWhiteSpace(noneWords)) urlParams.Add("-" + string.Join(" -", noneWords.Split(' ').Select(w => Uri.EscapeDataString(w))));
+                        if (!string.IsNullOrWhiteSpace(keyword)) urlParams.Add(Uri.EscapeDataString(keyword));
+                        string q = string.Join(" ", urlParams);
+                        string searchUrl = $"https://www.bing.com/search?q={q}";
+                        if (!string.IsNullOrWhiteSpace(site)) searchUrl += $" site:{site}";
+                        if (!string.IsNullOrWhiteSpace(filetype)) searchUrl += $" filetype:{filetype}";
+                        if (!string.IsNullOrWhiteSpace(language)) searchUrl += $"&lr={language}";
+                        if (!string.IsNullOrWhiteSpace(region)) searchUrl += $"&cr={region}";
+                        if (!string.IsNullOrWhiteSpace(timeRange))
+                        {
+                            if (timeRange.ToLower().Contains("year")) searchUrl += "&tbs=qdr:y";
+                            else if (timeRange.ToLower().Contains("month")) searchUrl += "&tbs=qdr:m";
+                            else if (timeRange.ToLower().Contains("24")) searchUrl += "&tbs=qdr:d";
+                        }
+                        Console.WriteLine($"\nĐang tìm kiếm với URL: {searchUrl}\n");
+                        Console.Write("Bạn có muốn scrape và xuất kết quả ra CSV không? (Y/N): ");
+                        string export = Console.ReadLine()?.Trim().ToUpper();
+                        if (export == "Y")
+                        {
+                            string outputCsvDir = "outputs";
+                            if (!Directory.Exists(outputCsvDir)) Directory.CreateDirectory(outputCsvDir);
+                            string csvPath = Path.Combine(outputCsvDir, $"google_results_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
+                            if (engine == "google")
+                                await ScrapeGoogleMultiPageAsync(searchUrl, csvPath, maxResults);
+                            else
+                                await ScrapeBingMultiPageAsync(searchUrl, csvPath, maxResults);
+                        }
+                        break;
+                    case "4":
                         loop = false;
                         Console.WriteLine("\n=== Đã thoát chương trình ===\n");
                         break;
@@ -246,6 +322,119 @@ namespace VideoSubtitleExtractor
                         break;
                 }
             }
+        }
+        public static async Task ScrapeGoogleMultiPageAsync(string searchUrl, string outputCsvPath, int maxResults)
+        {
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0 Safari/537.36");
+            var html = await httpClient.GetStringAsync(searchUrl);
+
+            var doc = new HtmlAgilityPack.HtmlDocument();
+            doc.LoadHtml(html);
+
+            var results = new List<(string Title, string Url, string Snippet)>();
+            var nodes = doc.DocumentNode.SelectNodes("//div[contains(@class,'tF2Cxc')]");
+            if (nodes != null)
+            {
+                foreach (var node in nodes)
+                {
+                    var aNode = node.SelectSingleNode(".//div[contains(@class,'yuRUbf')]/a");
+                    var titleNode = aNode?.SelectSingleNode(".//h3[contains(@class,'LC20lb')]");
+                    var snippetNode = node.SelectSingleNode(".//div[contains(@class,'VwiC3b')]");
+
+                    string title = titleNode?.InnerText?.Trim() ?? "";
+                    string url = aNode?.GetAttributeValue("href", "") ?? "";
+                    string snippet = snippetNode?.InnerText?.Trim() ?? "";
+
+                    if (!string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(url))
+                        results.Add((title, url, snippet));
+                }
+            }
+
+            if (results.Count == 0)
+            {
+                Console.WriteLine("Không lấy được kết quả nào. Có thể Google đã chặn bot hoặc thay đổi cấu trúc HTML.");
+                File.WriteAllText("outputs/debug.html", html);
+                Console.WriteLine("Đã lưu HTML kết quả vào outputs/debug.html để kiểm tra.");
+                return;
+            }
+
+            using var writer = new StreamWriter(outputCsvPath, false, System.Text.Encoding.UTF8);
+            writer.WriteLine("Title,Url,Snippet");
+            foreach (var r in results)
+            {
+                writer.WriteLine($"\"{r.Title.Replace("\"", "\"\"")}\",\"{r.Url.Replace("\"", "\"\"")}\",\"{r.Snippet.Replace("\"", "\"\"")}\"");
+            }
+            Console.WriteLine($"Đã lưu kết quả vào: {outputCsvPath}");
+        }
+        public static async Task ScrapeBingMultiPageAsync(string searchUrl, string outputCsvPath, int maxResults = 0)
+        {
+            var results = new List<(string Title, string Url, string Snippet)>();
+            string nextUrl = searchUrl;
+            string lastHtml = null;
+            while (!string.IsNullOrEmpty(nextUrl))
+            {
+                try
+                {
+                    using var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0 Safari/537.36");
+                    var html = await httpClient.GetStringAsync(nextUrl);
+                    lastHtml = html;
+                    var doc = new HtmlAgilityPack.HtmlDocument();
+                    doc.LoadHtml(html);
+                    var nodes = doc.DocumentNode.SelectNodes("//ol[@id='b_results']/li[contains(@class,'b_algo')]");
+                    if (nodes != null)
+                    {
+                        foreach (var node in nodes)
+                        {
+                            var aNode = node.SelectSingleNode(".//h2/a");
+                            var title = aNode?.InnerText?.Trim() ?? "";
+                            var url = aNode?.GetAttributeValue("href", "") ?? "";
+                            var snippetNode = node.SelectSingleNode(".//div[contains(@class,'b_caption')]/p") ??
+                                              node.SelectSingleNode(".//div[contains(@class,'b_caption')]");
+                            var snippet = snippetNode?.InnerText?.Trim() ?? "";
+                            if (!string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(url))
+                                results.Add((title, url, snippet));
+                            if (maxResults > 0 && results.Count >= maxResults) break;
+                        }
+                    }
+                    if (maxResults > 0 && results.Count >= maxResults) break;
+                    var nextPageNode = doc.DocumentNode.SelectSingleNode("//a[contains(@class,'sb_pagN') and not(contains(@class,'sb_inactN'))]");
+                    if (nextPageNode != null)
+                    {
+                        string href = nextPageNode.GetAttributeValue("href", null);
+                        if (!string.IsNullOrEmpty(href))
+                            nextUrl = href.StartsWith("http") ? href : "https://www.bing.com" + href;
+                        else nextUrl = null;
+                    }
+                    else nextUrl = null;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Lỗi khi request Bing: {ex.Message}");
+                    Console.WriteLine("Dừng scrape và xử lý các kết quả đã lấy được...");
+                    break;
+                }
+            }
+
+            if (results.Count == 0)
+            {
+                Console.WriteLine("Không lấy được kết quả nào. Có thể Bing đã chặn bot hoặc thay đổi cấu trúc HTML.");
+                if (!string.IsNullOrEmpty(lastHtml))
+                {
+                    File.WriteAllText("outputs/debug_bing.html", lastHtml);
+                    Console.WriteLine("Đã lưu HTML kết quả vào outputs/debug_bing.html để kiểm tra.");
+                }
+                return;
+            }
+
+            using var writer = new StreamWriter(outputCsvPath, false, System.Text.Encoding.UTF8);
+            writer.WriteLine("Title,Url,Snippet");
+            foreach (var r in results)
+            {
+                writer.WriteLine($"\"{r.Title.Replace("\"", "\"\"")}\",\"{r.Url.Replace("\"", "\"\"")}\",\"{r.Snippet.Replace("\"", "\"\"")}\"");
+            }
+            Console.WriteLine($"Đã lưu kết quả vào: {outputCsvPath}");
         }
     }
 }
