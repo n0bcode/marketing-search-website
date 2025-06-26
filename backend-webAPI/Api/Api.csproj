@@ -27,6 +27,8 @@
     <PackageReference Include="StackExchange.Redis" Version="2.8.31" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="Twilio" Version="7.10.0" />
+    <PackageReference Include="VideoLibrary" Version="3.2.9" />
+    <PackageReference Include="Whisper.net" Version="1.8.1" />
     <PackageReference Include="Xabe.FFmpeg" Version="6.0.1" />
   </ItemGroup>
 
