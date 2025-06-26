@@ -4,12 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Google.Cloud.Speech.V1;
 using FFMpegCore;
 using FFMpegCore.Pipes;
 using Microsoft.Extensions.Caching.Memory;
 using Api.Repositories.IRepositories;
 using Api.Models;
+using Api.Services.VideoServices.Sub;
 
 namespace Api.Services.VideoServices
 {
@@ -43,7 +43,7 @@ namespace Api.Services.VideoServices
 
             // 2. Kiểm tra cache
             if (string.IsNullOrWhiteSpace(languageCode))
-                languageCode = "vi-VN"; // Mặc định là tiếng Việt nếu không có mã ngôn ngữ
+                languageCode = "vi"; // Whisper dùng "vi" thay vì "vi-VN"
 
             string cacheKey = GenerateCacheKey(videoUrl, languageCode);
             if (_cache.TryGetValue(cacheKey, out string cachedResult))
@@ -53,12 +53,15 @@ namespace Api.Services.VideoServices
 
             string videoFilePath = Path.Combine(Path.GetTempPath(), "temp_video.mp4");
             string audioFilePath = Path.Combine(Path.GetTempPath(), "temp_audio.wav");
+            string transcriptFilePath = Path.Combine(Path.GetTempPath(), "temp_transcript.txt");
 
             try
             {
                 await DownloadFile(videoUrl, videoFilePath);
-                await ExtractAudio(videoFilePath, audioFilePath);
-                string textContent = await ConvertAudioToText(audioFilePath, languageCode);
+                await AudioConverter.ConvertToWavWithFFMpegCore(videoFilePath, audioFilePath);
+                await WhisperTranscriber.TranscribeAsync(audioFilePath, transcriptFilePath);
+
+                string textContent = File.ReadAllText(transcriptFilePath);
 
                 if (string.IsNullOrWhiteSpace(textContent))
                     throw new Exception("Không thể trích xuất nội dung từ video.");
@@ -67,8 +70,8 @@ namespace Api.Services.VideoServices
                 var result = new AnalysisLink
                 {
                     LinkOrKeyword = videoUrl,
-                    Platform = platform, // hoặc facebook, youtube, ...
-                    ResultData = textContent // hoặc serialize object to JSON
+                    Platform = platform,
+                    ResultData = textContent
                 };
                 await _unit.AnalysisLinks.AddAsync(result);
 
@@ -85,42 +88,41 @@ namespace Api.Services.VideoServices
             }
             finally
             {
-                CleanUpTempFiles(videoFilePath, audioFilePath);
+                CleanUpTempFiles(videoFilePath, audioFilePath, transcriptFilePath);
             }
         }
-        public async Task<string> ExtractContentFromAudio(string audioUrl, string languageCode = "vi-VN", string platform = "null")
+
+        public async Task<string> ExtractContentFromAudio(string audioUrl, string languageCode = "vi", string platform = "null")
         {
             // 1. Kiểm tra DB trước
             var dbResult = await _unit.AnalysisLinks.GetAnalysisLinkOrNot(audioUrl);
             if (dbResult != null)
                 return dbResult.ResultData;
 
-            // 2. Kiểm tra cache
             if (string.IsNullOrWhiteSpace(languageCode))
-                languageCode = "vi-VN"; // Mặc định là tiếng Việt nếu không có mã ngôn ngữ
-            string tempAudioFilePath = Path.Combine(Path.GetTempPath(), "temp_audio.m4a"); // Tệp âm thanh tạm thời
-            string convertedAudioFilePath = Path.Combine(Path.GetTempPath(), "temp_audio.wav"); // Tệp âm thanh đã chuyển đổi
+                languageCode = "vi";
+
+            string tempAudioFilePath = Path.Combine(Path.GetTempPath(), "temp_audio.m4a");
+            string convertedAudioFilePath = Path.Combine(Path.GetTempPath(), "temp_audio.wav");
+            string transcriptFilePath = Path.Combine(Path.GetTempPath(), "temp_transcript.txt");
 
             try
             {
-                // Tải tệp âm thanh gốc về
                 await DownloadFile(audioUrl, tempAudioFilePath);
+                await AudioConverter.ConvertToWavWithFFMpegCore(tempAudioFilePath, convertedAudioFilePath);
+                await WhisperTranscriber.TranscribeAsync(convertedAudioFilePath, transcriptFilePath);
 
-                // Chuyển đổi âm thanh từ M4A sang WAV
-                await ConvertAudioFormat(tempAudioFilePath, convertedAudioFilePath);
+                string textContent = File.ReadAllText(transcriptFilePath);
 
-                var res = await ConvertAudioToText(convertedAudioFilePath, languageCode);
-
-                // 3. Lưu vào DB sau khi phân tích xong
                 var result = new AnalysisLink
                 {
                     LinkOrKeyword = audioUrl,
-                    Platform = platform, // hoặc facebook, youtube, ...
-                    ResultData = res // hoặc serialize object to JSON
+                    Platform = platform,
+                    ResultData = textContent
                 };
                 await _unit.AnalysisLinks.AddAsync(result);
-                // Chuyển đổi âm thanh đã chuyển đổi sang văn bản
-                return res;
+
+                return textContent;
             }
             catch (HttpRequestException httpEx)
             {
@@ -132,12 +134,11 @@ namespace Api.Services.VideoServices
             }
             finally
             {
-                // Dọn dẹp các tệp tạm thời
                 CleanUpFile(tempAudioFilePath);
                 CleanUpFile(convertedAudioFilePath);
+                CleanUpFile(transcriptFilePath);
             }
         }
-
         // Phương thức để chuyển đổi định dạng âm thanh
         private static async Task ConvertAudioFormat(string inputFilePath, string outputFilePath)
         {
@@ -173,19 +174,6 @@ namespace Api.Services.VideoServices
                     .WithAudioCodec("pcm_s16le")
                     .WithCustomArgument("-ar 16000 -ac 1"))
                 .ProcessAsynchronously();
-        }
-
-        private static async Task<string> ConvertAudioToText(string audioFilePath, string languageCode = "vi-VN")
-        {
-            var speech = SpeechClient.Create();
-            var response = await speech.RecognizeAsync(new RecognitionConfig
-            {
-                Encoding = RecognitionConfig.Types.AudioEncoding.Linear16,
-                SampleRateHertz = 16000,
-                LanguageCode = languageCode
-            }, RecognitionAudio.FromFile(audioFilePath));
-
-            return string.Join(" ", response.Results.Select(result => result.Alternatives[0].Transcript));
         }
 
         private static void CleanUpTempFiles(params string[] filePaths)
