@@ -1,4 +1,4 @@
-using Api.Repositories.IRepositories;
+
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -13,14 +13,12 @@ namespace Api.Services.SearchServices.Google
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
-        private readonly IUnitOfWork _unit;
 
-        public GoogleSearchService(HttpClient httpClient, IOptions<ApiSettings> apiSettings, IUnitOfWork unit)
+        public GoogleSearchService(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
         {
             _httpClient = httpClient;
             _apiKey = apiSettings.Value.GoogleApi.ApiKey;
             _httpClient.BaseAddress = new Uri(apiSettings.Value.GoogleApi.BaseUrl);
-            _unit = unit;
         }
         public async Task<GoogleResponse?> SearchAsync(GoogleRequest request)
         {
@@ -67,10 +65,10 @@ namespace Api.Services.SearchServices.Google
                 var requestContent = new StringContent(JsonConvert.SerializeObject(parameters), Encoding.UTF8, "application/json");
 
 
-                string? tokenDecrypted = _unit.SecretTokens.GetByIdAsync(userIdTokenConfig).Result?.Token;
+                // string? tokenDecrypted = _unit.SecretTokens.GetByIdAsync(userIdTokenConfig).Result?.Token;
 
                 // Thêm API key vào header
-                _httpClient.DefaultRequestHeaders.Add("X-API-KEY", tokenDecrypted ?? _apiKey);
+                _httpClient.DefaultRequestHeaders.Add("X-API-KEY", "tokenDecrypted" ?? _apiKey);
 
                 // Gửi yêu cầu POST
                 var response = await _httpClient.PostAsync("", requestContent);
