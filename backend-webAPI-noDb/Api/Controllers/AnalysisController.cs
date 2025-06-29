@@ -1,6 +1,6 @@
 ﻿using Api.Constants;
 using Api.Models;
-using Api.Repositories.IRepositories;
+
 using Api.Services.AIServices.Gemini;
 using Api.Services.SearchServices;
 using Api.Services.SearchServices.Google;
@@ -20,15 +20,13 @@ namespace Api.Controllers
         private readonly GoogleSearchService _searchService;
         private readonly TwitterSearchService _searchServiceTwitter;
         private readonly GeminiAIService _geminiService;
-        private readonly IUnitOfWork _unit;
         private readonly ILogger<SearchController> _logger; // Thêm logger
 
-        public AnalysisController(GoogleSearchService searchService, TwitterSearchService searchServiceTwitter, GeminiAIService geminiAIService, IUnitOfWork unitOfWork, ILogger<SearchController> logger)
+        public AnalysisController(GoogleSearchService searchService, TwitterSearchService searchServiceTwitter, GeminiAIService geminiAIService, ILogger<SearchController> logger)
         {
             _searchService = searchService;
             _searchServiceTwitter = searchServiceTwitter;
             _geminiService = geminiAIService;
-            _unit = unitOfWork;
             _logger = logger;
         }
         [HttpGet]
@@ -60,12 +58,6 @@ namespace Api.Controllers
                     throw new Exception("Không có kết quả tìm kiếm Google cho truy vấn: " + query.q);
                 }
 
-                var responseAddKey = await _unit.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
-                {
-                    Keyword = query.q,
-                    Source = $"Google-{query.type}",
-                });
-
                 // 2. Chuẩn bị dữ liệu cho phân tích
                 string analysisInput = $"Số liệu tìm kiếm phía Google: {GetAnalysisInput(googleResults)}";
 
@@ -88,10 +80,6 @@ namespace Api.Controllers
                     throw new Exception("Không có dữ liệu phân tích cho truy vấn: " + query.q);
                 }
 
-                response.Data.KeywordId = responseAddKey.Data!; // Gán ID từ bảng Keywords vào kết quả phân tích
-                DataSaver.SaveData(response, $"Gemini-{query.type}", responseAddKey.Data!);
-                DataSaver.SaveData(googleResults!, $"Google-{query.type}", responseAddKey.Data!);
-
                 // Kết hợp kết quả tìm kiếm Google vào kết quả phân tích
                 response.Data.GeneralSearchResults.AddRange(googleResults.ToGeneralSearchResults());
                 response.Data.SiteSearch = query.as_sitesearch;
@@ -111,7 +99,7 @@ namespace Api.Controllers
         {
             if (link == null) return StatusCode(500);
 
-            AnalysisLink? analysisLinkOrNot = await _unit.AnalysisLinks.GetAnalysisLinkOrNot(link);
+            AnalysisLink? analysisLinkOrNot = new();
 
             if (analysisLinkOrNot == null || String.IsNullOrEmpty(analysisLinkOrNot.AnalysisText))
             {
@@ -132,7 +120,7 @@ namespace Api.Controllers
                     _logger.LogWarning("Không tìm thấy kết quả phân tích cho liên kết: {Link}", link);
                     return NotFound(ProblemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 404, title: "Không tìm thấy kết quả phân tích."));
                 }
-                var analysisLink = await _unit.AnalysisLinks.AddOrUpdateText(new AnalysisLink() { LinkOrKeyword = link, AnalysisText = String.Join("", response.Data.Candidates[0].Content.Parts.Select(x => x.Text)) });
+                var analysisLink = new AnalysisLink() { LinkOrKeyword = link, AnalysisText = String.Join("", response.Data.Candidates[0].Content.Parts.Select(x => x.Text)) };
                 analysisLinkOrNot = analysisLink;
             }
 

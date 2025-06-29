@@ -1,6 +1,6 @@
 ﻿using Api.Constants;
 using Api.Models;
-using Api.Repositories.IRepositories;
+
 using Api.Services.SearchServices;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -14,14 +14,12 @@ namespace Api.Services.AIServices.Gemini
         private readonly HttpClient _httpClient;
         private readonly string _secretToken;
         private readonly string _baseUrl; // Lưu trữ BaseUrl
-        private readonly IUnitOfWork _unitOfWork;
 
-        public GeminiAIService(HttpClient httpClient, IOptions<ApiSettings> apiSettings, IUnitOfWork unit)
+        public GeminiAIService(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
         {
             _httpClient = httpClient;
             _secretToken = apiSettings.Value.GeminiApi.SecretToken;
             _baseUrl = apiSettings.Value.GeminiApi.BaseUrl; // Lưu trữ BaseUrl+
-            _unitOfWork = unit;
         }
         public async Task<ResponseAPI<GeminiAIResponse>> AnalyzeAsync(GeminiAIRequest prompt)
         {
@@ -81,8 +79,7 @@ namespace Api.Services.AIServices.Gemini
             string jsonRequest = JsonConvert.SerializeObject(prompt);
             var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
 
-            string? tokenDecrypted = _unitOfWork.SecretTokens.GetByIdAsync(tokenId).Result?.Token;
-            if (string.IsNullOrEmpty(tokenDecrypted))
+            if (string.IsNullOrEmpty(""))
             {
                 responseApi.Message = "Token không hợp lệ hoặc không tồn tại.";
                 responseApi.Errors.Add(responseApi.Message);
@@ -93,7 +90,7 @@ namespace Api.Services.AIServices.Gemini
             int retryDelay = 2000; // Thời gian chờ giữa các lần thử (ms)
             for (int i = 0; i < maxRetries; i++)
             {
-                HttpResponseMessage response = await _httpClient.PostAsync($"{_baseUrl}/v1beta/models/gemini-2.0-flash:generateContent?key={tokenDecrypted}", content);
+                HttpResponseMessage response = await _httpClient.PostAsync($"{_baseUrl}/v1beta/models/gemini-2.0-flash:generateContent?key={""}", content);
 
                 if (response.IsSuccessStatusCode)
                 {
