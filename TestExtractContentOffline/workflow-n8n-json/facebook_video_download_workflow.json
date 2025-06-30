@@ -1,0 +1,167 @@
+
+{
+  "name": "Facebook Video Downloader",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "questions": [
+            {
+              "prompt": "Enter the Facebook video URL:",
+              "variable": "facebookUrl",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "{{$json.facebookUrl}}",
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+          }
+        }
+      },
+      "name": "Fetch Video Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "cssSelector",
+        "selector": "meta[property='og:video:url']",
+        "returnValue": "attribute",
+        "attribute": "content",
+        "value": "{{$json.data}}"
+      },
+      "name": "Extract Video URL",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "videoUrl",
+              "value": "{{$json.data}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Video URL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "{{$json.videoUrl}}",
+        "options": {
+          "response": {
+            "response": "file"
+          }
+        }
+      },
+      "name": "Download Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "outputs/facebook_video_{{$timestamp}}.mp4",
+        "data": "={{$binary.data}}",
+        "options": {}
+      },
+      "name": "Save Video",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Fetch Video Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Video Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Video URL": {
+      "main": [
+        [
+          {
+            "node": "Set Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Video URL": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Save Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
