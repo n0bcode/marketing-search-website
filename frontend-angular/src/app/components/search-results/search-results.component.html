@@ -1,89 +1,57 @@
-<!-- search-results.component.html -->
-<div *ngIf="searchResultsList.length > 0" class="space-y-4">
-  <!-- Tab chọn site -->
-  <div class="flex flex-wrap gap-2">
-    <button
-      *ngFor="let result of searchResultsList"
-      (click)="selectSite.emit(result.siteSearch)"
-      [ngClass]="{
-        'bg-blue-500 text-white': selectedSite === result.siteSearch,
-        'bg-gray-200 text-gray-700': selectedSite !== result.siteSearch
-      }"
-      [disabled]="isLoading || isResponseOfSiteHaveValue(result.siteSearch)"
-      class="px-4 py-2 rounded-md hover:bg-blue-400 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
-    >
-      {{ result.siteSearch || "Mặc định" }} ({{
-        result.generalSearchResultsCount
-      }})
+<div *ngIf="searchResultsList.length > 0" class="space-y-6">
+  <!-- Site Selection Tabs -->
+  <div class="flex flex-wrap items-center gap-2 pb-4 border-b border-gray-200">
+    <button *ngFor="let result of searchResultsList" (click)="selectSite.emit(result.siteSearch)" [ngClass]="{ 'bg-primary text-white shadow-md': selectedSite === result.siteSearch, 'bg-white text-gray-600 hover:bg-gray-100': selectedSite !== result.siteSearch }" [disabled]="isLoading || isResponseOfSiteHaveValue(result.siteSearch)" class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+      {{ result.siteSearch || "Default" }} ({{ result.generalSearchResultsCount }})
     </button>
   </div>
 
-  <!-- Kết quả phân tích -->
-  <div class="flex flex-col md:flex-row gap-4">
-    <div class="w-full md:w-2/3 p-4 bg-gray-50 rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold mb-2">Phân tích dữ liệu của AI</h2>
-      <div class="p-4 border border-gray-200 rounded-md">
-        <h3 class="font-bold text-lg">Kết quả phân tích:</h3>
-        <div *ngIf="isLoading" class="text-center">
-          <span class="text-blue-500 font-semibold">Loading...</span>
-          <div
-            class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full text-blue-500"
-          ></div>
+  <!-- Analysis and Results -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- AI Data Analysis -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
+      <h2 class="text-2xl font-bold text-dark mb-4">AI Data Analysis</h2>
+      <div class="p-6 border border-gray-200 rounded-lg bg-light/50 min-h-[300px]">
+        <h3 class="font-bold text-xl mb-4">Analysis Result:</h3>
+        <div *ngIf="isLoading" class="flex justify-center items-center h-full">
+          <div class="flex items-center gap-3 text-primary">
+            <span class="material-icons animate-spin">autorenew</span>
+            <span class="font-semibold">Loading...</span>
+          </div>
         </div>
         <div *ngIf="!isLoading">
-          <div *ngIf="searchResults" [innerHTML]="searchResults.showText"></div>
-          <p *ngIf="!searchResults" class="text-gray-500">
-            Không có dữ liệu cho site này.
-          </p>
+          <div *ngIf="searchResults" [innerHTML]="searchResults.showText" class="prose max-w-none"></div>
+          <p *ngIf="!searchResults" class="text-gray-500 italic">No data available for this site.</p>
         </div>
       </div>
     </div>
-    <div class="w-full md:w-1/3 p-4">
-      <h2 class="text-xl font-semibold mb-2">Kết quả chi tiết:</h2>
-      <div class="max-h-[70vh] overflow-y-auto space-y-4">
-        <div
-          *ngFor="let result of searchResults?.generalSearchResults"
-          class="p-4 border border-gray-200 rounded-md"
-        >
-          <h3 class="font-bold text-lg">{{ result.title }}</h3>
-          <p [innerHTML]="result.description" class="text-gray-700"></p>
-          <p class="text-gray-500">
-            <span class="font-semibold">Thời gian:</span> {{ result.date }}
+
+    <!-- Detailed Results -->
+    <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
+      <h2 class="text-2xl font-bold text-dark mb-4">Detailed Results</h2>
+      <div class="max-h-[75vh] overflow-y-auto space-y-4 pr-2">
+        <div *ngFor="let result of searchResults?.generalSearchResults" class="p-5 border border-gray-200 rounded-lg hover:shadow-md transition-shadow duration-200">
+          <h3 class="font-bold text-lg text-dark mb-2">{{ result.title }}</h3>
+          <p [innerHTML]="result.description" class="text-gray-600 text-sm mb-3"></p>
+          <p class="text-xs text-gray-400 mb-3">
+            <span class="font-semibold">Date:</span> {{ result.date }}
           </p>
           <div class="flex flex-col gap-2">
             <div class="group relative">
-              <span class="font-semibold">Nguồn:</span>
-              <a
-                [href]="result.url"
-                (mouseenter)="analyzeLink.emit(result.url)"
-                class="text-blue-500 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Xem thêm
+              <a [href]="result.url" (mouseenter)="analyzeLink.emit(result.url)" class="text-primary font-semibold hover:underline text-sm" target="_blank" rel="noopener noreferrer">
+                View Source
               </a>
-              <div
-                class="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg hidden group-hover:block z-10 p-2"
-              >
-                <div
-                  [innerHTML]="
-                    analysisLink?.analysisText ?? 'Hiện chưa thể phân tích'
-                  "
-                ></div>
+              <div class="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl hidden group-hover:block z-10 p-4 prose prose-sm">
+                <div [innerHTML]="analysisLink?.analysisText ?? 'Could not analyze this link.'"></div>
               </div>
             </div>
             <div *ngIf="isInSeviceSupport(result.url)">
-              <app-modal-analysis-media-social
-                [data]="mainDataAnalysisLinkSocialVideo"
-                [isShowModal]="isShowModal"
-                [isLoading]="isLoadingDataForModal"
-                (click)="analyzeVideo.emit(result.url)"
-              ></app-modal-analysis-media-social>
+              <app-modal-analysis-media-social [data]="mainDataAnalysisLinkSocialVideo" [isShowModal]="isShowModal" [isLoading]="isLoadingDataForModal" (click)="analyzeVideo.emit(result.url)"></app-modal-analysis-media-social>
             </div>
           </div>
         </div>
-        <div *ngIf="isLoading" class="text-center text-blue-500 font-semibold">
-          Loading...
+        <div *ngIf="isLoading" class="flex justify-center items-center py-6">
+          <span class="text-primary font-semibold">Loading more...</span>
         </div>
       </div>
     </div>
