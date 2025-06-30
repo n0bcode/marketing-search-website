@@ -121,12 +121,18 @@ export class SearchService {
           }
 
           const data = response.data;
-          data.showText = data.candidates[0].content.parts[0].text.replace(
-            /```html|```/g,
-            ''
-          );
           data.siteSearch = params.as_sitesearch || 'default';
           data.generalSearchResultsCount = data.generalSearchResults.length;
+          const cleanedText = data.candidates[0].content.parts[0].text.replace(
+            /```json\n|```/g,
+            ''
+          );
+          try {
+            data.analysisData = JSON.parse(cleanedText);
+          } catch (e) {
+            console.error('Failed to parse analysisData as JSON:', e);
+            data.analysisData = cleanedText as any; // Fallback to string if parsing fails, casting to any to bypass type error temporarily
+          }
 
           this.searchResultsList.update((list) => [...list, data]);
 
@@ -135,6 +141,7 @@ export class SearchService {
             this.searchResults.set(data);
           }
           this.isLoading.set(false);
+          console.log('performSearch API Response Data:', response.data);
         },
         error: (err) => {
           console.error(
@@ -144,7 +151,9 @@ export class SearchService {
             err
           );
           this.errorMessageResponse.set(
-            `Failed to load data for ${params.as_sitesearch || 'default'}: ${err.message}`
+            `Failed to load data for ${params.as_sitesearch || 'default'}: ${
+              err.message
+            }`
           );
           this.isLoading.set(
             this.searchResultsList().length < this.listSitesSelected().length
@@ -154,23 +163,98 @@ export class SearchService {
   }
 
   onAnalysisLink(link: string) {
-    // Implement analysis link logic here
+    this.isLoading.set(true);
+    this.errorMessageResponse.set('');
+    this.analysisLink.set(null);
+
+    const idTokenGemini =
+      this.listSelectSecretToken()[TypeServicesConstants.GeminiAI];
+
+    this.apiService
+      .postToApi<ResponseAPI<AnalysisLink>>(
+        `/Analysis/AnalysisLink?link=${encodeURIComponent(
+          link
+        )}&idTokenChange=${idTokenGemini}`,
+        null,
+        ConfigsRequest.getSkipAuthConfig()
+      )
+      .subscribe({
+        next: (response) => {
+          if (!response.success || !response.data) {
+            this.errorMessageResponse.set(response.message);
+            return;
+          }
+          this.analysisLink.set(response.data);
+          this.isLoading.set(false);
+          console.log('onAnalysisLink API Response Data:', response.data);
+        },
+        error: (err) => {
+          console.error(`Error analyzing link ${link}:`, err);
+          this.errorMessageResponse.set(
+            `Failed to analyze link: ${err.message}`
+          );
+          this.isLoading.set(false);
+        },
+      });
   }
 
   storeKeyword(keyword: string) {
-    // Implement store keyword logic here
+    this.apiService
+      .getFromApi<ResponseAPI<KeywordModel[]>>('/Search/GetAllKeyword')
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.keywordModels.set(response.data);
+            console.log('storeKeyword API Response Data:', response.data);
+          } else {
+            console.error('Failed to load keywords:', response.message);
+          }
+        },
+        error: (err) => {
+          console.error('Error loading keywords:', err);
+        },
+      });
   }
 
   toggleKeywordHistory() {
     this.showKeywordHistory.update((value) => !value);
   }
 
-  onTakeKeywordGoogle() {
-    // Implement take keyword logic here
+  onTakeKeywordGoogle(keyword: string) {
+    this.searchParameters.update((params) => ({
+      ...params,
+      q: keyword,
+    }));
   }
 
   loadOldAnalysis(keywordId: string) {
-    // Implement load old analysis logic here
+    this.isLoading.set(true);
+    this.errorMessageResponse.set('');
+    this.analysisLink.set(null);
+
+    this.apiService
+      .getFromApi<ResponseAPI<AnalysisLink>>(`/Analysis/${keywordId}`)
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.analysisLink.set(response.data);
+            console.log('loadOldAnalysis API Response Data:', response.data);
+          } else {
+            this.errorMessageResponse.set(response.message);
+          }
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error(
+            `Error loading old analysis for keyword ID ${keywordId}:`,
+            err
+          );
+          this.errorMessageResponse.set(
+            `Failed to load old analysis: ${err.message}`
+          );
+          this.isLoading.set(false);
+        },
+      });
   }
 
   updateSelectedSites(event: Event) {
@@ -180,9 +264,7 @@ export class SearchService {
     if (input.checked) {
       this.listSitesSelected.update((sites) => [...sites, site]);
     } else {
-      this.listSitesSelected.update((sites) =>
-        sites.filter((s) => s !== site)
-      );
+      this.listSitesSelected.update((sites) => sites.filter((s) => s !== site));
     }
   }
 
@@ -206,14 +288,107 @@ export class SearchService {
   }
 
   createSecretToken(service: string | null) {
-    // Implement create secret token logic here
+    if (service) {
+      this.secretTokenDTO.update((dto) => ({ ...dto, service }));
+    }
+
+    this.apiService
+      .postToApi<ResponseAPI<string>>(
+        '/SecretToken/Upsert',
+        this.secretTokenDTO(),
+        ConfigsRequest.getSkipAuthConfig()
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            console.log(
+              'Secret token created/updated successfully:',
+              response.data
+            );
+            this.loadSecretTokens();
+            this.addSecretToken.set(false);
+            this.secretTokenDTO.set({
+              name: '',
+              token: '',
+              service: '',
+              note: '',
+            });
+          } else {
+            this.errorMessageResponse.set(response.message);
+          }
+          console.log('createSecretToken API Response Data:', response.data);
+        },
+        error: (err) => {
+          console.error('Error creating/updating secret token:', err);
+          this.errorMessageResponse.set(
+            `Failed to save secret token: ${err.message}`
+          );
+        },
+      });
   }
 
   loadSecretTokens() {
-    // Implement load secret tokens logic here
+    this.apiService
+      .getFromApi<ResponseAPI<SecretTokenResponseDTO[]>>('/SecretToken/GetAll')
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            const groupedTokens: Record<string, SecretTokenResponseDTO[]> = {};
+            const selectTokens: Record<string, string> = {};
+
+            response.data.forEach((token) => {
+              if (!groupedTokens[token.service]) {
+                groupedTokens[token.service] = [];
+              }
+              groupedTokens[token.service].push(token);
+              selectTokens[token.service] = token.id;
+            });
+            this.listSecretDTOsMap.set(groupedTokens);
+            this.listSelectSecretToken.set(selectTokens);
+            console.log('loadSecretTokens API Response Data:', response.data);
+          } else {
+            console.error('Failed to load secret tokens:', response.message);
+          }
+        },
+        error: (err) => {
+          console.error('Error loading secret tokens:', err);
+        },
+      });
   }
 
   analyzeVideoLink(link: string) {
-    // Implement analyze video link logic here
+    this.isLoadingDataForModal.set(true);
+    this.mainDataAnalysisLinkSocialVideo.set(null);
+    this.errorMessageResponse.set('');
+
+    const idTokenGemini =
+      this.listSelectSecretToken()[TypeServicesConstants.GeminiAI];
+
+    this.apiService
+      .postToApi<ResponseAPI<GeminiResponse>>(
+        `/VideoProcessing/AnalyzeVideo?videoUrl=${encodeURIComponent(
+          link
+        )}&idTokenGeminiChange=${idTokenGemini}`,
+        null,
+        ConfigsRequest.getSkipAuthConfig()
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.mainDataAnalysisLinkSocialVideo.set(response.data);
+            console.log('analyzeVideoLink API Response Data:', response.data);
+          } else {
+            this.errorMessageResponse.set(response.message);
+          }
+          this.isLoadingDataForModal.set(false);
+        },
+        error: (err) => {
+          console.error(`Error analyzing video link ${link}:`, err);
+          this.errorMessageResponse.set(
+            `Failed to analyze video: ${err.message}`
+          );
+          this.isLoadingDataForModal.set(false);
+        },
+      });
   }
 }

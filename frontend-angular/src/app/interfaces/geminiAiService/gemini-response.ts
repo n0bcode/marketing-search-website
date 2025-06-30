@@ -7,6 +7,7 @@ export interface GeminiResponse {
   generalSearchResultsCount: number;
   siteSearch: string;
   note: string;
+  analysisData?: AnalysisResult; // Add this to represent the structured AI analysis
 }
 
 // #region [MAIN INTERFACE]
@@ -60,3 +61,31 @@ export interface GeneralSearchResult {
   author: string;
   source: string;
 }
+
+// #region [STRUCTURED AI ANALYSIS INTERFACES]
+
+export interface AnalysisResult {
+  tieuDe: string;
+  nguonDuLieu: string;
+  danhGia: Evaluation;
+  thongBaoKhongCoDuLieu: string;
+}
+
+export interface Evaluation {
+  tichCuc: ArticleEvaluation;
+  tieuCuc: ArticleEvaluation;
+  danhGiaChung: string;
+}
+
+export interface ArticleEvaluation {
+  soLuong: number;
+  baiViet: Article[];
+}
+
+export interface Article {
+  tomTat: string;
+  lyDo: string;
+  lienKet: string;
+}
+
+// #endregion

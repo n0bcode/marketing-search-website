@@ -102,7 +102,7 @@ export class GoogleSearchComponent implements OnInit {
 
   onToggleHistory() {
     this.searchService.toggleKeywordHistory();
-    this.searchService.onTakeKeywordGoogle();
+    this.searchService.onTakeKeywordGoogle(this.searchParameters().q);
   }
 
   onLoadAnalysis(keywordId: string) {
