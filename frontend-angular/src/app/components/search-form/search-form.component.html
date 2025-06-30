@@ -135,7 +135,7 @@
 
     <!-- Search Button -->
     <button (click)="onSearch()" [disabled]="isLoading" class="w-full bg-primary text-white rounded-lg px-6 py-4 flex items-center justify-center gap-3 text-base font-semibold hover:bg-primary/90 transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md hover:shadow-lg">
-      <span *ngIf="isLoading" class="material-icons animate-spin">autorenew</span>
+      <mat-spinner *ngIf="isLoading" diameter="24" class="text-white"></mat-spinner>
       <span *ngIf="!isLoading" class="material-icons">search</span>
       <span>{{ isLoading ? 'Searching...' : 'Search' }}</span>
     </button>

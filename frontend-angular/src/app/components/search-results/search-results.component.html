@@ -15,7 +15,7 @@
         <h3 class="font-bold text-xl mb-4">Analysis Result:</h3>
         <div *ngIf="isLoading" class="flex justify-center items-center h-full">
           <div class="flex items-center gap-3 text-primary">
-            <span class="material-icons animate-spin">autorenew</span>
+            <mat-spinner diameter="40"></mat-spinner>
             <span class="font-semibold">Loading...</span>
           </div>
         </div>
@@ -51,7 +51,14 @@
           </div>
         </div>
         <div *ngIf="isLoading" class="flex justify-center items-center py-6">
+          <mat-spinner diameter="30"></mat-spinner>
           <span class="text-primary font-semibold">Loading more...</span>
+        </div>
+        <div
+          *ngIf="error"
+          class="text-danger p-6 bg-red-100 rounded-lg text-center text-lg font-semibold"
+        >
+          Error: {{ error }}
         </div>
       </div>
     </div>

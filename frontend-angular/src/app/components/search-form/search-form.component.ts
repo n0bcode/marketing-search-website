@@ -2,11 +2,12 @@ import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GoogleSearchRequest } from '../../interfaces/googleSearchService/google-search-request';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-search-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatProgressSpinnerModule],
   templateUrl: './search-form.component.html',
 })
 export class SearchFormComponent {
@@ -36,6 +37,7 @@ export class SearchFormComponent {
   }
 
   deleteRelatedKey(key: string) {
+    this.relatedKeys = this.relatedKeys.filter((x) => x !== key);
     this.relatedKeys = this.relatedKeys.filter((x) => x !== key);
     this.transformRelatedKeys();
   }

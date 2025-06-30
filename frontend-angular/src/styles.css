@@ -11,3 +11,11 @@ body {
   @apply bg-light text-dark;
 }
  */
+
+/* .error-snackbar {
+  @apply bg-danger text-white rounded-lg shadow-lg;
+}
+
+.error-snackbar .mat-simple-snackbar-action {
+  @apply text-white;
+} */

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ModalAnalysisMediaSocialComponent } from '../modal-analysis-media-social/modal-analysis-media-social.component';
 import { GeminiResponse } from '../../interfaces/geminiAiService/gemini-response';
 import { AnalysisLink } from '../../models/analysis-link';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
@@ -10,7 +11,7 @@ import * as FileSaver from 'file-saver';
 @Component({
   selector: 'app-search-results',
   standalone: true,
-  imports: [CommonModule, ModalAnalysisMediaSocialComponent],
+  imports: [CommonModule, ModalAnalysisMediaSocialComponent, MatProgressSpinnerModule],
   templateUrl: './search-results.component.html',
 })
 export class SearchResultsComponent {
@@ -22,6 +23,7 @@ export class SearchResultsComponent {
   @Input() mainDataAnalysisLinkSocialVideo: GeminiResponse | null = null;
   @Input() isShowModal: boolean = false;
   @Input() isLoadingDataForModal: boolean = false;
+  @Input() error: string | null = null;
 
   @Output() selectSite = new EventEmitter<string>();
   @Output() analyzeLink = new EventEmitter<string>();
