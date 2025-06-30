@@ -143,6 +143,9 @@ export class SearchService {
             }:`,
             err
           );
+          this.errorMessageResponse.set(
+            `Failed to load data for ${params.as_sitesearch || 'default'}: ${err.message}`
+          );
           this.isLoading.set(
             this.searchResultsList().length < this.listSitesSelected().length
           );

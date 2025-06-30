@@ -45,8 +45,16 @@
       *ngIf="isLoading"
       class="flex items-center justify-center gap-4 text-primary p-6 bg-light/50 rounded-lg"
     >
-      <span class="animate-spin material-icons text-4xl">autorenew</span>
+      <mat-spinner diameter="40"></mat-spinner>
       <span class="text-lg font-semibold">Loading data, please wait...</span>
+    </div>
+
+    <!-- Error state -->
+    <div
+      *ngIf="error"
+      class="text-danger p-6 bg-red-100 rounded-lg text-center text-lg font-semibold"
+    >
+      Error: {{ error }}
     </div>
 
     <!-- No data -->

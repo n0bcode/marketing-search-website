@@ -33,14 +33,6 @@
 
     <!-- Results and History -->
     <div class="lg:col-span-3 space-y-6">
-      <!-- Error Message -->
-      <div
-        *ngIf="errorMessageResponse()"
-        class="bg-danger/10 text-danger font-semibold p-4 rounded-lg shadow-md"
-      >
-        {{ errorMessageResponse() }}
-      </div>
-
       <!-- Search Results -->
       <app-search-results
         [searchResultsList]="searchResultsList()"
@@ -51,6 +43,7 @@
         [mainDataAnalysisLinkSocialVideo]="mainDataAnalysisLinkSocialVideo()"
         [isShowModal]="isShowModal()"
         [isLoadingDataForModal]="isLoadingDataForModal()"
+        [error]="errorMessageResponse()"
         (selectSite)="onSelectSite($event)"
         (analyzeLink)="onAnalyzeLink($event)"
         (analyzeVideo)="onAnalyzeVideo($event)"
