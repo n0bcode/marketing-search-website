@@ -1,6 +1,7 @@
 using Api.Constants;
 using Api.Models;
 using Api.Repositories.IRepositories;
+using Api.Repositories.MongoDb;
 using Api.Services.RedisCacheService;
 using Api.Services.SearchServices.Google;
 using Api.Services.SearchServices.Twitter;
@@ -21,14 +22,20 @@ namespace Api.Controllers
         private readonly TwitterSearchService _searchServiceTwitter;
 
         private readonly IUnitOfWork _unit;
+        private readonly IUnitOfWorkMongo _unitMongo;
         private readonly IRedisCacheService _redis;
 
 
-        public SearchController(GoogleSearchService searchService, TwitterSearchService searchServiceTwitter, IUnitOfWork unit, IRedisCacheService redisCache)
+        public SearchController(GoogleSearchService searchService,
+                                TwitterSearchService searchServiceTwitter,
+                                IUnitOfWork unit,
+                                IUnitOfWorkMongo unitOfWorkMongo,
+                                IRedisCacheService redisCache)
         {
             _searchService = searchService;
             _searchServiceTwitter = searchServiceTwitter;
             _unit = unit;
+            _unitMongo = unitOfWorkMongo;
             _redis = redisCache;
         }
 
@@ -56,13 +63,13 @@ namespace Api.Controllers
 
                 if (response == null)
                 {
-                    response = await _unit.Keywords.GetAllKeywordsAsync();
+                    response = await _unitMongo.Keywords.GetAllKeywordsAsync();
                     _redis.SetData<ResponseAPI<IEnumerable<KeywordModel>>>("exceptionCacheKeyword", response);
                 }
             }
             catch (Exception)
             {
-                response = await _unit.Keywords.GetAllKeywordsAsync();
+                response = await _unitMongo.Keywords.GetAllKeywordsAsync();
             }
             return Ok(response);
         }

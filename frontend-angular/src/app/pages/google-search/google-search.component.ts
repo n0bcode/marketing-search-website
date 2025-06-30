@@ -138,8 +138,8 @@ export class GoogleSearchComponent implements OnInit {
 
     this.storeKeyword(this.searchParameters.q);
 
-    console.log(this.searchParameters); // ! Over there!!!
-    return
+    // console.log(this.searchParameters); // ! Over there!!!
+    // return;
 
     // Kiểm tra xem có từ khóa nào không
     if (this.listSitesSelected.length === 0) {
@@ -193,6 +193,7 @@ export class GoogleSearchComponent implements OnInit {
             this.selectedSite = response.data!.siteSearch; // Chọn site đầu tiên mặc định
             this.searchResults = response.data!;
           }
+          this.isLoading.set(false);
         },
         error: (err) => {
           console.error(

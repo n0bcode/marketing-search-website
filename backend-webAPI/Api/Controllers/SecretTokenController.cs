@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Api.DTOs;
 using Api.Models;
 using Api.Repositories.IRepositories;
+using Api.Repositories.MongoDb;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
@@ -14,14 +15,17 @@ namespace Api.Controllers
     public class SecretTokenController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-        public SecretTokenController(IUnitOfWork unitOfWork)
+        private readonly IUnitOfWorkMongo _unitMongo;
+        public SecretTokenController(IUnitOfWork unitOfWork,
+                                     IUnitOfWorkMongo unitOfWorkMongo)
         {
             _unitOfWork = unitOfWork;
+            _unitMongo = unitOfWorkMongo;
         }
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var responseSecretTokens = await _unitOfWork.SecretTokens.GetAllAsync();
+            var responseSecretTokens = await _unitMongo.SecretTokens.GetAllAsync();
             return Ok(responseSecretTokens);
         }
         [HttpPost]
@@ -31,7 +35,7 @@ namespace Api.Controllers
             {
                 return BadRequest("Invalid data.");
             }
-            var response = await _unitOfWork.SecretTokens.UpsertAsync(secretTokenDTO);
+            var response = await _unitMongo.SecretTokens.UpsertAsync(secretTokenDTO);
             if (response.Success)
             {
                 return Ok(response);
@@ -45,7 +49,7 @@ namespace Api.Controllers
             {
                 return BadRequest("Invalid ID.");
             }
-            var result = await _unitOfWork.SecretTokens.DeleteAsync(id);
+            var result = await _unitMongo.SecretTokens.DeleteAsync(id);
             if (result)
             {
                 return Ok(new { message = "Deleted successfully." });
