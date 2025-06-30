@@ -1,11 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  Output,
-  OnChanges,
-  SimpleChanges,
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GoogleSearchRequest } from '../../interfaces/googleSearchService/google-search-request';
@@ -16,87 +9,89 @@ import { GoogleSearchRequest } from '../../interfaces/googleSearchService/google
   imports: [CommonModule, FormsModule],
   templateUrl: './search-form.component.html',
 })
-export class SearchFormComponent implements OnChanges {
-  @Input() searchParameters!: GoogleSearchRequest;
-  @Input() startDate!: Date;
-  @Input() endDate!: Date;
-  @Input() today!: Date;
-  @Input() dictionaryListSites!: { [key: string]: string };
-  @Input() newDomain!: string;
-  @Input() isLoading!: boolean;
-  @Input() listSitesSelected!: string[];
-  @Output() search = new EventEmitter<Event>();
+export class SearchFormComponent {
+  @Input() searchParameters: GoogleSearchRequest | undefined;
+  @Output() searchParametersChange = new EventEmitter<GoogleSearchRequest>();
+  @Input() startDate: Date | undefined;
+  @Input() endDate: Date | undefined;
+  @Input() today: Date | undefined;
+  @Input() dictionaryListSites: Record<string, string> | undefined;
+  @Input() listSitesSelected: string[] | undefined;
+  @Input() newDomain: string | undefined;
+  @Input() isLoading: boolean | undefined;
+
+  @Output() search = new EventEmitter<void>();
   @Output() updateSites = new EventEmitter<Event>();
   @Output() addDomain = new EventEmitter<void>();
 
-  // New output for two-way binding of searchParameters
-  @Output() searchParametersChange = new EventEmitter<GoogleSearchRequest>();
-
-  // Local copy of searchParameters for two-way binding
-  localSearchParameters!: GoogleSearchRequest;
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (
-      changes['searchParameters'] &&
-      changes['searchParameters'].currentValue
-    ) {
-      // Create a copy to avoid mutating parent input directly
-      this.localSearchParameters = {
-        ...changes['searchParameters'].currentValue,
-      };
-    }
-  }
-
-  // Emit changes when any input changes
-  onSearchParameterChange() {
-    this.searchParametersChange.emit(this.localSearchParameters);
-  }
-
-  isSelected(site: string): boolean {
-    return this.listSitesSelected.some((x) => x == site);
-  }
-
-  // Select related key search
   relatedKeys: string[] = [];
   relatedKeyInput: string = '';
+  ignoreTexts: string[] = [];
+  ignoreTextInput: string = '';
+
   addRelatedKey() {
-    if (this.relatedKeyInput.trim().length == 0) return;
+    if (this.relatedKeyInput.trim().length === 0) return;
     this.relatedKeys.push(this.relatedKeyInput.trim());
     this.transformRelatedKeys();
   }
+
   deleteRelatedKey(key: string) {
-    this.relatedKeys = this.relatedKeys.filter((x) => x != key);
+    this.relatedKeys = this.relatedKeys.filter((x) => x !== key);
     this.transformRelatedKeys();
   }
+
   clearRelatedKey() {
     this.relatedKeys = [];
-    this.searchParameters.as_oq = '';
+    this.updateSearchParameters({ as_oq: '' });
   }
+
   transformRelatedKeys() {
-    this.searchParameters.as_oq = this.relatedKeys
-      .map((x) => '"' + x + '"')
-      .join(' OR ');
+    const as_oq = this.relatedKeys.map((x) => `"${x}"`).join(' OR ');
+    this.updateSearchParameters({ as_oq });
   }
-  // Select ignore text search
-  ignoreTexts: string[] = [];
-  ignoreTextInput: string = '';
+
   addIgnoreText() {
-    if (this.ignoreTextInput.trim().length == 0) {
+    if (this.ignoreTextInput.trim().length === 0) {
       return;
     }
     this.ignoreTexts.push(this.ignoreTextInput.trim());
     this.transformIgnoreTexts();
   }
+
   deleteIgnoreText(text: string) {
-    this.ignoreTexts = this.ignoreTexts.filter((x) => x != text);
+    this.ignoreTexts = this.ignoreTexts.filter((x) => x !== text);
     this.transformIgnoreTexts();
   }
+
   clearIgnoreText() {
     this.ignoreTexts = [];
-    this.searchParameters.as_eq = '';
+    this.updateSearchParameters({ as_eq: '' });
   }
+
   transformIgnoreTexts() {
-    this.searchParameters.as_eq =
-      '-' + this.ignoreTexts.map((x) => '"' + x + '"').join(' -');
+    const as_eq = '-' + this.ignoreTexts.map((x) => `"${x}"`).join(' -');
+    this.updateSearchParameters({ as_eq });
+  }
+
+  updateSearchParameters(params: Partial<GoogleSearchRequest>) {
+    if (this.searchParameters) {
+      this.searchParametersChange.emit({ ...this.searchParameters, ...params });
+    }
+  }
+
+  isSelected(site: string): boolean {
+    return this.listSitesSelected?.some((x) => x === site) ?? false;
+  }
+
+  onSearch() {
+    this.search.emit();
+  }
+
+  onUpdateSites(event: Event) {
+    this.updateSites.emit(event);
+  }
+
+  onAddDomain() {
+    this.addDomain.emit();
   }
 }

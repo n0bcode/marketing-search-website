@@ -1,66 +1,69 @@
-<div class="container mx-auto p-4 space-y-6 g-3">
-  <!-- Panel Quản lý Secret Token -->
+
+<div class="container mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+  <!-- Secret Token Panel -->
   <app-secret-token-panel
-    [isShowViewSettingToken]="isShowViewSettingToken"
-    [listServices]="listServices"
-    [listSecretDTOsMap]="listSecretDTOsMap"
-    [listSelectSecretToken]="listSelectSecretToken"
-    [secretTokenDTO]="secretTokenDTO"
-    (toggleSettings)="isShowViewSettingToken = !isShowViewSettingToken"
-    (createToken)="createSecretToken($event)"
+    [isShowViewSettingToken]="isShowViewSettingToken()"
+    [listServices]="listServices()"
+    [listSecretDTOsMap]="listSecretDTOsMap()"
+    [listSelectSecretToken]="listSelectSecretToken()"
+    [secretTokenDTO]="secretTokenDTO()"
+    (toggleSettings)="onToggleSettings()"
+    (createToken)="onCreateToken($event)"
   ></app-secret-token-panel>
 
-  <!-- Khu vực Tìm kiếm và Kết quả -->
-  <div class="flex flex-col md:flex-row gap-6">
-    <!-- Form Tìm kiếm -->
-    <app-search-form
-      class="w-full md:w-1/4"
-      [searchParameters]="searchParameters"
-      (searchParametersChange)="searchParameters = $event"
-      [startDate]="startDate"
-      [endDate]="endDate"
-      [today]="today"
-      [dictionaryListSites]="dictionaryListSites"
-      [listSitesSelected]="listSitesSelected"
-      [newDomain]="newDomain"
-      [isLoading]="isLoading()"
-      (search)="onSearch()"
-      (updateSites)="updateSelectedSites($event)"
-      (addDomain)="addDomainToDictionary()"
-    ></app-search-form>
+  <!-- Search Area -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Search Form -->
+    <div class="lg:col-span-1">
+      <app-search-form
+        [searchParameters]="searchParameters()"
+        (searchParametersChange)="onSearchParametersChange($event)"
+        [startDate]="startDate()"
+        [endDate]="endDate()"
+        [today]="today()"
+        [dictionaryListSites]="dictionaryListSites()"
+        [listSitesSelected]="listSitesSelected()"
+        [newDomain]="newDomain()"
+        [isLoading]="isLoading()"
+        (search)="onSearch()"
+        (updateSites)="onUpdateSites($event)"
+        (addDomain)="onAddDomain()"
+      ></app-search-form>
+    </div>
 
-    <!-- Kết quả và Lịch sử -->
-    <div class="w-full md:w-3/4 space-y-6">
-      <!-- Thông báo lỗi -->
+    <!-- Results and History -->
+    <div class="lg:col-span-3 space-y-6">
+      <!-- Error Message -->
       <div
-        *ngIf="errorMessageResponse"
-        class="text-red-500 font-semibold p-4 bg-red-50 rounded-md"
+        *ngIf="errorMessageResponse()"
+        class="bg-danger/10 text-danger font-semibold p-4 rounded-lg shadow-md"
       >
-        {{ errorMessageResponse }}
+        {{ errorMessageResponse() }}
       </div>
 
-      <!-- Kết quả tìm kiếm -->
+      <!-- Search Results -->
       <app-search-results
-        [searchResultsList]="searchResultsList"
-        [selectedSite]="selectedSite"
-        [searchResults]="searchResults"
+        [searchResultsList]="searchResultsList()"
+        [selectedSite]="selectedSite()"
+        [searchResults]="searchResults()"
         [isLoading]="isLoading()"
-        [analysisLink]="analysisLink"
-        [mainDataAnalysisLinkSocialVideo]="mainDataAnalysisLinkSocialVideo"
-        [isShowModal]="isShowModal"
-        [isLoadingDataForModal]="isLoadingDataForModal"
-        (selectSite)="selectSite($event)"
-        (analyzeLink)="onAnalysisLink($event)"
-        (analyzeVideo)="analyzeVideoLink($event)"
+        [analysisLink]="analysisLink()"
+        [mainDataAnalysisLinkSocialVideo]="mainDataAnalysisLinkSocialVideo()"
+        [isShowModal]="isShowModal()"
+        [isLoadingDataForModal]="isLoadingDataForModal()"
+        (selectSite)="onSelectSite($event)"
+        (analyzeLink)="onAnalyzeLink($event)"
+        (analyzeVideo)="onAnalyzeVideo($event)"
       ></app-search-results>
 
-      <!-- Lịch sử tìm kiếm -->
+      <!-- Search History -->
       <app-search-history
-        [showKeywordHistory]="showKeywordHistory"
-        [keywordModels]="keywordModels"
-        (toggleHistory)="toggleKeywordHistory(); onTakeKeywordGoogle()"
-        (loadAnalysis)="loadOldAnalysis($event)"
+        [showKeywordHistory]="showKeywordHistory()"
+        [keywordModels]="keywordModels()"
+        (toggleHistory)="onToggleHistory()"
+        (loadAnalysis)="onLoadAnalysis($event)"
       ></app-search-history>
     </div>
   </div>
 </div>
+

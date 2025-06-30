@@ -1,25 +1,28 @@
-<nav class="bg-gray-100 shadow">
-  <div class="container mx-auto flex items-center px-4 py-2">
-    <!-- Menu button (có thể dùng cho mobile menu sau này) -->
-    <button class="text-black mr-4 focus:outline-none">
+<nav class="bg-dark text-white shadow-lg">
+  <div class="container mx-auto flex items-center px-4 py-4">
+    <!-- Menu button (for future mobile menu) -->
+    <button class="text-white mr-4 focus:outline-none lg:hidden">
       <span class="material-icons">menu</span>
     </button>
-    <!-- Logo hoặc tên app -->
+    <!-- Logo or App Name -->
     <a
       routerLink="/"
       routerLinkActive="router-link-active"
-      class="text-black font-semibold text-lg mr-6 hover:underline"
+      class="text-white font-bold text-xl mr-8 hover:text-primary transition-colors"
     >
-      Apps
+      Gemini Search
     </a>
-    <a
-      routerLink="/google-search"
-      routerLinkActive="router-link-active"
-      class="text-black font-medium mr-4 hover:underline"
-    >
-      Google
-    </a>
-    <div class="flex-1"></div>
-    <!-- Thêm các nút hoặc thông tin user ở đây nếu cần -->
+    <!-- Navigation Links -->
+    <div class="flex-grow flex items-center space-x-6">
+      <a
+        routerLink="/google-search"
+        routerLinkActive="router-link-active"
+        class="text-white font-medium text-lg hover:text-primary transition-colors"
+      >
+        Google Search
+      </a>
+      <!-- Add more navigation links here if needed -->
+    </div>
+    <!-- User info or other buttons -->
   </div>
 </nav>
