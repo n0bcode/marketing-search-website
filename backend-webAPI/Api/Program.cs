@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using Microsoft.Extensions.Hosting;
 using Api.Automations;
+using Api.Repositories.MongoDb;
 
 namespace Api
 {
@@ -39,7 +40,8 @@ namespace Api
             builder.Services.AddScoped<VideoProcessingService>();
 
             builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))); // ! Over there
+            builder.Services.AddSingleton<MongoDbContext>();
 
             // Add services to the container.
 
@@ -59,7 +61,9 @@ namespace Api
             // Gắn ApiSettings vào DI
             builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); // ! Over there
+
+            builder.Services.AddScoped<IUnitOfWorkMongo, UnitOfWorkMongo>();
 
             builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
             builder.Services.AddScoped<VideoProcessingService>();

@@ -100,17 +100,22 @@ namespace Api.Services.AIServices.Gemini
         }
         public void AddAnalysisPrompt()
         {
-            Parts.Add(new PartRequest("Phân tích dữ liệu theo cấu trúc dưới đây cho từ khóa tìm kiếm. Phân loại các đánh giá thành năm mức độ: Rất tích cực, Tích cực, Bình thường, Tiêu cực, Rất tiêu cực. Cấu trúc phân tích sẽ được tổ chức như sau:" +
-                "\n\nTiêu đề nội dung phân tích:" +
-                "\nNguồn gốc:" +
-                "\nĐánh giá kết quả:" +
-                "\n    - Tích cực [Số bài tích cực]:" +
-                "\n        + [Tóm tắt tiêu đề với khung a có link bao phủ] (Đánh giá web site vì sao tích cực)" +
-                "\n        + ..." +
-                "\n    - Tiêu cực [Số bài tiêu cực]:" +
-                "\n        + [Tóm tắt tiêu đề với khung a có link bao phủ] (Lí do)" +
-                "\n        + ..." +
-                "\nĐánh giá chung:"
+            Parts.Add(new PartRequest(
+                @"# Nhắc nhở: Vui lòng tạo cấu trúc HTML cho nội dung phân tích dữ liệu theo định dạng sử dụng Tailwind CSS. 
+                Nội dung bao gồm tiêu đề, nguồn gốc, đánh giá kết quả với các đánh giá tích cực và tiêu cực được tổ chức theo dạng cột và danh sách. 
+                Đánh giá chung cũng cần được thể hiện rõ ràng.
+
+                .bg-gradient.p-4>h1.text-2xl.font-bold{Tiêu đề nội dung phân tích}+
+                p.mt-2{Nguồn gốc: [Nguồn gốc của dữ liệu]}+
+                h2.text-xl.font-semibold{Đánh giá kết quả}+
+                .flex.flex-row.justify-between.mt-4>
+                    .w-1/2>h3.text-lg.font-medium.text-green-600{Tích cực [Số bài tích cực]}+
+                    .w-1/2>h3.text-lg.font-medium.text-red-600{Tiêu cực [Số bài tiêu cực]}+
+                    ul.list-disc.pl-6>
+                        li>a.text-blue-500.hover:underline{[Tóm tắt tiêu đề]}(Đánh giá web site vì sao tích cực)+
+                        li>a.text-blue-500.hover:underline{[Tóm tắt tiêu đề]}(Lí do)+
+                h2.text-xl.font-semibold.mt-4{Đánh giá chung}+
+                p{[Nội dung đánh giá chung}"
             ));
         }
 
