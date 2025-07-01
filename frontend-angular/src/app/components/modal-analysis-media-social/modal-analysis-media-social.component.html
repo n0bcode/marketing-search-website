@@ -43,10 +43,14 @@
     <!-- Loading state -->
     <div
       *ngIf="isLoading"
-      class="flex items-center justify-center gap-4 text-primary p-6 bg-light/50 rounded-lg"
+      class="space-y-4 p-6 bg-light/50 rounded-lg animate-pulse"
     >
-      <mat-spinner diameter="40"></mat-spinner>
-      <span class="text-lg font-semibold">Loading data, please wait...</span>
+      <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+      <div class="h-4 bg-gray-200 rounded w-full"></div>
+      <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+      <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div class="h-4 bg-gray-200 rounded w-full"></div>
+      <div class="h-4 bg-gray-200 rounded w-2/3"></div>
     </div>
 
     <!-- Error state -->

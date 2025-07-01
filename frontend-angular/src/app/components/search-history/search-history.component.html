@@ -8,11 +8,16 @@
   <div [ngClass]="{ 'max-h-0 overflow-hidden': !showKeywordHistory, 'max-h-screen transition-all duration-500 ease-in-out': showKeywordHistory }">
     <h3 class="font-bold text-xl text-dark mb-4">Search History:</h3>
     <ul class="space-y-3">
-      <li *ngFor="let keyword of keywordModels" (click)="loadAnalysis.emit(keyword.id)" class="p-4 rounded-lg bg-light/50 border border-gray-200 hover:bg-light hover:shadow-md cursor-pointer transition-all duration-200">
-        <span class="text-gray-800 font-medium text-base">{{ keyword.keyword }}</span>
-        <br />
-        <span class="text-gray-500 text-xs"> ({{ keyword.updatedAt | date: 'short' }}) </span>
-      </li>
+      <ng-container *ngIf="keywordModels.length > 0; else skeletonLoader">
+        <li *ngFor="let keyword of keywordModels" (click)="loadAnalysis.emit(keyword.id)" class="p-4 rounded-lg bg-light/50 border border-gray-200 hover:bg-light hover:shadow-md cursor-pointer transition-all duration-200">
+          <span class="text-gray-800 font-medium text-base">{{ keyword.keyword }}</span>
+          <br />
+          <span class="text-gray-500 text-xs"> ({{ keyword.updatedAt | date: 'short' }}) </span>
+        </li>
+      </ng-container>
+      <ng-template #skeletonLoader>
+        <li *ngFor="let i of [1, 2, 3]" class="p-4 rounded-lg bg-gray-200 animate-pulse h-20"></li>
+      </ng-template>
     </ul>
   </div>
 </div>
