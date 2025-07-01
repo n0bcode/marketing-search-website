@@ -80,7 +80,7 @@ export class SearchResultsComponent {
 
   exportToExcel(): void {
     const data = this.searchResultsList.map((item) => ({
-      'Từ khóa': item.siteSearch,
+      'Từ khóa': item.siteSearch || '',
       'Tiêu đề phân tích': this.getAnalysisTitle(item),
       'Nguồn dữ liệu': this.getAnalysisSource(item),
       'Đánh giá chung': this.getGeneralEvaluation(item),
