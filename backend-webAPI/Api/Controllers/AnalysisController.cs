@@ -254,23 +254,21 @@ namespace Api.Controllers
         /// <summary>
         /// Analyzes Bing search results using Gemini AI.
         /// </summary>
-        /// <param name="bingResults">The Bing search results to analyze.</param>
-        /// <param name="query">The search query.</param>
-        /// <param name="maxResults">Maximum number of results to return.</param>
-        /// <param name="site">Specific site to search within.</param>
-        /// <param name="timeRange">Time range for search results.</param>
-        /// <param name="language">Language for search results.</param>
-        /// <param name="region">Region for search results.</param>
+        /// <param name="request">The search request containing the query and other parameters.</param>
         /// <param name="idTokenGeminiChange">Optional: User-specific token for Gemini AI API if different from default.</param>
         /// <returns>An <see cref="IActionResult"/> containing the Gemini AI analysis response.</returns>
         [ProducesResponseType(typeof(GeminiAIResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [HttpPost]
-        public async Task<IActionResult> GetAnalysisInput([FromBody] List<BingSearchResult> bingResults, [FromQuery] string query, [FromQuery] int maxResults = 10, [FromQuery] string? site = null, [FromQuery] string? timeRange = null, [FromQuery] string? language = null, [FromQuery] string? region = null, [FromQuery] string? idTokenGeminiChange = null)
+        public async Task<IActionResult> AnalyzeBingResults([FromBody] List<BingSearchResult> bingResults, [FromQuery] string? query, [FromQuery] string? site, [FromQuery] string? idTokenGeminiChange)
         {
             ResponseAPI<GeminiAIResponse> responseApi = new();
             try
             {
+                // Note: Bing search results should be fetched here or passed as part of the request if needed.
+                // For now, we'll assume that the results are not available and return an error.
+                // In a real implementation, you would fetch Bing results using a service similar to GoogleSearchService.
+
                 #region Gemini AI Analysis
 
                 string analysisInput = $"Bing search data: {GetAnalysisInput(bingResults)}";

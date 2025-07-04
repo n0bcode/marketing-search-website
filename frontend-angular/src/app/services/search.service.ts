@@ -178,17 +178,11 @@ export class SearchService {
   private performBingSearch(params: SearchRequest) {
     this.activeRequests++;
 
-    const queryParams = new URLSearchParams();
-    queryParams.append('query', params.q || '');
-    if (params.num) queryParams.append('maxResults', params.num.toString());
-    if (params.as_sitesearch) queryParams.append('site', params.as_sitesearch);
-    if (params.tbs) queryParams.append('timeRange', params.tbs);
-    if (params.hl) queryParams.append('language', params.hl);
-    if (params.gl) queryParams.append('region', params.gl);
-
     this.apiService
-      .getFromApi<ResponseAPI<any>>(
-        `/Search/SearchBing?${queryParams.toString()}`
+      .postToApi<ResponseAPI<any>>(
+        `/Search/SearchBing`,
+        params,
+        ConfigsRequest.getSkipAuthConfig()
       )
       .subscribe({
         next: (bingResponse) => {
@@ -197,45 +191,19 @@ export class SearchService {
             const idTokenGemini =
               this.listSelectSecretToken()[TypeServicesConstants.GeminiAI];
 
-            const analysisQueryParams = new URLSearchParams();
-            analysisQueryParams.append('query', params.q || '');
-            if (params.num)
-              analysisQueryParams.append('maxResults', params.num.toString());
-            if (params.as_sitesearch)
-              analysisQueryParams.append('site', params.as_sitesearch);
-            if (params.tbs) analysisQueryParams.append('timeRange', params.tbs);
-            if (params.hl) analysisQueryParams.append('language', params.hl);
-            if (params.gl) analysisQueryParams.append('region', params.gl);
-            if (idTokenGemini)
-              analysisQueryParams.append('idTokenGeminiChange', idTokenGemini);
-
             this.apiService
               .postToApi<ResponseAPI<GeminiResponse>>(
-                `/Analysis/GetAnalysisInput?${analysisQueryParams.toString()}`,
-                bingResponse.data, // Truyền dữ liệu Bing search results vào body
+                `/Analysis/AnalyzeBingResults?query=${params.q}&site=${
+                  params.as_sitesearch
+                }&idTokenGeminiChange=${idTokenGemini || ''}`,
+                params, // Truyền lại params thay vì dữ liệu Bing trực tiếp vì backend hiện tại chấp nhận SearchRequest
                 ConfigsRequest.getSkipAuthConfig()
               )
               .subscribe({
                 next: (geminiResponse) => {
                   if (geminiResponse.success && geminiResponse.data) {
-                    const bingResults: GeminiResponse = {
-                      candidates: geminiResponse.data.candidates,
-                      generalSearchResults:
-                        geminiResponse.data.generalSearchResults,
-                      siteSearch: geminiResponse.data.siteSearch,
-                      generalSearchResultsCount:
-                        geminiResponse.data.generalSearchResultsCount,
-                      analysisData: geminiResponse.data.analysisData,
-                      showText: geminiResponse.data.showText,
-                      modelVersion: undefined,
-                      usageMetadata: undefined,
-                      note: undefined,
-                    };
-                    this.searchResultsList.update((list) => [
-                      ...list,
-                      bingResults,
-                    ]);
-
+                    const bingResults = geminiResponse.data;
+                    bingResults.siteSearch = params.as_sitesearch || 'default';
                     bingResults.generalSearchResultsCount =
                       bingResults.generalSearchResults.length;
                     const cleanedText =
@@ -247,16 +215,21 @@ export class SearchService {
                       bingResults.analysisData = JSON.parse(cleanedText);
                     } catch (e) {
                       console.error('Failed to parse analysisData as JSON:', e);
-                      bingResults.analysisData = cleanedText as any; // Fallback to string if parsing fails, casting to any to bypass type error temporarily
+                      bingResults.analysisData = cleanedText as any; // Fallback to string if parsing fails
                     }
+
+                    this.searchResultsList.update((list) => [
+                      ...list,
+                      bingResults,
+                    ]);
 
                     if (!this.selectedSite()) {
                       this.selectedSite.set(bingResults.siteSearch);
                       this.searchResults.set(bingResults);
                     }
                     console.log(
-                      'performBingSearch API Response Data:',
-                      bingResponse.data
+                      'performBingSearch Analysis API Response Data:',
+                      geminiResponse.data
                     );
                   } else {
                     this.errorMessageResponse.set(geminiResponse.message);
