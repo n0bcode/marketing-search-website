@@ -34,6 +34,8 @@ export class SearchService {
   today = signal(new Date());
 
   isLoading = signal(false);
+  isAnalyzingLink = signal(false);
+  private activeRequests = 0;
   searchResults = signal<GeminiResponse | null>(null);
   searchResultsList = signal<GeminiResponse[]>([]);
   selectedSite = signal<string>('');
@@ -101,6 +103,8 @@ export class SearchService {
   }
 
   private performSearch(params: GoogleSearchRequest) {
+    this.activeRequests++; // Tăng bộ đếm khi một yêu cầu bắt đầu
+
     const idTokenGoogle =
       this.listSelectSecretToken()[TypeServicesConstants.GoogleSearch];
     const idTokenGemini =
@@ -140,7 +144,6 @@ export class SearchService {
             this.selectedSite.set(data.siteSearch);
             this.searchResults.set(data);
           }
-          this.isLoading.set(false);
           console.log('performSearch API Response Data:', response.data);
         },
         error: (err) => {
@@ -155,15 +158,18 @@ export class SearchService {
               err.message
             }`
           );
-          this.isLoading.set(
-            this.searchResultsList().length < this.listSitesSelected().length
-          );
+        },
+        complete: () => {
+          this.activeRequests--; // Giảm bộ đếm khi yêu cầu hoàn thành
+          if (this.activeRequests === 0) {
+            this.isLoading.set(false); // Đặt isLoading thành false chỉ khi tất cả các yêu cầu đã hoàn thành
+          }
         },
       });
   }
 
   onAnalysisLink(link: string) {
-    this.isLoading.set(true);
+    this.isAnalyzingLink.set(true);
     this.errorMessageResponse.set('');
     this.analysisLink.set(null);
 
@@ -171,7 +177,7 @@ export class SearchService {
       this.listSelectSecretToken()[TypeServicesConstants.GeminiAI];
 
     this.apiService
-      .postToApi<ResponseAPI<AnalysisLink>>(
+      .postToApi<AnalysisLink>(
         `/Analysis/AnalysisLink?link=${encodeURIComponent(
           link
         )}&idTokenChange=${idTokenGemini}`,
@@ -180,20 +186,16 @@ export class SearchService {
       )
       .subscribe({
         next: (response) => {
-          if (!response.success || !response.data) {
-            this.errorMessageResponse.set(response.message);
-            return;
-          }
-          this.analysisLink.set(response.data);
-          this.isLoading.set(false);
-          console.log('onAnalysisLink API Response Data:', response.data);
+          this.analysisLink.set(response);
+          this.isAnalyzingLink.set(false);
+          console.log('onAnalysisLink API Response Data:', response);
         },
         error: (err) => {
           console.error(`Error analyzing link ${link}:`, err);
           this.errorMessageResponse.set(
             `Failed to analyze link: ${err.message}`
           );
-          this.isLoading.set(false);
+          this.isAnalyzingLink.set(false);
         },
       });
   }
@@ -366,7 +368,7 @@ export class SearchService {
 
     this.apiService
       .postToApi<ResponseAPI<GeminiResponse>>(
-        `/VideoProcessing/AnalyzeVideo?videoUrl=${encodeURIComponent(
+        `/VideoProcessing/ExtractContentFromLinkVideoTikTokAndAnalysis?videoUrl=${encodeURIComponent(
           link
         )}&idTokenGeminiChange=${idTokenGemini}`,
         null,

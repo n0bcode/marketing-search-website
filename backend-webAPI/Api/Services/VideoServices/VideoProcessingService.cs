@@ -11,6 +11,8 @@ using Api.Repositories.IRepositories;
 using Api.Models;
 using Api.Services.VideoServices.Sub;
 
+using Api.Services.VideoServices;
+
 namespace Api.Services.VideoServices
 {
     public class VideoProcessingService
@@ -26,7 +28,12 @@ namespace Api.Services.VideoServices
         }
         public async Task<ResponseAPI<string>> GetTikTokDownloadLink(string videoUrl)
         {
-            return await _seleniumManager.GetTikTokDownloadLink(videoUrl);
+            var (downloadLink, cookies) = await TiktokService.ResolveTikTokDownloadLinkViaHttp(videoUrl);
+            if (!string.IsNullOrEmpty(downloadLink))
+            {
+                return new ResponseAPI<string> { Success = true, Data = downloadLink, Message = "Lấy link tải về thành công!" };
+            }
+            return new ResponseAPI<string> { Success = false, Message = "Không thể lấy link tải về video TikTok." };
         }
 
         public async Task<ResponseAPI<string>> GetFacebookDownloadLink(string videoUrl)

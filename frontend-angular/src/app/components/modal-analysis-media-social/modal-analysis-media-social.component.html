@@ -2,7 +2,7 @@
 <button
   *ngIf="!isShowModal"
   class="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary/90 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-md"
-  (click)="openModal()"
+  (click)="openModal(); modalToggle.emit()"
   aria-label="Detailed Analysis"
 >
   Detailed Analysis

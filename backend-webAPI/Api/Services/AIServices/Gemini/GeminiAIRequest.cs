@@ -67,7 +67,6 @@ namespace Api.Services.AIServices.Gemini
                                       "\nIf it's not business information, analyze it as a normal website.";
 
             req.InitializeContentRequest(linkAnalysisPrompt);
-            req.AddCommonPrompts();
             return req;
         }
 

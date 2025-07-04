@@ -62,87 +62,6 @@ namespace Api.Automations
             var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutInSeconds));
             wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(by));
         }
-
-        #region [Phương thức riêng]
-        /// <summary>
-        /// Lấy link tải về video TikTok từ Snaptik
-        /// </summary>
-        /// <param name="url">Link video TikTok</param>
-        /// <returns>Link tải về video</returns>
-        /// <exception cref="Exception">Nếu không tìm thấy phần tử hoặc có lỗi trong quá trình tải</exception>
-        public async Task<ResponseAPI<string>> GetTikTokDownloadLink(string url)
-        {
-            ResponseAPI<string> response = new();
-            // Cài đặt các tùy chọn cho trình duyệt Brave
-            var options = new ChromeOptions();
-            options.AddArgument("--headless"); // Chạy không có giao diện
-
-            string? downloadLink = null;
-
-            // Khởi tạo ChromeDriver
-            using (IWebDriver driver = new ChromeDriver(options))
-            {
-                // Mở trang Snaptik
-                driver.Navigate().GoToUrl("https://snaptik.app/vn2");
-                await Task.Delay(2000); // Chờ trình duyệt tải trang
-
-                try
-                {
-                    var urlField = driver.FindElement(By.Id("url"));
-                    var submitButton = driver.FindElement(By.ClassName("button-go"));
-                    var errorMessage = driver.FindElement(By.ClassName("message-body"));
-
-                    // Nhấp vào nút đóng modal nếu cần thiết
-                    var closeButton = driver.FindElement(By.ClassName("modal-close"));
-                    closeButton.Click();
-
-                    // Nhập thông tin link TikTok
-                    urlField.SendKeys(url);
-                    urlField.SendKeys(Keys.Enter); // Nhấn Enter để gửi
-
-                    if (errorMessage.Displayed)
-                    {
-                        throw new Exception("Lỗi: " + errorMessage.Text);
-                    }
-
-                    await Task.Delay(5000); // Đợi 5 giây để nhận kết quả
-
-                    // Tìm nút Download
-                    var downloadButton = driver.FindElement(By.XPath("//a[contains(@class, 'download-file')]"));
-
-                    await Task.Delay(5000); // Đợi 5 giây
-
-                    // Giả định URL tải về được hiển thị trong thuộc tính href của nút tải
-                    downloadLink = downloadButton.GetAttribute("href");
-                    if (string.IsNullOrEmpty(downloadLink))
-                    {
-                        throw new Exception("Không tìm thấy link tải về.");
-                    }
-                    response.SetSuccessResponse("Lấy link tải về thành công!");
-                    response.SetData(downloadLink);
-                    Console.WriteLine("Success extract link download video tiktok!");
-                }
-                catch (NoSuchElementException e)
-                {
-                    Console.WriteLine("Không tìm thấy phần tử: " + e.Message);
-                    response.SetErrorResponse(e);
-                }
-                catch (ElementClickInterceptedException e)
-                {
-                    Console.WriteLine("Một phần tử chặn nhấp chuột: " + e.Message);
-                    response.SetErrorResponse(e);
-                }
-                finally
-                {
-                    // Đảm bảo đóng trình duyệt
-                    driver.Quit();
-                }
-            }
-
-            return response;
-        }
-
-
         #region [Get Facebook Download Link]
         /// <summary>
         /// Lấy link tải về video Facebook từ getsave
@@ -259,8 +178,6 @@ namespace Api.Automations
             public string fileUrl { get; set; }
         }
         #endregion
-        #endregion
-
         #endregion
     }
 }

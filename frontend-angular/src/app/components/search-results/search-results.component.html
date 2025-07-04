@@ -3,7 +3,10 @@
   <div
     class="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-2xl shadow-xl border border-gray-200"
   >
-    <div *ngIf="searchResultsList.length > 0" class="flex flex-wrap items-center gap-3">
+    <div
+      *ngIf="searchResultsList.length > 0"
+      class="flex flex-wrap items-center gap-3"
+    >
       <button
         *ngFor="let result of searchResultsList"
         (click)="selectSite.emit(result.siteSearch)"
@@ -13,15 +16,17 @@
           'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md':
             selectedSite !== result.siteSearch
         }"
-        [disabled]="isLoading || isResponseOfSiteHaveValue(result.siteSearch)"
-        class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ease-in-out disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+        class="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
       >
         {{ result.siteSearch || "Default" }} ({{
           result.generalSearchResultsCount
         }})
       </button>
     </div>
-    <div *ngIf="searchResultsList.length === 0" class="flex flex-wrap items-center gap-3 text-gray-500 italic">
+    <div
+      *ngIf="searchResultsList.length === 0"
+      class="flex flex-wrap items-center gap-3 text-gray-500 italic"
+    >
       No search results yet. Please perform a search.
     </div>
     <button
@@ -85,7 +90,11 @@
           <div class="w-3/4 h-4 bg-gray-200 rounded animate-pulse"></div>
         </div>
         <div *ngIf="!isLoading" class="w-full">
-          <div *ngIf="searchResults?.analysisData" class="space-y-6">
+          <!-- Removed display of analysisLink in Key Insights to comply with user request -->
+          <div
+            *ngIf="searchResults?.analysisData && !analysisLink?.analysisText"
+            class="space-y-6"
+          >
             <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -213,7 +222,7 @@
           <p
             *ngIf="!searchResults?.analysisData && searchResults?.showText"
             [innerHTML]="searchResults?.showText"
-                                                                        class="prose max-w-none text-dark p-4 bg-white rounded-xl shadow-md border border-gray-200"
+            class="prose max-w-none text-dark p-4 bg-white rounded-xl shadow-md border border-gray-200"
           ></p>
           <p
             *ngIf="!searchResults?.analysisData && !searchResults?.showText"
@@ -261,7 +270,14 @@
           </div>
         </div>
         <div *ngIf="!isLoading">
-          <div *ngIf="searchResults && searchResults.generalSearchResults && searchResults.generalSearchResults.length > 0; else noDetailedResults">
+          <div
+            *ngIf="
+              searchResults &&
+                searchResults.generalSearchResults &&
+                searchResults.generalSearchResults.length > 0;
+              else noDetailedResults
+            "
+          >
             <div
               *ngFor="let result of searchResults?.generalSearchResults"
               class="p-5 border border-gray-200 rounded-xl hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 bg-white"
@@ -305,6 +321,13 @@
                     class="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl hidden group-hover:block z-10 p-4 prose prose-sm text-gray-700"
                   >
                     <div
+                      *ngIf="isAnalyzingLink"
+                      class="flex justify-center items-center h-24"
+                    >
+                      <mat-spinner diameter="24"></mat-spinner>
+                    </div>
+                    <div
+                      *ngIf="!isAnalyzingLink"
                       [innerHTML]="
                         analysisLink?.analysisText ??
                         'Could not analyze this link.'
@@ -317,7 +340,7 @@
                     [data]="mainDataAnalysisLinkSocialVideo"
                     [isShowModal]="isShowModal"
                     [isLoading]="isLoadingDataForModal"
-                    (click)="analyzeVideo.emit(result.url)"
+                    (modalToggle)="onModalToggle()"
                   ></app-modal-analysis-media-social>
                 </div>
               </div>

@@ -37,6 +37,7 @@ export class GoogleSearchComponent implements OnInit {
   listSitesSelected = this.searchService.listSitesSelected;
   newDomain = this.searchService.newDomain;
   isLoading = this.searchService.isLoading;
+  isAnalyzingLink = this.searchService.isAnalyzingLink;
   errorMessageResponse = this.searchService.errorMessageResponse;
   searchResultsList = this.searchService.searchResultsList;
   selectedSite = this.searchService.selectedSite;
@@ -107,6 +108,11 @@ export class GoogleSearchComponent implements OnInit {
 
   onLoadAnalysis(keywordId: string) {
     this.searchService.loadOldAnalysis(keywordId);
+  }
+
+  onSocialMediaModalToggle() {
+    this.searchService.isShowModal.set(false);
+    this.searchService.mainDataAnalysisLinkSocialVideo.set(null);
   }
 
   onSearchParametersChange(params: GoogleSearchRequest) {

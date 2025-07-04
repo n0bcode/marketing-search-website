@@ -32,11 +32,13 @@ export class SearchResultsComponent {
   @Input() mainDataAnalysisLinkSocialVideo: GeminiResponse | null = null;
   @Input() isShowModal: boolean = false;
   @Input() isLoadingDataForModal: boolean = false;
+  @Input() isAnalyzingLink: boolean = false;
   @Input() error: string | null = null;
 
   @Output() selectSite = new EventEmitter<string>();
   @Output() analyzeLink = new EventEmitter<string>();
   @Output() analyzeVideo = new EventEmitter<string>();
+  @Output() modalToggle = new EventEmitter<void>();
 
   isResponseOfSiteHaveValue(site: string): boolean {
     const result = this.searchResultsList.find((x) => x.siteSearch == site);
@@ -107,5 +109,9 @@ export class SearchResultsComponent {
       type: 'application/octet-stream',
     });
     FileSaver.saveAs(blob, 'ket-qua-tim-kiem.xlsx');
+  }
+
+  onModalToggle() {
+    this.modalToggle.emit();
   }
 }
