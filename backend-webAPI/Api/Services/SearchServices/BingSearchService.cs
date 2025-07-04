@@ -5,15 +5,16 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Api.Models;
+using Api.Services.SearchServices.Google;
 
 namespace Api.Services.SearchServices
 {
     public class BingSearchService
     {
-        public async Task<ResponseAPI<List<BingSearchResult>>> SearchBing(string query, int maxResults = 0, string site = null, string timeRange = null, string filetype = null, string language = null, string region = null)
+        public async Task<ResponseAPI<List<BingSearchResult>>> SearchBing(SearchRequest request)
         {
             var results = new List<BingSearchResult>();
-            string nextUrl = BuildBingSearchUrl(query, site, timeRange, filetype, language, region);
+            string nextUrl = BuildBingSearchUrl(request);
             string lastHtml = null;
 
             while (!string.IsNullOrEmpty(nextUrl))
@@ -44,12 +45,8 @@ namespace Api.Services.SearchServices
                             {
                                 results.Add(new BingSearchResult { Title = title, Url = url, Snippet = snippet });
                             }
-
-                            if (maxResults > 0 && results.Count >= maxResults) break;
                         }
                     }
-
-                    if (maxResults > 0 && results.Count >= maxResults) break;
 
                     var nextPageNode = doc.DocumentNode.SelectSingleNode("//a[contains(@class,'sb_pagN') and not(contains(@class,'sb_inactN'))]");
                     if (nextPageNode != null)
@@ -76,22 +73,22 @@ namespace Api.Services.SearchServices
             return new ResponseAPI<List<BingSearchResult>> { Success = true, Data = results, Message = "Tìm kiếm Bing thành công." };
         }
 
-        private string BuildBingSearchUrl(string query, string site, string timeRange, string filetype, string language, string region)
+        private string BuildBingSearchUrl(SearchRequest request)
         {
             var urlParams = new List<string>();
-            urlParams.Add(Uri.EscapeDataString(query));
+            urlParams.Add(Uri.EscapeDataString(request.q));
 
             string searchUrl = $"https://www.bing.com/search?q={string.Join(" ", urlParams)}";
 
-            if (!string.IsNullOrWhiteSpace(site)) searchUrl += $" site:{site}";
-            if (!string.IsNullOrWhiteSpace(filetype)) searchUrl += $" filetype:{filetype}";
-            if (!string.IsNullOrWhiteSpace(language)) searchUrl += $"&lr={language}";
-            if (!string.IsNullOrWhiteSpace(region)) searchUrl += $"&cr={region}";
-            if (!string.IsNullOrWhiteSpace(timeRange))
+            if (!string.IsNullOrWhiteSpace(request.as_sitesearch)) searchUrl += $" site:{request.as_sitesearch}";
+            if (!string.IsNullOrWhiteSpace(request.type)) searchUrl += $" filetype:{request.type}";
+            if (!string.IsNullOrWhiteSpace(request.hl)) searchUrl += $"&lr={request.hl}";
+            if (!string.IsNullOrWhiteSpace(request.gl)) searchUrl += $"&cr={request.gl}";
+            if (!string.IsNullOrWhiteSpace(request.tbs))
             {
-                if (timeRange.ToLower().Contains("year")) searchUrl += "&tbs=qdr:y";
-                else if (timeRange.ToLower().Contains("month")) searchUrl += "&tbs=qdr:m";
-                else if (timeRange.ToLower().Contains("24")) searchUrl += "&tbs=qdr:d";
+                if (request.tbs.ToLower().Contains("year")) searchUrl += "&tbs=qdr:y";
+                else if (request.tbs.ToLower().Contains("month")) searchUrl += "&tbs=qdr:m";
+                else if (request.tbs.ToLower().Contains("24")) searchUrl += "&tbs=qdr:d";
             }
             return searchUrl;
         }

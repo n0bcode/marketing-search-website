@@ -86,10 +86,10 @@ namespace Api.Controllers
         /// <param name="language">Language for the search.</param>
         /// <param name="region">Region for the search.</param>
         /// <returns>An <see cref="IActionResult"/> containing the Bing search results.</returns>
-        [HttpGet]
-        public async Task<IActionResult> SearchBing([FromQuery] string query, [FromQuery] int maxResults = 0, [FromQuery] string site = null, [FromQuery] string timeRange = null, [FromQuery] string filetype = null, [FromQuery] string language = null, [FromQuery] string region = null)
+        [HttpPost]
+        public async Task<IActionResult> SearchBing([FromBody] SearchRequest request)
         {
-            var results = await _bingSearchService.SearchBing(query, maxResults, site, timeRange, filetype, language, region);
+            var results = await _bingSearchService.SearchBing(request);
             return Ok(results);
         }
 
