@@ -9,6 +9,7 @@ import { ApiService } from '../utils/http-client-config';
 import { ResponseAPI } from '../models/response-api';
 import ConfigsRequest from '../models/configs-request';
 import { MarkdownItConfig } from '../utils/markdown-it-config';
+import { SearchRequest } from '../interfaces/search-request';
 
 @Injectable({
   providedIn: 'root',
@@ -93,16 +94,22 @@ export class SearchService {
     this.selectedSite.set('');
     this.storeKeyword(params.q);
 
-    if (this.listSitesSelected().length === 0) {
-      this.performSearch({ ...params, as_sitesearch: '' });
-    } else {
+    if (params.engine === 'google') {
+      if (this.listSitesSelected().length === 0) {
+        this.performGoogleSearch({ ...params, as_sitesearch: '' });
+      } else {
+        this.listSitesSelected().forEach((site) => {
+          this.performGoogleSearch({ ...params, as_sitesearch: site });
+        });
+      }
+    } else if (params.engine === 'bing') {
       this.listSitesSelected().forEach((site) => {
-        this.performSearch({ ...params, as_sitesearch: site });
+        this.performBingSearch({ ...params, as_sitesearch: site });
       });
     }
   }
 
-  private performSearch(params: GoogleSearchRequest) {
+  private performGoogleSearch(params: SearchRequest) {
     this.activeRequests++; // Tăng bộ đếm khi một yêu cầu bắt đầu
 
     const idTokenGoogle =
@@ -144,7 +151,7 @@ export class SearchService {
             this.selectedSite.set(data.siteSearch);
             this.searchResults.set(data);
           }
-          console.log('performSearch API Response Data:', response.data);
+          console.log('performGoogleSearch API Response Data:', response.data);
         },
         error: (err) => {
           console.error(
@@ -163,6 +170,135 @@ export class SearchService {
           this.activeRequests--; // Giảm bộ đếm khi yêu cầu hoàn thành
           if (this.activeRequests === 0) {
             this.isLoading.set(false); // Đặt isLoading thành false chỉ khi tất cả các yêu cầu đã hoàn thành
+          }
+        },
+      });
+  }
+
+  private performBingSearch(params: SearchRequest) {
+    this.activeRequests++;
+
+    const queryParams = new URLSearchParams();
+    queryParams.append('query', params.q || '');
+    if (params.num) queryParams.append('maxResults', params.num.toString());
+    if (params.as_sitesearch) queryParams.append('site', params.as_sitesearch);
+    if (params.tbs) queryParams.append('timeRange', params.tbs);
+    if (params.hl) queryParams.append('language', params.hl);
+    if (params.gl) queryParams.append('region', params.gl);
+
+    this.apiService
+      .getFromApi<ResponseAPI<any>>(
+        `/Search/SearchBing?${queryParams.toString()}`
+      )
+      .subscribe({
+        next: (bingResponse) => {
+          if (bingResponse.success && bingResponse.data) {
+            // Gọi API phân tích Bing
+            const idTokenGemini =
+              this.listSelectSecretToken()[TypeServicesConstants.GeminiAI];
+
+            const analysisQueryParams = new URLSearchParams();
+            analysisQueryParams.append('query', params.q || '');
+            if (params.num)
+              analysisQueryParams.append('maxResults', params.num.toString());
+            if (params.as_sitesearch)
+              analysisQueryParams.append('site', params.as_sitesearch);
+            if (params.tbs) analysisQueryParams.append('timeRange', params.tbs);
+            if (params.hl) analysisQueryParams.append('language', params.hl);
+            if (params.gl) analysisQueryParams.append('region', params.gl);
+            if (idTokenGemini)
+              analysisQueryParams.append('idTokenGeminiChange', idTokenGemini);
+
+            this.apiService
+              .postToApi<ResponseAPI<GeminiResponse>>(
+                `/Analysis/GetAnalysisInput?${analysisQueryParams.toString()}`,
+                bingResponse.data, // Truyền dữ liệu Bing search results vào body
+                ConfigsRequest.getSkipAuthConfig()
+              )
+              .subscribe({
+                next: (geminiResponse) => {
+                  if (geminiResponse.success && geminiResponse.data) {
+                    const bingResults: GeminiResponse = {
+                      candidates: geminiResponse.data.candidates,
+                      generalSearchResults:
+                        geminiResponse.data.generalSearchResults,
+                      siteSearch: geminiResponse.data.siteSearch,
+                      generalSearchResultsCount:
+                        geminiResponse.data.generalSearchResultsCount,
+                      analysisData: geminiResponse.data.analysisData,
+                      showText: geminiResponse.data.showText,
+                      modelVersion: undefined,
+                      usageMetadata: undefined,
+                      note: undefined,
+                    };
+                    this.searchResultsList.update((list) => [
+                      ...list,
+                      bingResults,
+                    ]);
+
+                    bingResults.generalSearchResultsCount =
+                      bingResults.generalSearchResults.length;
+                    const cleanedText =
+                      bingResults.candidates[0].content.parts[0].text.replace(
+                        /```json\n|```/g,
+                        ''
+                      );
+                    try {
+                      bingResults.analysisData = JSON.parse(cleanedText);
+                    } catch (e) {
+                      console.error('Failed to parse analysisData as JSON:', e);
+                      bingResults.analysisData = cleanedText as any; // Fallback to string if parsing fails, casting to any to bypass type error temporarily
+                    }
+
+                    if (!this.selectedSite()) {
+                      this.selectedSite.set(bingResults.siteSearch);
+                      this.searchResults.set(bingResults);
+                    }
+                    console.log(
+                      'performBingSearch API Response Data:',
+                      bingResponse.data
+                    );
+                  } else {
+                    this.errorMessageResponse.set(geminiResponse.message);
+                    this.searchResults.set(null);
+                  }
+                },
+                error: (geminiErr) => {
+                  console.error(
+                    `Error analyzing Bing search results for query ${params.q}:`,
+                    geminiErr
+                  );
+                  this.errorMessageResponse.set(
+                    `Failed to analyze Bing data for ${params.q}: ${geminiErr.message}`
+                  );
+                },
+                complete: () => {
+                  this.activeRequests--;
+                  if (this.activeRequests === 0) {
+                    this.isLoading.set(false);
+                  }
+                },
+              });
+          } else {
+            this.errorMessageResponse.set(bingResponse.message);
+            this.searchResults.set(null);
+            this.activeRequests--;
+            if (this.activeRequests === 0) {
+              this.isLoading.set(false);
+            }
+          }
+        },
+        error: (err) => {
+          console.error(
+            `Error fetching Bing search results for query ${params.q}:`,
+            err
+          );
+          this.errorMessageResponse.set(
+            `Failed to load Bing data for ${params.q}: ${err.message}`
+          );
+          this.activeRequests--;
+          if (this.activeRequests === 0) {
+            this.isLoading.set(false);
           }
         },
       });

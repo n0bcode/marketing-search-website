@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GoogleSearchRequest } from '../../interfaces/googleSearchService/google-search-request';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { SearchRequest } from '../../interfaces/search-request';
 
 @Component({
   selector: 'app-search-form',
@@ -75,7 +76,7 @@ export class SearchFormComponent {
     this.updateSearchParameters({ as_eq });
   }
 
-  updateSearchParameters(params: Partial<GoogleSearchRequest>) {
+  updateSearchParameters(params: Partial<SearchRequest>) {
     if (this.searchParameters) {
       this.searchParametersChange.emit({ ...this.searchParameters, ...params });
     }

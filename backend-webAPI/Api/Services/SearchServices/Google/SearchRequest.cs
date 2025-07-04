@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Api.Services.SearchServices.Google
 {
-    public class GoogleRequest
+    public class SearchRequest
     {
-        public GoogleRequest()
+        public SearchRequest()
         {
         }
         /// <summary>
@@ -160,7 +160,7 @@ namespace Api.Services.SearchServices.Google
 
             return parameters;
         }
-        public GoogleRequest(string q, string? gl = null, string? location = null, string? hl = null, string? tbs = null, int? num = null, string? type = null, string? engine = null)
+        public SearchRequest(string q, string? gl = null, string? location = null, string? hl = null, string? tbs = null, int? num = null, string? type = null, string? engine = null)
         {
             if (this.as_sitesearch != null)
             {

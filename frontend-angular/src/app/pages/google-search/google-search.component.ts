@@ -9,6 +9,7 @@ import { SearchHistoryComponent } from '../../components/search-history/search-h
 import { SearchFormComponent } from '../../components/search-form/search-form.component';
 import { SearchService } from '../../services/search.service';
 import { GoogleSearchRequest } from '../../interfaces/googleSearchService/google-search-request';
+import { SearchRequest } from '../../interfaces/search-request';
 
 @Component({
   selector: 'app-google-search',
@@ -115,7 +116,7 @@ export class GoogleSearchComponent implements OnInit {
     this.searchService.mainDataAnalysisLinkSocialVideo.set(null);
   }
 
-  onSearchParametersChange(params: GoogleSearchRequest) {
+  onSearchParametersChange(params: SearchRequest) {
     this.searchService.searchParameters.set(params);
   }
 }

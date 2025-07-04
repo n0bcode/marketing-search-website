@@ -72,7 +72,7 @@ namespace Api.Controllers
         /// <summary>
         /// Performs a Google search and then analyzes the results using Gemini AI.
         /// </summary>
-        /// <param name="query">The Google search request parameters.</param>
+        /// <param name="request">The Google search request parameters.</param>
         /// <param name="idTokenGoogleChange">Optional: User-specific token for Google API if different from default.</param>
         /// <param name="idTokenGeminiChange">Optional: User-specific token for Gemini AI API if different from default.</param>
         /// <remarks>
@@ -96,7 +96,7 @@ namespace Api.Controllers
         [ProducesResponseType(typeof(GeminiAIResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [HttpPost]
-        public async Task<IActionResult> SearchGoogleAndAnalysis([FromBody] GoogleRequest query, [FromQuery] string? idTokenGoogleChange, [FromQuery] string? idTokenGeminiChange)
+        public async Task<IActionResult> SearchGoogleAndAnalysis([FromBody] SearchRequest request, [FromQuery] string? idTokenGoogleChange, [FromQuery] string? idTokenGeminiChange)
         {
             ResponseAPI<GeminiAIResponse> responseApi = new();
             try
@@ -106,16 +106,16 @@ namespace Api.Controllers
                 GoogleResponse? googleResults;
                 if (string.IsNullOrEmpty(idTokenGoogleChange))
                 {
-                    googleResults = await _searchService.SearchAsync(query);
+                    googleResults = await _searchService.SearchAsync(request);
                 }
                 else
                 {
-                    googleResults = await _searchService.SearchWithUserTokenCofigAsync(query, idTokenGoogleChange);
+                    googleResults = await _searchService.SearchWithUserTokenCofigAsync(request, idTokenGoogleChange);
                 }
 
                 if (googleResults == null || googleResults.Organic == null || !googleResults.Organic.Any())
                 {
-                    string errorMessage = "No Google search results found for query: " + query.q;
+                    string errorMessage = "No Google search results found for query: " + request.q;
                     _logger.LogWarning(errorMessage);
                     responseApi.Message = errorMessage;
                     responseApi.StatusCode = (int)HttpStatusCode.NotFound;
@@ -124,8 +124,8 @@ namespace Api.Controllers
 
                 var responseAddKey = await _unitMongo.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
                 {
-                    Keyword = query.q,
-                    Source = $"Google-{query.type}",
+                    Keyword = request.q,
+                    Source = $"Google-{request.type}",
                 });
 
                 #endregion
@@ -137,17 +137,17 @@ namespace Api.Controllers
                 ResponseAPI<GeminiAIResponse> geminiResponse;
                 if (string.IsNullOrEmpty(idTokenGeminiChange))
                 {
-                    geminiResponse = await _geminiService.AnalyzeAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query.q, analysisInput));
+                    geminiResponse = await _geminiService.AnalyzeAsync(GeminiAIRequest.CreateWithQueryAndPrompt(request.q, analysisInput));
                 }
                 else
                 {
-                    geminiResponse = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query.q, analysisInput), idTokenGeminiChange);
+                    geminiResponse = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(request.q, analysisInput), idTokenGeminiChange);
                 }
 
                 if (!geminiResponse.Success || geminiResponse.Data == null)
                 {
                     string errorMessage = geminiResponse.Message ?? "No analysis results found from Gemini AI.";
-                    _logger.LogWarning("Gemini AI analysis failed for query {Query}: {ErrorMessage}", query.q, errorMessage);
+                    _logger.LogWarning("Gemini AI analysis failed for query {Query}: {ErrorMessage}", request.q, errorMessage);
                     responseApi.Message = errorMessage;
                     responseApi.StatusCode = geminiResponse.StatusCode;
                     responseApi.Errors.AddRange(geminiResponse.Errors);
@@ -155,11 +155,11 @@ namespace Api.Controllers
                 }
 
                 geminiResponse.Data.KeywordId = responseAddKey.Data!; // Assign ID from Keywords table to analysis result
-                DataSaver.SaveData(geminiResponse, $"Gemini-{query.type}", responseAddKey.Data!);
-                DataSaver.SaveData(googleResults!, $"Google-{query.type}", responseAddKey.Data!);
+                DataSaver.SaveData(geminiResponse, $"Gemini-{request.type}", responseAddKey.Data!);
+                DataSaver.SaveData(googleResults!, $"Google-{request.type}", responseAddKey.Data!);
 
                 geminiResponse.Data.GeneralSearchResults.AddRange(googleResults.ToGeneralSearchResults());
-                geminiResponse.Data.SiteSearch = query.as_sitesearch;
+                geminiResponse.Data.SiteSearch = request.as_sitesearch;
 
                 responseApi.Success = true;
                 responseApi.StatusCode = (int)HttpStatusCode.OK;
@@ -171,7 +171,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unexpected error occurred during Google search and analysis for query: {Query}", query.q);
+                _logger.LogError(ex, "An unexpected error occurred during Google search and analysis for query: {Query}", request.q);
                 responseApi.Message = "An unexpected error occurred: " + ex.Message;
                 responseApi.StatusCode = (int)HttpStatusCode.InternalServerError;
                 responseApi.Errors.Add(ex.Message);
@@ -249,6 +249,94 @@ namespace Api.Controllers
 
         #endregion
 
+        #region Public Endpoints for Bing Analysis
+
+        /// <summary>
+        /// Analyzes Bing search results using Gemini AI.
+        /// </summary>
+        /// <param name="bingResults">The Bing search results to analyze.</param>
+        /// <param name="query">The search query.</param>
+        /// <param name="maxResults">Maximum number of results to return.</param>
+        /// <param name="site">Specific site to search within.</param>
+        /// <param name="timeRange">Time range for search results.</param>
+        /// <param name="language">Language for search results.</param>
+        /// <param name="region">Region for search results.</param>
+        /// <param name="idTokenGeminiChange">Optional: User-specific token for Gemini AI API if different from default.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the Gemini AI analysis response.</returns>
+        [ProducesResponseType(typeof(GeminiAIResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [HttpPost]
+        public async Task<IActionResult> GetAnalysisInput([FromBody] List<BingSearchResult> bingResults, [FromQuery] string query, [FromQuery] int maxResults = 10, [FromQuery] string? site = null, [FromQuery] string? timeRange = null, [FromQuery] string? language = null, [FromQuery] string? region = null, [FromQuery] string? idTokenGeminiChange = null)
+        {
+            ResponseAPI<GeminiAIResponse> responseApi = new();
+            try
+            {
+                #region Gemini AI Analysis
+
+                string analysisInput = $"Bing search data: {GetAnalysisInput(bingResults)}";
+
+                ResponseAPI<GeminiAIResponse> geminiResponse;
+                if (string.IsNullOrEmpty(idTokenGeminiChange))
+                {
+                    geminiResponse = await _geminiService.AnalyzeAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query, analysisInput));
+                }
+                else
+                {
+                    geminiResponse = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query, analysisInput), idTokenGeminiChange);
+                }
+
+                if (!geminiResponse.Success || geminiResponse.Data == null)
+                {
+                    string errorMessage = geminiResponse.Message ?? "No analysis results found from Gemini AI.";
+                    _logger.LogWarning("Gemini AI analysis failed for query {Query}: {ErrorMessage}", query, errorMessage);
+                    responseApi.Message = errorMessage;
+                    responseApi.StatusCode = geminiResponse.StatusCode;
+                    responseApi.Errors.AddRange(geminiResponse.Errors);
+                    return StatusCode(responseApi.StatusCode, responseApi);
+                }
+
+                var responseAddKey = await _unitMongo.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
+                {
+                    Keyword = query,
+                    Source = $"Bing-search",
+                });
+
+                geminiResponse.Data.KeywordId = responseAddKey.Data!; // Assign ID from Keywords table to analysis result
+                DataSaver.SaveData(geminiResponse, $"Gemini-search", responseAddKey.Data!);
+                DataSaver.SaveData(bingResults, $"Bing-search", responseAddKey.Data!);
+
+                geminiResponse.Data.GeneralSearchResults.AddRange(bingResults.Select((r, index) => new GeneralSearchResult(
+                    id: index.ToString(),
+                    title: r.Title,
+                    url: r.Url,
+                    description: r.Snippet,
+                    date: null,
+                    source: "Bing",
+                    createdAt: null,
+                    author: ""
+                )).ToList());
+                geminiResponse.Data.SiteSearch = site ?? string.Empty;
+
+                responseApi.Success = true;
+                responseApi.StatusCode = (int)HttpStatusCode.OK;
+                responseApi.Data = geminiResponse.Data;
+
+                #endregion
+
+                return Ok(responseApi);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred during Bing search analysis for query: {Query}", query);
+                responseApi.Message = "An unexpected error occurred: " + ex.Message;
+                responseApi.StatusCode = (int)HttpStatusCode.InternalServerError;
+                responseApi.Errors.Add(ex.Message);
+                return StatusCode((int)HttpStatusCode.InternalServerError, responseApi);
+            }
+        }
+
+        #endregion
+
         #region Private Methods
 
         /// <summary>
@@ -282,22 +370,34 @@ namespace Api.Controllers
 
             return sb.ToString();
         }
-
         /// <summary>
-        /// Formats Twitter search results into a string suitable for AI analysis.
-        /// This method is currently a placeholder and not actively used in the controller.
+        /// Formats Bing search results into a string suitable for AI analysis.
         /// </summary>
-        /// <param name="twitterResults">The Twitter search response.</param>
-        /// <returns>A formatted string of Twitter search results.</returns>
-        private string GetAnalysisInput(TwitterResponse twitterResults)
+        /// <param name="bingResults">The Bing search results.</param>
+        /// <returns>A formatted string of Bing search results.</returns>
+        private string GetAnalysisInput(List<BingSearchResult> bingResults)
         {
-            if (twitterResults == null || twitterResults.Data == null)
+            if (bingResults == null || !bingResults.Any())
             {
-                return "No Twitter search results.";
+                return "No Bing search results.";
             }
 
-            // This is a simple example. You can add more detailed information from Twitter results here.
-            return $"Total results: {twitterResults.Data.Count}";
+            var sb = new StringBuilder();
+
+            sb.AppendLine("--- Bing Search Results ---");
+
+            foreach (var result in bingResults)
+            {
+                sb.AppendLine("--- Result ---");
+                sb.AppendLine($"Title: {result.Title}");
+                sb.AppendLine($"Url: {result.Url}");
+                sb.AppendLine($"Snippet: {result.Snippet}");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("--- End of Search Results ---");
+
+            return sb.ToString();
         }
 
         #endregion
