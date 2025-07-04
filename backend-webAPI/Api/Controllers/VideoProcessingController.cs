@@ -127,7 +127,7 @@ namespace Api.Controllers
 
             if (isTransLinkToLinkDownload)
             {
-                var downloadLinkResponse = await _seleniumManager.GetTikTokDownloadLink(videoUrl);
+                var downloadLinkResponse = await _videoProcessingService.GetTikTokDownloadLink(videoUrl);
                 if (!downloadLinkResponse.Success || string.IsNullOrEmpty(downloadLinkResponse.Data))
                 {
                     return BadRequest(downloadLinkResponse?.Message ?? "Không thể lấy link tải về video TikTok.");
