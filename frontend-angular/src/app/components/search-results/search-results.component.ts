@@ -81,25 +81,73 @@ export class SearchResultsComponent {
   }
 
   exportToExcel(): void {
-    const data = this.searchResultsList.map((item) => ({
-      'Từ khóa': item.siteSearch || '',
+    const generalData = this.searchResultsList.map((item) => ({
+      'Nền tảng tìm kiếm': item.siteSearch || '',
       'Tiêu đề phân tích': this.getAnalysisTitle(item),
       'Nguồn dữ liệu': this.getAnalysisSource(item),
       'Đánh giá chung': this.getGeneralEvaluation(item),
-      'Bài viết tích cực': this.getPositiveArticles(item)
-        .map((a) => `${a.tomTat} (${a.lienKet})`)
-        .join('; '),
-      'Bài viết tiêu cực': this.getNegativeArticles(item)
-        .map((a) => `${a.tomTat} (${a.lienKet})`)
-        .join('; '),
+      'Số bài viết tích cực': this.getPositiveArticles(item).length,
+      'Số bài viết tiêu cực': this.getNegativeArticles(item).length,
       'Thông báo không có dữ liệu': this.getNoDataMessage(item),
     }));
 
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
-    const workbook: XLSX.WorkBook = {
-      Sheets: { 'Kết quả tìm kiếm': worksheet },
-      SheetNames: ['Kết quả tìm kiếm'],
-    };
+    const positiveArticlesData: any[] = [];
+    this.searchResultsList.forEach((item) => {
+      const siteSearch = item.siteSearch || '';
+      this.getPositiveArticles(item).forEach((article) => {
+        positiveArticlesData.push({
+          'Nền tảng tìm kiếm': siteSearch,
+          'Tóm tắt bài viết': article.tomTat,
+          'Lý do': article.lyDo,
+          'Liên kết': article.lienKet,
+        });
+      });
+    });
+
+    const negativeArticlesData: any[] = [];
+    this.searchResultsList.forEach((item) => {
+      const siteSearch = item.siteSearch || '';
+      this.getNegativeArticles(item).forEach((article) => {
+        negativeArticlesData.push({
+          'Nền tảng tìm kiếm': siteSearch,
+          'Tóm tắt bài viết': article.tomTat,
+          'Lý do': article.lyDo,
+          'Liên kết': article.lienKet,
+        });
+      });
+    });
+
+    const workbook: XLSX.WorkBook = { Sheets: {}, SheetNames: [] };
+
+    if (generalData.length > 0) {
+      const generalWorksheet: XLSX.WorkSheet =
+        XLSX.utils.json_to_sheet(generalData);
+      XLSX.utils.book_append_sheet(
+        workbook,
+        generalWorksheet,
+        'Kết quả tìm kiếm tổng quan'
+      );
+    }
+
+    if (positiveArticlesData.length > 0) {
+      const positiveWorksheet: XLSX.WorkSheet =
+        XLSX.utils.json_to_sheet(positiveArticlesData);
+      XLSX.utils.book_append_sheet(
+        workbook,
+        positiveWorksheet,
+        'Bài viết tích cực'
+      );
+    }
+
+    if (negativeArticlesData.length > 0) {
+      const negativeWorksheet: XLSX.WorkSheet =
+        XLSX.utils.json_to_sheet(negativeArticlesData);
+      XLSX.utils.book_append_sheet(
+        workbook,
+        negativeWorksheet,
+        'Bài viết tiêu cực'
+      );
+    }
 
     const excelBuffer: any = XLSX.write(workbook, {
       bookType: 'xlsx',
