@@ -1,12 +1,12 @@
 export interface GeminiResponse {
   showText: string;
   candidates: Candidate[];
-  usageMetadata: UsageMetadata;
-  modelVersion: string;
+  usageMetadata: UsageMetadata | undefined;
+  modelVersion: string | undefined;
   generalSearchResults: GeneralSearchResult[];
   generalSearchResultsCount: number;
   siteSearch: string;
-  note: string;
+  note: string | undefined;
   analysisData?: AnalysisResult; // Add this to represent the structured AI analysis
 }
 

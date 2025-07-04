@@ -33,6 +33,7 @@ namespace Api
 
             builder.Services.AddHttpClient<GoogleSearchService>();
             builder.Services.AddHttpClient<TwitterSearchService>();
+            builder.Services.AddScoped<BingSearchService>();
 
             builder.Services.AddHttpClient<GeminiAIService>();
 

@@ -3,6 +3,7 @@ using Api.Models;
 using Api.Repositories.IRepositories;
 using Api.Repositories.MongoDb;
 using Api.Services.RedisCacheService;
+using Api.Services.SearchServices;
 using Api.Services.SearchServices.Google;
 using Api.Services.SearchServices.Twitter;
 using Api.Services.SearchServices.Twitter.TwitterRequests;
@@ -25,6 +26,7 @@ namespace Api.Controllers
 
         private readonly GoogleSearchService _searchService;
         private readonly TwitterSearchService _searchServiceTwitter;
+        private readonly BingSearchService _bingSearchService;
         private readonly IUnitOfWork _unit;
         private readonly IUnitOfWorkMongo _unitMongo;
         private readonly IRedisCacheService _redis;
@@ -38,17 +40,20 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="searchService">The Google search service.</param>
         /// <param name="searchServiceTwitter">The Twitter search service.</param>
+        /// <param name="bingSearchService">The Bing search service.</param>
         /// <param name="unit">The unit of work for SQL database operations.</param>
         /// <param name="unitOfWorkMongo">The unit of work for MongoDB operations.</param>
         /// <param name="redisCache">The Redis cache service.</param>
         public SearchController(GoogleSearchService searchService,
                                 TwitterSearchService searchServiceTwitter,
+                                BingSearchService bingSearchService,
                                 IUnitOfWork unit,
                                 IUnitOfWorkMongo unitOfWorkMongo,
                                 IRedisCacheService redisCache)
         {
             _searchService = searchService;
             _searchServiceTwitter = searchServiceTwitter;
+            _bingSearchService = bingSearchService;
             _unit = unit;
             _unitMongo = unitOfWorkMongo;
             _redis = redisCache;
@@ -64,9 +69,27 @@ namespace Api.Controllers
         /// <param name="request">The Google search request parameters.</param>
         /// <returns>An <see cref="IActionResult"/> containing the Google search results.</returns>
         [HttpGet]
-        public async Task<IActionResult> SearchGoogle([FromQuery] GoogleRequest request)
+        public async Task<IActionResult> SearchGoogle([FromQuery] SearchRequest request)
         {
             var results = await _searchService.SearchAsync(request);
+            return Ok(results);
+        }
+
+        /// <summary>
+        /// Performs a Bing search based on the provided request parameters.
+        /// </summary>
+        /// <param name="query">The search query.</param>
+        /// <param name="maxResults">Maximum number of results to retrieve.</param>
+        /// <param name="site">Specific site to search within.</param>
+        /// <param name="timeRange">Time range for the search (e.g., "past year").</param>
+        /// <param name="filetype">Specific file type to search for.</param>
+        /// <param name="language">Language for the search.</param>
+        /// <param name="region">Region for the search.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the Bing search results.</returns>
+        [HttpGet]
+        public async Task<IActionResult> SearchBing([FromQuery] string query, [FromQuery] int maxResults = 0, [FromQuery] string site = null, [FromQuery] string timeRange = null, [FromQuery] string filetype = null, [FromQuery] string language = null, [FromQuery] string region = null)
+        {
+            var results = await _bingSearchService.SearchBing(query, maxResults, site, timeRange, filetype, language, region);
             return Ok(results);
         }
 
