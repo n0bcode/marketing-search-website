@@ -90,11 +90,7 @@
           <div class="w-3/4 h-4 bg-gray-200 rounded animate-pulse"></div>
         </div>
         <div *ngIf="!isLoading" class="w-full">
-          <!-- Removed display of analysisLink in Key Insights to comply with user request -->
-          <div
-            *ngIf="searchResults?.analysisData && !analysisLink?.analysisText"
-            class="space-y-6"
-          >
+          <div *ngIf="searchResults?.analysisData" class="space-y-6">
             <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -220,12 +216,20 @@
             </div>
           </div>
           <p
-            *ngIf="!searchResults?.analysisData && searchResults?.showText"
+            *ngIf="
+              !searchResults?.analysisData &&
+              searchResults?.showText &&
+              !analysisLink?.analysisText
+            "
             [innerHTML]="searchResults?.showText"
             class="prose max-w-none text-dark p-4 bg-white rounded-xl shadow-md border border-gray-200"
           ></p>
           <p
-            *ngIf="!searchResults?.analysisData && !searchResults?.showText"
+            *ngIf="
+              !searchResults?.analysisData &&
+              !searchResults?.showText &&
+              !analysisLink?.analysisText
+            "
             class="text-secondary-dark italic text-center p-4 bg-white rounded-xl shadow-md border border-gray-200"
           >
             {{ getNoDataMessage(searchResults) }}
@@ -257,7 +261,7 @@
         </svg>
         Detailed Results
       </h2>
-      <div class="max-h-[75vh] overflow-y-auto space-y-4 pr-2">
+      <div class="max-h-[100vh] overflow-y-auto space-y-4 pr-2">
         <div *ngIf="isLoading" class="space-y-4">
           <div
             *ngFor="let i of [1, 2, 3, 4, 5]"
