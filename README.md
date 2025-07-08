@@ -1,43 +1,69 @@
-# Marketing Search Website
+[Tiếng Việt](./README.vi.md)
 
-Website Search Search is a web application that helps users find and analyze information about marketing services effectively and quickly.
+# Marketing Search Web Application
 
-## Describe
+This project is a web application for marketing search analysis, consisting of an Angular frontend and an ASP.NET Core Web API backend.
 
-This application allows users to search in the database of marketing services and receive detailed information about them. With friendly user interface, you can easily find services that suits your needs.
+## Prerequisites
 
-## Features
+Before you begin, ensure you have the following installed:
 
-- Searching for marketing services through keywords
-- See details about the services
-- User -friendly interface
-- Showing quick search results
-
-## Technologies Used
-
-- **Backend**: .NET Core (8.0 or newer), Entity Framework Core, SQLite
-- **Frontend**: Angular
+*   [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+*   [Node.js and npm](https://nodejs.org/en/)
+*   [Angular CLI](https://angular.io/cli)
 
 ## Getting Started
 
-1. Clone the repository. 
-    `git clone https://github.com/n0bcode/marketing-search-website`
-2. Run repo:
-```
-   Backend API runs from the backend-webAPI\Api directory using dotnet watch run.
-   Frontend runs from the frontend-angular directory using `ng serve`.
-   After starting the frontend, press `o` in the terminal to open the project website.
-   On the homepage, click the "Tìm kiếm: Google" button to navigate to the search and analysis page.
-   Enter search keywords on the left panel and click the search button to test search speed and recent data accuracy.
-```
-## Documentation
+Follow these instructions to get the project up and running on your local machine.
 
-For detailed API documentation, visit the Swagger UI available at `/api/docs`.
+### Backend (ASP.NET Core Web API)
 
-## Contribution
+1.  **Navigate to the backend directory:**
+    ```bash
+    cd backend-webAPI/Api
+    ```
 
-Contributions are welcome! Please submit a pull request or open an issue for any enhancements or bug fixes.
+2.  **Run the application:**
+    ```bash
+    dotnet run
+    ```
 
-## License
+    The API will be running on `https://localhost:7228` and `http://localhost:5046`. You can view the available API endpoints and test them using Swagger at `https://localhost:7228/swagger`.
 
-This project is licensed under the MIT License.
+### Frontend (Angular)
+
+1.  **Navigate to the frontend directory:**
+    ```bash
+    cd frontend-angular
+    ```
+
+2.  **Install the dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Run the application:**
+    ```bash
+    npm start
+    ```
+
+    The frontend development server will start. Open your browser and navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+
+## Additional Setup
+
+Some features of this project require additional files to be downloaded.
+
+### Whisper Model
+
+The video transcription feature uses the Whisper model. You need to download the `ggml-base.bin` file and place it in the `backend-webAPI/Api/whisper-models` directory.
+
+*   **Download link:** [ggml-base.bin](https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin)
+*   **Destination directory:** `backend-webAPI/Api/whisper-models`
+
+Create the `whisper-models` directory if it doesn't exist.
+
+## API Documentation
+
+The API is documented using Swagger. Once the backend is running, you can access the Swagger UI at:
+
+[https://localhost:7228/swagger](https://localhost:7228/swagger)
