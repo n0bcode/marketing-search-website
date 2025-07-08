@@ -52,9 +52,9 @@ namespace Api.Services.SearchServices
                     if (nextPageNode != null)
                     {
                         string href = nextPageNode.GetAttributeValue("href", null);
-                        if (!string.IsNullOrEmpty(href))
-                            nextUrl = href.StartsWith("http") ? href : "https://www.bing.com" + href;
-                        else nextUrl = null;
+                    if (!string.IsNullOrEmpty(href))
+                        nextUrl = href.StartsWith("http") ? href : "https://www.bing.com" + href;
+                    else nextUrl = null;
                     }
                     else nextUrl = null;
                 }

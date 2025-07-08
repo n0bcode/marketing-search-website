@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api.DTOs;
 using Api.Models;
-using Api.Repositories.IRepositories;
 using Api.Repositories.MongoDb;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +18,6 @@ namespace Api.Controllers
     {
         #region Fields
 
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IUnitOfWorkMongo _unitMongo;
 
         #endregion
@@ -29,12 +27,9 @@ namespace Api.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="SecretTokenController"/> class.
         /// </summary>
-        /// <param name="unitOfWork">The unit of work for SQL database operations.</param>
         /// <param name="unitOfWorkMongo">The unit of work for MongoDB operations.</param>
-        public SecretTokenController(IUnitOfWork unitOfWork,
-                                     IUnitOfWorkMongo unitOfWorkMongo)
+        public SecretTokenController(IUnitOfWorkMongo unitOfWorkMongo)
         {
-            _unitOfWork = unitOfWork;
             _unitMongo = unitOfWorkMongo;
         }
 
@@ -77,7 +72,7 @@ namespace Api.Controllers
         /// Deletes a secret token by its ID.
         /// </summary>
         /// <param name="id">The ID of the secret token to delete.</param>
-        /// <returns>A confirmation message if deletion is successful, otherwise a not found message.</r
+        /// <returns>A confirmation message if deletion is successful, otherwise a not found message.</returns>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {

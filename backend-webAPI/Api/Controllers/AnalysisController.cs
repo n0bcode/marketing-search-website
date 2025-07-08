@@ -1,6 +1,5 @@
 ﻿using Api.Constants;
 using Api.Models;
-using Api.Repositories.IRepositories;
 using Api.Repositories.MongoDb;
 using Api.Services.AIServices.Gemini;
 using Api.Services.SearchServices;
@@ -23,7 +22,6 @@ namespace Api.Controllers
         private readonly GoogleSearchService _searchService;
         private readonly TwitterSearchService _searchServiceTwitter;
         private readonly GeminiAIService _geminiService;
-        private readonly IUnitOfWork _unit;
         private readonly IUnitOfWorkMongo _unitMongo;
         private readonly ILogger<AnalysisController> _logger;
 
@@ -37,20 +35,17 @@ namespace Api.Controllers
         /// <param name="searchService">The Google search service.</param>
         /// <param name="searchServiceTwitter">The Twitter search service.</param>
         /// <param name="geminiAIService">The Gemini AI service.</param>
-        /// <param name="unitOfWork">The unit of work for SQL database operations.</param>
         /// <param name="unitOfWorkMongo">The unit of work for MongoDB operations.</param>
         /// <param name="logger">The logger for the AnalysisController.</param>
         public AnalysisController(GoogleSearchService searchService,
                                   TwitterSearchService searchServiceTwitter,
                                   GeminiAIService geminiAIService,
-                                  IUnitOfWork unitOfWork,
                                   IUnitOfWorkMongo unitOfWorkMongo,
                                   ILogger<AnalysisController> logger)
         {
             _searchService = searchService;
             _searchServiceTwitter = searchServiceTwitter;
             _geminiService = geminiAIService;
-            _unit = unitOfWork;
             _unitMongo = unitOfWorkMongo;
             _logger = logger;
         }
@@ -154,7 +149,7 @@ namespace Api.Controllers
                     return StatusCode(responseApi.StatusCode, responseApi);
                 }
 
-                geminiResponse.Data.KeywordId = responseAddKey.Data!; // Assign ID from Keywords table to analysis result
+                geminiResponse.Data!.KeywordId = responseAddKey.Data!; // Assign ID from Keywords table to analysis result
                 DataSaver.SaveData(geminiResponse, $"Gemini-{request.type}", responseAddKey.Data!);
                 DataSaver.SaveData(googleResults!, $"Google-{request.type}", responseAddKey.Data!);
 
@@ -163,7 +158,7 @@ namespace Api.Controllers
 
                 responseApi.Success = true;
                 responseApi.StatusCode = (int)HttpStatusCode.OK;
-                responseApi.Data = geminiResponse.Data;
+                responseApi.Data = geminiResponse.Data!;
 
                 #endregion
 
@@ -254,7 +249,9 @@ namespace Api.Controllers
         /// <summary>
         /// Analyzes Bing search results using Gemini AI.
         /// </summary>
-        /// <param name="request">The search request containing the query and other parameters.</param>
+        /// <param name="bingResults">The Bing search results.</param>
+        /// <param name="query">The search query.</param>
+        /// <param name="site">Specific site to search within.</param>
         /// <param name="idTokenGeminiChange">Optional: User-specific token for Gemini AI API if different from default.</param>
         /// <returns>An <see cref="IActionResult"/> containing the Gemini AI analysis response.</returns>
         [ProducesResponseType(typeof(GeminiAIResponse), (int)HttpStatusCode.OK)]
@@ -280,7 +277,7 @@ namespace Api.Controllers
                 }
                 else
                 {
-                    geminiResponse = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query, analysisInput), idTokenGeminiChange);
+                    geminiResponse = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query!, analysisInput), idTokenGeminiChange);
                 }
 
                 if (!geminiResponse.Success || geminiResponse.Data == null)
@@ -295,13 +292,13 @@ namespace Api.Controllers
 
                 var responseAddKey = await _unitMongo.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
                 {
-                    Keyword = query,
+                    Keyword = query!,
                     Source = $"Bing-search",
                 });
 
-                geminiResponse.Data.KeywordId = responseAddKey.Data!; // Assign ID from Keywords table to analysis result
-                DataSaver.SaveData(geminiResponse, $"Gemini-search", responseAddKey.Data!);
-                DataSaver.SaveData(bingResults, $"Bing-search", responseAddKey.Data!);
+                geminiResponse.Data!.KeywordId = responseAddKey.Data!; // Assign ID from Keywords table to analysis result
+                // DataSaver.SaveData(geminiResponse, $"Gemini-search", responseAddKey.Data!);
+                // DataSaver.SaveData(bingResults, $"Bing-search", responseAddKey.Data!);
 
                 geminiResponse.Data.GeneralSearchResults.AddRange(bingResults.Select((r, index) => new GeneralSearchResult(
                     id: index.ToString(),
@@ -317,7 +314,7 @@ namespace Api.Controllers
 
                 responseApi.Success = true;
                 responseApi.StatusCode = (int)HttpStatusCode.OK;
-                responseApi.Data = geminiResponse.Data;
+                responseApi.Data = geminiResponse.Data!;
 
                 #endregion
 

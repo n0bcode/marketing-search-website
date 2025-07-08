@@ -1,6 +1,6 @@
 ﻿using Api.Constants;
 using Api.Models;
-using Api.Repositories.IRepositories;
+using Api.Repositories.MongoDb;
 using Api.Services.SearchServices;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -19,7 +19,7 @@ namespace Api.Services.AIServices.Gemini
         private readonly HttpClient _httpClient;
         private readonly string _secretToken;
         private readonly string _baseUrl;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWorkMongo _unitOfWorkMongo;
 
         #endregion
 
@@ -30,13 +30,13 @@ namespace Api.Services.AIServices.Gemini
         /// </summary>
         /// <param name="httpClient">The HTTP client for making API requests.</param>
         /// <param name="apiSettings">The API settings for Gemini configuration.</param>
-        /// <param name="unit">The unit of work for database operations.</param>
-        public GeminiAIService(HttpClient httpClient, IOptions<ApiSettings> apiSettings, IUnitOfWork unit)
+        /// <param name="unitOfWorkMongo">The unit of work for database operations.</param>
+        public GeminiAIService(HttpClient httpClient, IOptions<ApiSettings> apiSettings, IUnitOfWorkMongo unitOfWorkMongo)
         {
             _httpClient = httpClient;
             _secretToken = apiSettings.Value.GeminiApi.SecretToken;
             _baseUrl = apiSettings.Value.GeminiApi.BaseUrl;
-            _unitOfWork = unit;
+            _unitOfWorkMongo = unitOfWorkMongo;
         }
 
         #endregion
@@ -64,7 +64,8 @@ namespace Api.Services.AIServices.Gemini
         public async Task<ResponseAPI<GeminiAIResponse>> AnalyzeWithTokenUserConfigAsync(GeminiAIRequest prompt, string tokenId)
         {
             var responseApi = new ResponseAPI<GeminiAIResponse>();
-            string? tokenDecrypted = (await _unitOfWork.SecretTokens.GetByIdAsync(tokenId))?.Token;
+            var secretToken = await _unitOfWorkMongo.SecretTokens.GetByIdAsync(tokenId);
+            string? tokenDecrypted = secretToken?.Token;
             if (string.IsNullOrEmpty(tokenDecrypted))
             {
                 responseApi.Message = "Invalid or non-existent token.";

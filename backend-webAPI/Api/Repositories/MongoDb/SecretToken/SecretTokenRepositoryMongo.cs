@@ -105,7 +105,7 @@ namespace Api.Repositories.MongoDb
                     secretToken.Token = EncryptionHelper.Encrypt(secretToken.Token);
                     await _collection.InsertOneAsync(secretToken);
                     response.SetSuccessResponse($"Thêm mới thành công: {secretToken.Id}");
-                    response.SetData(secretToken.Id);
+                    response.SetData(secretToken.Id!);
                 }
             }
             catch (Exception ex)

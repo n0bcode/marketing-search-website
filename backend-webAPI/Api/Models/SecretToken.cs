@@ -38,7 +38,7 @@ namespace Api.Models
         {
             return new SecretTokenResponseDTO
             (
-                secretToken.Id,
+                secretToken.Id!,
                 secretToken.Name,
                 secretToken.Service,
                 secretToken.Note

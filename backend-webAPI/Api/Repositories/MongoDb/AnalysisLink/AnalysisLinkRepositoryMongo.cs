@@ -22,7 +22,7 @@ namespace Api.Repositories.MongoDb
                 .FirstOrDefaultAsync();
         }
 
-        public async Task AddAsync(AnalysisLink result)
+        public new async Task AddAsync(AnalysisLink result)
         {
             await _collection.InsertOneAsync(result);
         }

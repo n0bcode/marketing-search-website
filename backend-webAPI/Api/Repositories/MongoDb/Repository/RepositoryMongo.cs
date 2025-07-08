@@ -15,7 +15,8 @@ namespace Api.Repositories.MongoDb
 
         public RepositoryMongo(MongoDbContext context, string collectionName)
         {
-            _collection = context.GetType().GetProperty(collectionName).GetValue(context) as IMongoCollection<T>;
+            var collection = context.GetType().GetProperty(collectionName)!.GetValue(context) as IMongoCollection<T>;
+            _collection = collection ?? throw new InvalidOperationException($"Collection '{collectionName}' not found or is not of type IMongoCollection<{typeof(T).Name}>.");
         }
 
         public async Task AddAsync(T entity)
