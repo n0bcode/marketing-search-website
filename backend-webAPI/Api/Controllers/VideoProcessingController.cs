@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api.Automations;
 using Api.Models;
-using Api.Repositories.IRepositories;
 using Api.Services.AIServices.Gemini;
 using Api.Services.VideoServices;
 using Microsoft.AspNetCore.Mvc;

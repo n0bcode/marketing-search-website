@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using FFMpegCore;
 using FFMpegCore.Pipes;
 using Microsoft.Extensions.Caching.Memory;
-using Api.Repositories.IRepositories;
+using Api.Repositories.MongoDb;
 using Api.Models;
 using Api.Services.VideoServices.Sub;
 
@@ -18,12 +18,12 @@ namespace Api.Services.VideoServices
     public class VideoProcessingService
     {
         private readonly IMemoryCache _cache;
-        private readonly IUnitOfWork _unit;
+        private readonly IUnitOfWorkMongo _unitMongo;
         private readonly Automations.SeleniumManager _seleniumManager;
-        public VideoProcessingService(IMemoryCache cache, IUnitOfWork unit, Automations.SeleniumManager seleniumManager)
+        public VideoProcessingService(IMemoryCache cache, IUnitOfWorkMongo unitMongo, Automations.SeleniumManager seleniumManager)
         {
             _cache = cache;
-            _unit = unit;
+            _unitMongo = unitMongo;
             _seleniumManager = seleniumManager;
         }
         public async Task<ResponseAPI<string>> GetTikTokDownloadLink(string videoUrl)
@@ -44,9 +44,9 @@ namespace Api.Services.VideoServices
         public async Task<string> ExtractContentFromVideo(string videoUrl, string languageCode, string platform = "null")
         {
             // 1. Kiểm tra DB trước
-            var dbResult = await _unit.AnalysisLinks.GetAnalysisLinkOrNot(videoUrl);
+            var dbResult = await _unitMongo.AnalysisLinks.GetAnalysisLinkOrNot(videoUrl);
             if (dbResult != null)
-                return dbResult.ResultData;
+                return dbResult.ResultData!;
 
             // 2. Kiểm tra cache
             if (string.IsNullOrWhiteSpace(languageCode))
@@ -80,7 +80,7 @@ namespace Api.Services.VideoServices
                     Platform = platform,
                     ResultData = textContent
                 };
-                await _unit.AnalysisLinks.AddAsync(result);
+                await _unitMongo.AnalysisLinks.AddAsync(result);
 
                 _cache.Set(cacheKey, textContent, TimeSpan.FromHours(12));
                 return textContent;
@@ -102,9 +102,9 @@ namespace Api.Services.VideoServices
         public async Task<string> ExtractContentFromAudio(string audioUrl, string languageCode = "vi", string platform = "null")
         {
             // 1. Kiểm tra DB trước
-            var dbResult = await _unit.AnalysisLinks.GetAnalysisLinkOrNot(audioUrl);
+            var dbResult = await _unitMongo.AnalysisLinks.GetAnalysisLinkOrNot(audioUrl);
             if (dbResult != null)
-                return dbResult.ResultData;
+                return dbResult.ResultData!;
 
             if (string.IsNullOrWhiteSpace(languageCode))
                 languageCode = "vi";
@@ -127,7 +127,7 @@ namespace Api.Services.VideoServices
                     Platform = platform,
                     ResultData = textContent
                 };
-                await _unit.AnalysisLinks.AddAsync(result);
+                await _unitMongo.AnalysisLinks.AddAsync(result);
 
                 return textContent;
             }

@@ -11,7 +11,7 @@ namespace Api.Models
         public T? Data { get; set; }
         public List<string> Errors { get; set; } = new List<string>();
 
-        public void SetSuccessResponse(string? message = "Dữ liệu đã xử lí thành công!", int statusCode = 200, T data = null)
+        public void SetSuccessResponse(string? message = "Dữ liệu đã xử lí thành công!", int statusCode = 200, T? data = null)
         {
             this.Success = true;
             this.StatusCode = statusCode;

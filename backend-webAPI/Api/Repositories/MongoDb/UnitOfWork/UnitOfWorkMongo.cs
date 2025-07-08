@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Data;
-using Api.Repositories.IRepositories;
 
 namespace Api.Repositories.MongoDb
 {

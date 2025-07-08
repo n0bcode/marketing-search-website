@@ -1,5 +1,5 @@
 using Api.Models;
-using Api.Repositories.IRepositories;
+using Api.Repositories.MongoDb;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -14,14 +14,14 @@ namespace Api.Services.SearchServices.Google
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
-        private readonly IUnitOfWork _unit;
+        private readonly IUnitOfWorkMongo _unitMongo;
 
-        public GoogleSearchService(HttpClient httpClient, IOptions<ApiSettings> apiSettings, IUnitOfWork unit)
+        public GoogleSearchService(HttpClient httpClient, IOptions<ApiSettings> apiSettings, IUnitOfWorkMongo unitMongo)
         {
             _httpClient = httpClient;
             _apiKey = apiSettings.Value.GoogleApi.ApiKey;
             _httpClient.BaseAddress = new Uri(apiSettings.Value.GoogleApi.BaseUrl);
-            _unit = unit;
+            _unitMongo = unitMongo;
         }
         public async Task<GoogleResponse?> SearchAsync(SearchRequest request)
         {
@@ -68,7 +68,7 @@ namespace Api.Services.SearchServices.Google
                 var requestContent = new StringContent(JsonConvert.SerializeObject(parameters), Encoding.UTF8, "application/json");
 
 
-                string? tokenDecrypted = _unit.SecretTokens.GetByIdAsync(userIdTokenConfig).Result?.Token;
+                string? tokenDecrypted = _unitMongo.SecretTokens.GetByIdAsync(userIdTokenConfig).Result?.Token;
 
                 // Thêm API key vào header
                 _httpClient.DefaultRequestHeaders.Add("X-API-KEY", tokenDecrypted ?? _apiKey);

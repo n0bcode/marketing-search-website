@@ -84,8 +84,8 @@ namespace Api.Automations
                 System.Threading.Thread.Sleep(5000); // Đợi 5 giây
                 try
                 {
-                    var url_field = driver.FindElement(By.Id("postUrl"));
-                    var submit_button = driver.FindElement(By.Id("loadVideos")); // Sử dụng class để tìm button
+                    var url_field = driver.FindElement(By.Id("postUrl"))!;
+                    var submit_button = driver.FindElement(By.Id("loadVideos"))!; // Sử dụng class để tìm button
                     var modal_error = driver.FindElement(By.ClassName("modal-dialog")); // Tìm modal thông báo lỗi
 
                     try
@@ -136,14 +136,14 @@ namespace Api.Automations
                             var responseBody = await responseJson.Content.ReadAsStringAsync();
                             var jsonData = JsonConvert.DeserializeObject<DownloadInfo>(responseBody);
                             Console.WriteLine("Thông tin chi tiết về file tải xuống:");
-                            Console.WriteLine($"Percent: {jsonData.percent}");
-                            Console.WriteLine($"File Size: {jsonData.fileSize}");
-                            Console.WriteLine($"File Name: {jsonData.fileName}");
-                            Console.WriteLine($"Estimated File Size: {jsonData.estimatedFileSize}");
-                            Console.WriteLine($"File URL: {jsonData.fileUrl}");
+                            Console.WriteLine($"Percent: {jsonData.percent!}");
+                            Console.WriteLine($"File Size: {jsonData.fileSize!}");
+                            Console.WriteLine($"File Name: {jsonData.fileName!}");
+                            Console.WriteLine($"Estimated File Size: {jsonData.estimatedFileSize!}");
+                            Console.WriteLine($"File URL: {jsonData.fileUrl!}");
 
                             response.SetSuccessResponse("Lấy link tải về thành công!");
-                            response.SetData(jsonData.fileUrl);
+                            response.SetData(jsonData.fileUrl!);
                             Console.WriteLine("Success extract link download video facebook!");
                         }
                         else
@@ -171,11 +171,11 @@ namespace Api.Automations
         #region [DownloadInfo]
         public class DownloadInfo
         {
-            public string percent { get; set; }
-            public string fileSize { get; set; }
-            public string fileName { get; set; }
-            public string estimatedFileSize { get; set; }
-            public string fileUrl { get; set; }
+            public string? percent { get; set; }
+            public string? fileSize { get; set; }
+            public string? fileName { get; set; }
+            public string? estimatedFileSize { get; set; }
+            public string? fileUrl { get; set; }
         }
         #endregion
         #endregion

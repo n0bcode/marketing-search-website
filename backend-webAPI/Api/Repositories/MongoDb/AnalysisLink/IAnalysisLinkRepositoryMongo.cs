@@ -9,7 +9,7 @@ namespace Api.Repositories.MongoDb
     public interface IAnalysisLinkRepositoryMongo : IRepositoryMongo<AnalysisLink>
     {
         Task<AnalysisLink?> GetAnalysisLinkOrNot(string linkOrKeyword);
-        Task AddAsync(AnalysisLink result);
+        new Task AddAsync(AnalysisLink result);
         Task<AnalysisLink> AddOrUpdateText(AnalysisLink analysisLink);
     }
 }
