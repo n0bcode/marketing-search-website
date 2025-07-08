@@ -1,0 +1,151 @@
+{
+  "name": "Video Processing",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "questions": [
+            {
+              "prompt": "Enter the video URL (YouTube, TikTok, Facebook, etc.):",
+              "variable": "mediaUrl",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "name": "Get Video URL",
+      "type": "n8n-nodes-base.userInput",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "python fb_search.py download {{ $json.mediaUrl }}"
+      },
+      "name": "Download Video",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "ffmpeg -i outputs/downloaded_input.mp4 -vn -acodec pcm_s16le -ar 16000 -ac 1 outputs/downloaded_input.wav"
+      },
+      "name": "Convert to WAV",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "whisper --model base --output_dir outputs --language English outputs/downloaded_input.wav"
+      },
+      "name": "Transcribe Audio",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "message": "Transcription complete! The transcript is saved in the 'outputs' directory."
+        }
+      },
+      "name": "Notify Completion",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredential",
+        "genericCredential": {
+          "credential": {
+            "name": "Start",
+            "type": "n8n-nodes-base.start"
+          }
+        },
+        "options": {}
+      },
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Get Video URL": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Convert to WAV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to WAV": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Audio": {
+      "main": [
+        [
+          {
+            "node": "Notify Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Get Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

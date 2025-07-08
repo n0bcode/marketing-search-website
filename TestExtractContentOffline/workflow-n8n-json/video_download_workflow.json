@@ -1,0 +1,285 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "6e7440e6-3481-4d77-9284-b139f967ebac",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -140,
+        200
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://www.facebook.com/watch/?v=2356493384496244",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "0d8d380b-cc81-43f5-9105-ec68d2241d28",
+      "name": "Get Video Page Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        180,
+        200
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "jsCode": "const url = $nodes[\"Get Video Page Data\"].parameters.url;\nconst html = $input.first().json.data;\nconst headers = $input.first().json.headers || {};\nconst cookies = headers['set-cookie'] ? (Array.isArray(headers['set-cookie']) ? headers['set-cookie'] : [headers['set-cookie']]) : [];\n\nif (!html) {\n  throw new Error(\"HTML body is undefined. Check the previous node's output.\");\n}\n\nlet videoUrl;\nlet referer;\n\nif (url.includes(\"tiktok.com\")) {\n    referer = \"https://www.tiktok.com/\";\n    const regex = /<script id=\"__UNIVERSAL_DATA_FOR_REHYDRATION__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/;\n    const match = html.match(regex);\n\n    if (match) {\n      const jsonStr = match[1];\n      const data = JSON.parse(jsonStr);\n      videoUrl = data?.__DEFAULT_SCOPE__?.[\"webapp.video-detail\"]?.itemInfo?.itemStruct?.video?.playAddr;\n      if (!videoUrl) {\n        throw new Error(\"Could not find TikTok video URL in the JSON data.\");\n      }\n    } else {\n      throw new Error(\"Could not find __UNIVERSAL_DATA_FOR_REHYDRATION__ script in the HTML for TikTok.\");\n    }\n} else if (url.includes(\"facebook.com\")) {\n    referer = \"https://www.facebook.com/\";\n    // Method 1: Look for og:video meta tag\n    let match = html.match(/<meta\\s+property=\"og:video\"\\s+content=\"([^\"]+)\"/);\n    if (match && match[1]) {\n        videoUrl = match[1].replace(/&amp;/g, '&');\n    } else {\n        // Method 2: Look for video URLs in script tags.\n        match = html.match(/\"playable_url_quality_hd\":\"([^\"]+)\"/);\n        if (match && match[1]) {\n            videoUrl = JSON.parse(`\"${match[1]}\"`);\n        } else {\n            match = html.match(/\"playable_url\":\"([^\"]+)\"/);\n            if (match && match[1]) {\n                videoUrl = JSON.parse(`\"${match[1]}\"`);\n            } else {\n                 // Fallback to a more generic video src search\n                match = html.match(/<video[^>]+src=\"([^\"]+)\"[^>]*>/);\n                if (match && match[1]) {\n                    videoUrl = match[1].replace(/&amp;/g, '&');\n                } else {\n                    throw new Error(\"Could not find Facebook video URL. The page structure might have changed.\");\n                }\n            }\n        }\n    }\n} else {\n    throw new Error(\"Unsupported URL. Only TikTok and Facebook are supported.\");\n}\n\nif (!videoUrl) {\n    throw new Error(\"Could not extract video URL.\");\n}\n\nreturn [{ json: { videoUrl, referer, cookies: cookies.join('; ') } }];"
+      },
+      "id": "00a178f8-fb59-4211-afb2-8b3132052227",
+      "name": "Scrape Video URL",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        620,
+        200
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.videoUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            },
+            {
+              "name": "Referer",
+              "value": "={{ $json.referer }}"
+            },
+            {
+              "name": "Accept",
+              "value": "video/mp4,video/webm,video/*;q=0.9,application/octet-stream;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.5"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Cookie",
+              "value": "={{ $json.cookies }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "b92d2378-c5d5-450c-8b6f-410eacf97820",
+      "name": "Download Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1040,
+        200
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "content": "## 1. Load the video page\nOpen this node and replace the URL with the one of the video you want to download without a watermark.\n\nA video URL from a supported platform (TikTok, Facebook) should be used.\n\nOutputs the returned page HTML along with the session cookies\n\n",
+        "height": 360,
+        "width": 460,
+        "color": 6
+      },
+      "id": "91bf71a8-753b-48aa-bd87-165da56e6f2c",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 2. Find the raw video URL\nParses through the HTML and finds the section containing the video URL before the watermark is applied",
+        "height": 360,
+        "width": 380,
+        "color": 5
+      },
+      "id": "de9c0e06-af57-4b74-9c65-70bd6359ddc9",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        480,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 3. Download Video\nUsing the cookies from step 1, a request is made to access the original video file.",
+        "height": 360,
+        "width": 400,
+        "color": 4
+      },
+      "id": "a6f9447a-0917-4faa-a5c8-d6a8f56df151",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        880,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "name": "={{ $node[\"Get Video Page Data\"].parameter[\"url\"].match(/(?:\\/video\\/|\\?v=)([\\w-]+)/)[1] + \".mp4\" }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultUrl": "https://drive.google.com/drive",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "id": "057be0cb-9515-4568-8ae8-415308d01b8f",
+      "name": "Upload to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        440,
+        540
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "writer",
+            "type": "anyone",
+            "allowFileDiscovery": true
+          }
+        },
+        "options": {}
+      },
+      "id": "933df0b9-2c5a-4c47-8c8d-c46891e31999",
+      "name": "Set file permissions to public with link",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        700,
+        540
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "content": "## (Optional) Upload video to Google Drive\nAn expression is used to save the file to your Google Drive as Video_ID.mp4\n\nNote: Must have Google Drive API enabled in [Google Cloud Console](https://console.cloud.google.com/apis/api/drive.googleapis.com/overview) OAuth ClientID and Client Secret credentials setup",
+        "height": 320,
+        "width": 500,
+        "color": 7
+      },
+      "id": "6ca43910-579a-47c3-adfc-129a2b47d7dd",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        400,
+        380
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Video Page Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video Page Data": {
+      "main": [
+        [
+          {
+            "node": "Scrape Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Video URL": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Upload to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Set file permissions to public with link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "29529c6d9a87020e2baeeb323cbc7d75a3f7569dc9ef9d8e01ad746601b233dd"
+  }
+}

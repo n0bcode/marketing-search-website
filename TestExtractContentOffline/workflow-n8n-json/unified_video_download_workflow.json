@@ -1,0 +1,240 @@
+{
+  "name": "Unified Video Downloader (Facebook & TikTok)",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [150, 300]
+    },
+    {
+      "parameters": {
+        "options": {
+          "questions": [
+            {
+              "prompt": "Enter the video URL (Facebook or TikTok):",
+              "variable": "mediaUrl",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "name": "Get Video URL",
+      "type": "n8n-nodes-base.userInput",
+      "typeVersion": 1,
+      "position": [350, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {},
+          "conditions": [
+            {
+              "value1": "{{$json.mediaUrl}}",
+              "operation": "contains",
+              "value2": "facebook.com"
+            }
+          ]
+        }
+      },
+      "name": "Is it Facebook?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [550, 300]
+    },
+    {
+      "parameters": {
+        "url": "{{$json.mediaUrl}}",
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+          }
+        }
+      },
+      "name": "Fetch FB Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {
+        "mode": "cssSelector",
+        "selector": "meta[property='og:video:url']",
+        "returnValue": "attribute",
+        "attribute": "content",
+        "value": "{{$json.data}}"
+      },
+      "name": "Extract FB Video URL",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1,
+      "position": [950, 200]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "videoUrl",
+              "value": "{{$json.data}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set FB Video URL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1150, 200]
+    },
+    {
+      "parameters": {
+        "url": "{{$json.videoUrl}}",
+        "options": {
+          "response": {
+            "response": "file"
+          }
+        }
+      },
+      "name": "Download FB Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1350, 200]
+    },
+    {
+      "parameters": {
+        "fileName": "outputs/facebook_video_{{$timestamp}}.mp4",
+        "data": "={{$binary.data}}",
+        "options": {}
+      },
+      "name": "Save FB Video",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [1550, 200]
+    },
+    {
+      "parameters": {
+        "command": "python fb_search.py download \"{{$json.mediaUrl}}\""
+      },
+      "name": "Download via Script",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {},
+      "name": "End",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1750, 300]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Get Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video URL": {
+      "main": [
+        [
+          {
+            "node": "Is it Facebook?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is it Facebook?": {
+      "main": [
+        [
+          {
+            "node": "Fetch FB Page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download via Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch FB Page": {
+      "main": [
+        [
+          {
+            "node": "Extract FB Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract FB Video URL": {
+      "main": [
+        [
+          {
+            "node": "Set FB Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set FB Video URL": {
+      "main": [
+        [
+          {
+            "node": "Download FB Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download FB Video": {
+      "main": [
+        [
+          {
+            "node": "Save FB Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save FB Video": {
+      "main": [
+        [
+          {
+            "node": "End",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download via Script": {
+      "main": [
+        [
+          {
+            "node": "End",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

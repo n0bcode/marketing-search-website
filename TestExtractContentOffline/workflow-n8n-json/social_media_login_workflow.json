@@ -1,0 +1,307 @@
+{
+  "name": "Social Media Login",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "questions": [
+            {
+              "prompt": "Select a platform to log in to:",
+              "variable": "platform",
+              "type": "list",
+              "options": [
+                {
+                  "name": "Facebook",
+                  "value": "facebook"
+                },
+                {
+                  "name": "TikTok",
+                  "value": "tiktok"
+                },
+                {
+                  "name": "Other",
+                  "value": "custom"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "name": "Platform Selection",
+      "type": "n8n-nodes-base.userInput",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {},
+          "conditions": [
+            {
+              "value1": "{{$json.platform}}",
+              "operation": "equal",
+              "value2": "facebook"
+            }
+          ]
+        }
+      },
+      "name": "If Facebook",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        650,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {},
+          "conditions": [
+            {
+              "value1": "{{$json.platform}}",
+              "operation": "equal",
+              "value2": "tiktok"
+            }
+          ]
+        }
+      },
+      "name": "If TikTok",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        650,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "value": "https://facebook.com/login"
+      },
+      "name": "Set Facebook URL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        850,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "value": "https://tiktok.com/login"
+      },
+      "name": "Set TikTok URL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        850,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "questions": [
+            {
+              "prompt": "Please enter the login URL:",
+              "variable": "loginUrl",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "name": "Custom URL",
+      "type": "n8n-nodes-base.userInput",
+      "typeVersion": 1,
+      "position": [
+        850,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "command": "start chrome --user-data-dir=\"./browser_profiles/{{$json.platform}}\" {{$json.loginUrl}}"
+      },
+      "name": "Open Browser",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "questions": [
+            {
+              "prompt": "After you have logged in, press 'Continue' to save the session.",
+              "variable": "continue",
+              "type": "notice"
+            }
+          ]
+        }
+      },
+      "name": "Wait for Login",
+      "type": "n8n-nodes-base.userInput",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "{{$json.platform}}_cookies.txt",
+        "data": "{{$json.cookies}}",
+        "options": {}
+      },
+      "name": "Save Cookies",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredential",
+        "genericCredential": {
+          "credential": {
+            "name": "Start",
+            "type": "n8n-nodes-base.start"
+          }
+        },
+        "options": {}
+      },
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Platform Selection": {
+      "main": [
+        [
+          {
+            "node": "If Facebook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If TikTok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Facebook": {
+      "main": [
+        [
+          {
+            "node": "Set Facebook URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If TikTok": {
+      "main": [
+        [
+          {
+            "node": "Set TikTok URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Facebook URL": {
+      "main": [
+        [
+          {
+            "node": "Open Browser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set TikTok URL": {
+      "main": [
+        [
+          {
+            "node": "Open Browser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Platform Selection": {
+      "main": [
+        [
+          {
+            "node": "Custom URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Custom URL": {
+      "main": [
+        [
+          {
+            "node": "Open Browser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open Browser": {
+      "main": [
+        [
+          {
+            "node": "Wait for Login",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Login": {
+      "main": [
+        [
+          {
+            "node": "Save Cookies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Platform Selection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
