@@ -1,15 +1,20 @@
 <div class="bg-white rounded-xl shadow-lg p-6">
-  <button (click)="toggleHistory.emit()" class="flex items-center text-primary hover:text-primary/80 transition focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-md px-3 py-2 -ml-3 mb-4">
+  <button (click)="toggleHistory.emit()"
+    class="flex items-center text-primary hover:text-primary/80 transition focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-md px-3 py-2 -ml-3 mb-4">
     <span class="material-icons mr-2 text-2xl">
       <mat-icon>{{ showKeywordHistory ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</mat-icon>
     </span>
-    <span class="text-lg font-semibold">{{ showKeywordHistory ? 'Hide Search History' : 'Show Search History' }}</span>
+    <span class="text-lg font-semibold">{{ showKeywordHistory ? 'Ẩn lịch sử tìm kiếm' : '
+Hiển thị lịch sử tìm kiếm' }}</span>
   </button>
-  <div [ngClass]="{ 'max-h-0 overflow-hidden': !showKeywordHistory, 'max-h-screen transition-all duration-500 ease-in-out': showKeywordHistory }">
-    <h3 class="font-bold text-xl text-dark mb-4">Search History:</h3>
+  <div
+    [ngClass]="{ 'max-h-0 overflow-hidden': !showKeywordHistory, 'max-h-screen transition-all duration-500 ease-in-out': showKeywordHistory }">
+    <h3 class="font-bold text-xl text-dark mb-4">
+      Lịch sử tìm kiếm:</h3>
     <ul class="space-y-3">
       <ng-container *ngIf="keywordModels.length > 0; else skeletonLoader">
-        <li *ngFor="let keyword of keywordModels" (click)="loadAnalysis.emit(keyword.id)" class="p-4 rounded-lg bg-light/50 border border-gray-200 hover:bg-light hover:shadow-md cursor-pointer transition-all duration-200">
+        <li *ngFor="let keyword of keywordModels" (click)="loadAnalysis.emit(keyword.id)"
+          class="p-4 rounded-lg bg-light/50 border border-gray-200 hover:bg-light hover:shadow-md cursor-pointer transition-all duration-200">
           <span class="text-gray-800 font-medium text-base">{{ keyword.keyword }}</span>
           <br />
           <span class="text-gray-500 text-xs"> ({{ keyword.updatedAt | date: 'short' }}) </span>
