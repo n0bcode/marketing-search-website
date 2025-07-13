@@ -103,9 +103,13 @@ export class SearchService {
         });
       }
     } else if (params.engine === 'bing') {
-      this.listSitesSelected().forEach((site) => {
-        this.performBingSearch({ ...params, as_sitesearch: site });
-      });
+      if (this.listSitesSelected().length === 0) {
+        this.performBingSearch({ ...params, as_sitesearch: '' });
+      } else {
+        this.listSitesSelected().forEach((site) => {
+          this.performBingSearch({ ...params, as_sitesearch: site });
+        });
+      }
     }
   }
 
@@ -193,10 +197,8 @@ export class SearchService {
 
             this.apiService
               .postToApi<ResponseAPI<GeminiResponse>>(
-                `/Analysis/AnalyzeBingResults?query=${params.q}&site=${
-                  params.as_sitesearch
-                }&idTokenGeminiChange=${idTokenGemini || ''}`,
-                params, // Truyền lại params thay vì dữ liệu Bing trực tiếp vì backend hiện tại chấp nhận SearchRequest
+                `/Analysis/AnalyzeBingResults?query=${params.q}&site=${params.as_sitesearch}&idTokenGeminiChange=${idTokenGemini || ''}`,
+                bingResponse.data, // Truyền bingResponse.data vào body
                 ConfigsRequest.getSkipAuthConfig()
               )
               .subscribe({
