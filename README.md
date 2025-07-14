@@ -49,6 +49,66 @@ Follow these instructions to get the project up and running on your local machin
 
     The frontend development server will start. Open your browser and navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
+## Configuration
+
+Sensitive API keys and connection strings are not committed directly to the repository for security reasons. They are managed through `appsettings.json` and `appsettings.Development.json`.
+
+*   `appsettings.json`: Contains default or placeholder values for configuration. This file is committed to the repository.
+*   `appsettings.Development.json`: Contains sensitive keys and connection strings used during development. This file is **not** committed to the repository and is ignored by Git.
+
+To set up your local development environment:
+
+1.  Navigate to the backend API directory: `backend-webAPI/Api`.
+2.  Create a file named `appsettings.Development.json` in this directory if it doesn't already exist.
+3.  Populate `appsettings.Development.json` with your actual sensitive keys and connection strings. You can use the structure from the `appsettings.Development.json` that was previously in the repository as a template, replacing the `DELETED` or `YOUR_...` placeholders with your actual values.
+
+    Example structure for `appsettings.Development.json`:
+    ```json
+    {
+      "ApiSettings": {
+        "GoogleApi": {
+          "ApiKey": "YOUR_GOOGLE_API_KEY"
+        },
+        "FacebookApi": {
+          "AccessToken": "YOUR_FACEBOOK_ACCESS_TOKEN"
+        },
+        "TwitterApi": {
+          "BearerToken": "YOUR_TWITTER_BEARER_TOKEN"
+        },
+        "InstagramApi": {
+          "AccessToken": "YOUR_INSTAGRAM_ACCESS_TOKEN"
+        },
+        "ThreadsApi": {
+          "ID": "YOUR_THREADS_ID",
+          "AccessToken": "YOUR_THREADS_ACCESS_TOKEN"
+        },
+        "OpenApi": {
+          "SecretToken": "YOUR_OPENAI_SECRET_TOKEN"
+        },
+        "GeminiApi": {
+          "SecretToken": "YOUR_GEMINI_SECRET_TOKEN"
+        }
+      },
+      "EmailSettings": {
+        "GoogleSender": {
+          "Username": "YOUR_GOOGLE_SENDER_USERNAME",
+          "Email": "YOUR_GOOGLE_SENDER_EMAIL",
+          "Password": "YOUR_GOOGLE_SENDER_PASSWORD"
+        },
+        "TwilioSMSSender": {
+          "SID": "YOUR_TWILIO_SID",
+          "AuthToken": "YOUR_TWILIO_AUTH_TOKEN"
+        },
+        "TwilioEmailSender": {
+          "ApiKey": "YOUR_TWILIO_EMAIL_API_KEY"
+        }
+      },
+      "ConnectionStrings": {
+        "MongoDb": "YOUR_MONGODB_CONNECTION_STRING"
+      }
+    }
+    ```
+
 ## Additional Setup
 
 Some features of this project require additional files to be downloaded.
