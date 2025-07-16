@@ -178,9 +178,41 @@ namespace Api.Services.AIServices.Gemini
         /// Adds a prompt part to instruct the AI to generate a structured JSON analysis.
         /// </summary>
         public void AddAnalysisPrompt()
-        {
-            Parts.Add(new PartRequest("Hãy tạo nội dung phân tích dữ liệu dưới dạng JSON. Nội dung JSON phải được viết bằng tiếng Việt, rõ ràng, súc tích và thân thiện với người dùng, phù hợp để hiển thị trong ứng dụng Angular với AngularCSS. Đảm bảo tất cả các giá trị chuỗi được thoát đúng cách cho JSON.\n\nCấu trúc JSON:\n{\n    \"tieuDe\": \"[Tiêu đề nội dung phân tích]\",\n    \"nguonDuLieu\": \"[Nguồn dữ liệu]\",\n    \"danhGia\": {\n        \"tichCuc\": {\n            \"soLuong\": [Số lượng bài viết tích cực],\n            \"baiViet\": [\n                {\n                    \"tomTat\": \"[Tóm tắt bài viết tích cực, ngắn gọn, dễ đọc]\",\n                    \"lyDo\": \"[Lý do đánh giá tích cực, súc tích]\",\n                    \"lienKet\": \"[Liên kết đến bài viết]\"\n                }\n            ]\n        },\n        \"tieuCuc\": {\n            \"soLuong\": [Số lượng bài viết tiêu cực],\n            \"baiViet\": [\n                {\n                    \"tomTat\": \"[Tóm tắt bài viết tiêu cực, ngắn gọn, dễ đọc]\",\n                    \"lyDo\": \"[Lý do đánh giá tiêu cực, súc tích]\",\n                    \"lienKet\": \"[Liên kết đến bài viết]\"\n                }\n            ]\n        },\n        \"danhGiaChung\": \"[Nội dung đánh giá chung, tổng hợp, dễ hiểu]\"\n    },\n    \"thongBaoKhongCoDuLieu\": \"[Thông báo thân thiện nếu không tìm thấy dữ liệu liên quan, ví dụ: 'Không tìm thấy dữ liệu liên quan cho yêu cầu này.']\"\n}\n\nChỉ phản hồi bằng nội dung JSON, không giải thích gì thêm."));
-        }
+{
+    Parts.Add(new PartRequest(
+        "Hãy phân tích và đánh giá doanh nghiệp dựa trên dữ liệu dưới dạng JSON. Nội dung JSON phải được viết bằng tiếng Việt, rõ ràng, súc tích, chuyên nghiệp và thân thiện với người dùng, phù hợp để hiển thị trong ứng dụng Angular với AngularCSS. Đảm bảo tất cả các giá trị chuỗi được thoát đúng cách cho JSON.\n\n" +
+        "Các tiêu chí đánh giá tập trung vào: chất lượng sản phẩm/dịch vụ, uy tín doanh nghiệp, phản hồi của khách hàng, điểm mạnh, điểm yếu, đề xuất cải thiện.\n\n" +
+        "Cấu trúc JSON:\n{\n" +
+        "    \"tieuDe\": \"[Tiêu đề nội dung phân tích doanh nghiệp]\",\n" +
+        "    \"nguonDuLieu\": \"[Nguồn dữ liệu]\",\n" +
+        "    \"danhGia\": {\n" +
+        "        \"tichCuc\": {\n" +
+        "            \"soLuong\": [Số lượng bài viết tích cực],\n" +
+        "            \"baiViet\": [\n" +
+        "                {\n" +
+        "                    \"tomTat\": \"[Tóm tắt bài viết tích cực về doanh nghiệp, ngắn gọn, dễ đọc, tập trung vào điểm mạnh, dịch vụ tốt, uy tín, phản hồi tốt từ khách hàng...]\",\n" +
+        "                    \"lyDo\": \"[Lý do đánh giá tích cực, ví dụ: dịch vụ chuyên nghiệp, sản phẩm chất lượng, chăm sóc khách hàng tốt...]\",\n" +
+        "                    \"lienKet\": \"[Liên kết đến bài viết]\"\n" +
+        "                }\n" +
+        "            ]\n" +
+        "        },\n" +
+        "        \"tieuCuc\": {\n" +
+        "            \"soLuong\": [Số lượng bài viết tiêu cực],\n" +
+        "            \"baiViet\": [\n" +
+        "                {\n" +
+        "                    \"tomTat\": \"[Tóm tắt bài viết tiêu cực về doanh nghiệp, ngắn gọn, dễ đọc, tập trung vào điểm yếu, vấn đề gặp phải, phản hồi chưa tốt...]\",\n" +
+        "                    \"lyDo\": \"[Lý do đánh giá tiêu cực, ví dụ: dịch vụ chậm, sản phẩm chưa đạt kỳ vọng, phản hồi khách hàng chưa tốt...]\",\n" +
+        "                    \"lienKet\": \"[Liên kết đến bài viết]\"\n" +
+        "                }\n" +
+        "            ]\n" +
+        "        },\n" +
+        "        \"danhGiaChung\": \"[Nội dung đánh giá tổng quan doanh nghiệp, tổng hợp ưu điểm, nhược điểm, đề xuất cải thiện nếu có, trình bày ngắn gọn, dễ hiểu]\"\n" +
+        "    },\n" +
+        "    \"thongBaoKhongCoDuLieu\": \"[Thông báo thân thiện nếu không tìm thấy dữ liệu liên quan, ví dụ: 'Không tìm thấy dữ liệu liên quan cho doanh nghiệp này.']\"\n" +
+        "}\n\n" +
+        "Chỉ phản hồi bằng nội dung JSON, không giải thích gì thêm."
+    ));
+}
 
         #endregion
     }
