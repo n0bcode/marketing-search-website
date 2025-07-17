@@ -7,7 +7,7 @@ using Api.Services.SearchServices;
 using Api.Services.SearchServices.Google;
 using Api.Services.SearchServices.Twitter;
 using Api.Services.AIServices.Gemini;
-using Api.Services.RedisCacheService;
+
 using Api.Services.VideoServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,14 +57,7 @@ namespace Api
 
             builder.Services.AddScoped<IUnitOfWorkMongo, UnitOfWorkMongo>();
 
-            builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
             builder.Services.AddScoped<VideoProcessingService>();
-
-            builder.Services.AddStackExchangeRedisCache(options =>
-            {
-                options.Configuration = builder.Configuration["Redis:Configuration"];
-                options.InstanceName = builder.Configuration["Redis:InstanceName"];
-            });
 
             builder.Services.AddMemoryCache();
 
