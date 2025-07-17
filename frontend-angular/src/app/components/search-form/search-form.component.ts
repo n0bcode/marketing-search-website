@@ -31,13 +31,18 @@ export class SearchFormComponent {
   ignoreTexts: string[] = [];
   ignoreTextInput: string = '';
 
-  isListening = false;
-  voiceStatus = false;
-  voiceError: string | null = null;
+  isListeningQuery = false;
+  voiceStatusQuery = false;
+  voiceErrorQuery: string | null = null;
+  isListeningExact = false;
+  voiceStatusExact = false;
+  voiceErrorExact: string | null = null;
 
   @ViewChild('voiceIcon') voiceIcon!: ElementRef;
+  @ViewChild('voiceIconExact') voiceIconExact!: ElementRef;
 
   private recognition: any = null;
+  private activeField: 'query' | 'exact' | null = null;
 
   constructor() {
     this.initSpeechRecognition();
@@ -52,26 +57,51 @@ export class SearchFormComponent {
       this.recognition.lang = 'vi-VN';
 
       this.recognition.onstart = () => {
-        this.isListening = true;
-        this.voiceStatus = true;
-        this.voiceError = null;
-        if (this.voiceIcon) {
-          this.voiceIcon.nativeElement.classList.add('text-red-500');
+        if (this.activeField === 'query') {
+          this.isListeningQuery = true;
+          this.voiceStatusQuery = true;
+          this.voiceErrorQuery = null;
+          if (this.voiceIcon) {
+            this.voiceIcon.nativeElement.classList.add('text-red-500');
+          }
+        } else if (this.activeField === 'exact') {
+          this.isListeningExact = true;
+          this.voiceStatusExact = true;
+          this.voiceErrorExact = null;
+          if (this.voiceIconExact) {
+            this.voiceIconExact.nativeElement.classList.add('text-red-500');
+          }
         }
       };
 
       this.recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        this.updateSearchParameters({ q: transcript });
+        if (this.activeField === 'query') {
+          this.updateSearchParameters({ q: transcript });
+        } else if (this.activeField === 'exact') {
+          this.updateSearchParameters({ as_epq: transcript });
+        }
         this.stopListening();
       };
 
       this.recognition.onerror = (event: any) => {
-        this.voiceError = 'Lỗi ghi âm. Vui lòng thử lại.';
+        const errorMessage = 'Lỗi ghi âm. Vui lòng thử lại.';
+        if (this.activeField === 'query') {
+          this.voiceErrorQuery = errorMessage;
+          this.voiceStatusQuery = true;
+        } else if (this.activeField === 'exact') {
+          this.voiceErrorExact = errorMessage;
+          this.voiceStatusExact = true;
+        }
         this.stopListening();
         setTimeout(() => {
-          this.voiceError = null;
-          this.voiceStatus = false;
+          if (this.activeField === 'query') {
+            this.voiceErrorQuery = null;
+            this.voiceStatusQuery = false;
+          } else if (this.activeField === 'exact') {
+            this.voiceErrorExact = null;
+            this.voiceStatusExact = false;
+          }
         }, 3000);
       };
 
@@ -79,35 +109,60 @@ export class SearchFormComponent {
         this.stopListening();
       };
     } else {
-      this.voiceError = 'Trình duyệt của bạn không hỗ trợ ghi âm giọng nói.';
-      this.voiceStatus = true;
+      const errorMessage = 'Trình duyệt của bạn không hỗ trợ ghi âm giọng nói.';
+      this.voiceErrorQuery = errorMessage;
+      this.voiceStatusQuery = true;
+      this.voiceErrorExact = errorMessage;
+      this.voiceStatusExact = true;
       setTimeout(() => {
-        this.voiceError = null;
-        this.voiceStatus = false;
+        this.voiceErrorQuery = null;
+        this.voiceStatusQuery = false;
+        this.voiceErrorExact = null;
+        this.voiceStatusExact = false;
       }, 3000);
     }
   }
 
   stopListening() {
-    this.isListening = false;
-    if (this.voiceIcon) {
-      this.voiceIcon.nativeElement.classList.remove('text-red-500');
+    if (this.activeField === 'query') {
+      this.isListeningQuery = false;
+      if (this.voiceIcon) {
+        this.voiceIcon.nativeElement.classList.remove('text-red-500');
+      }
+    } else if (this.activeField === 'exact') {
+      this.isListeningExact = false;
+      if (this.voiceIconExact) {
+        this.voiceIconExact.nativeElement.classList.remove('text-red-500');
+      }
     }
+    this.activeField = null;
   }
 
-  toggleVoiceRecognition() {
+  toggleVoiceRecognition(field: 'query' | 'exact') {
     if (!this.recognition) {
-      this.voiceError = 'Trình duyệt của bạn không hỗ trợ ghi âm giọng nói.';
-      this.voiceStatus = true;
+      const errorMessage = 'Trình duyệt của bạn không hỗ trợ ghi âm giọng nói.';
+      if (field === 'query') {
+        this.voiceErrorQuery = errorMessage;
+        this.voiceStatusQuery = true;
+      } else {
+        this.voiceErrorExact = errorMessage;
+        this.voiceStatusExact = true;
+      }
       setTimeout(() => {
-        this.voiceError = null;
-        this.voiceStatus = false;
+        if (field === 'query') {
+          this.voiceErrorQuery = null;
+          this.voiceStatusQuery = false;
+        } else {
+          this.voiceErrorExact = null;
+          this.voiceStatusExact = false;
+        }
       }, 3000);
       return;
     }
-    if (this.isListening) {
+    if ((field === 'query' && this.isListeningQuery) || (field === 'exact' && this.isListeningExact)) {
       this.recognition.stop();
     } else {
+      this.activeField = field;
       this.recognition.start();
     }
   }
