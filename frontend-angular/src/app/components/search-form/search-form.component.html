@@ -1,11 +1,46 @@
+<style>
+.recording {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.voice-wave {
+  display: inline-block;
+  width: 4px;
+  height: 20px;
+  background: #ef4444;
+  margin: 0 1px;
+  animation: wave 1s infinite ease-in-out;
+}
+
+.voice-wave:nth-child(2) { animation-delay: -0.9s; }
+.voice-wave:nth-child(3) { animation-delay: -0.8s; }
+.voice-wave:nth-child(4) { animation-delay: -0.7s; }
+.voice-wave:nth-child(5) { animation-delay: -0.6s; }
+
+@keyframes wave {
+  0%, 40%, 100% { transform: scaleY(0.4); }
+  20% { transform: scaleY(1); }
+}
+
+.primary { background-color: #3b82f6; }
+.primary\/10 { background-color: rgba(59, 130, 246, 0.1); }
+.primary\/50 { background-color: rgba(59, 130, 246, 0.5); }
+.secondary { background-color: #f59e0b; }
+.secondary\/90 { background-color: rgba(245, 158, 11, 0.9); }
+</style>
+
 <div class="bg-white rounded-xl shadow-lg p-6 space-y-6">
-  <h2 class="text-2xl font-bold text-dark mb-6">
-    Tìm kiếm</h2>
+  <h2 class="text-2xl font-bold text-dark mb-6">Tìm kiếm</h2>
 
   <!-- Search Engine Selection -->
   <div class="mb-4">
-    <label class="block mb-2 text-sm font-medium text-gray-600">
-      Công cụ tìm kiếm</label>
+    <label class="block mb-2 text-sm font-medium text-gray-600">Công cụ tìm kiếm</label>
     <select [ngModel]="searchParameters?.engine" (ngModelChange)="updateSearchParameters({ engine: $event })"
       name="searchEngine"
       class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition">
@@ -52,36 +87,48 @@
       <div class="h-4 bg-gray-200 rounded w-1/4"></div>
       <div class="h-10 bg-gray-200 rounded"></div>
     </div>
-    <div class="space-y-4">
-      <div class="h-4 bg-gray-200 rounded w-1/4"></div>
-      <div class="h-10 bg-gray-200 rounded"></div>
-    </div>
     <div class="h-12 bg-gray-200 rounded"></div>
   </div>
 
   <form class="space-y-6" *ngIf="!isLoading && searchParameters">
-    <!-- Search Query -->
+    <!-- Search Query with Voice -->
     <div>
       <label class="block mb-2 text-sm font-medium text-gray-600">Từ khóa</label>
-      <input type="text" [ngModel]="searchParameters.q" (ngModelChange)="updateSearchParameters({ q: $event })"
-        name="searchQuery" placeholder="e.g., technology, health"
-        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
+      <div class="relative">
+        <input type="text" [ngModel]="searchParameters.q" (ngModelChange)="updateSearchParameters({ q: $event })"
+          name="searchQuery" placeholder="e.g., technology, health"
+          class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
+        <button type="button" (click)="toggleVoiceRecognition()"
+          class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors"
+          title="Ghi âm giọng nói" [ngClass]="{ 'recording': isListening }">
+          <span class="material-icons text-gray-600" [ngClass]="{ 'text-red-500': isListening }" #voiceIcon>mic</span>
+        </button>
+      </div>
+      <!-- Voice Recording Status -->
+      <div *ngIf="voiceStatus" class="mt-2 text-sm text-gray-500" [ngClass]="{ 'hidden': !isListening && !voiceError }">
+        <div class="flex items-center gap-2" *ngIf="isListening">
+          <div class="voice-wave"></div>
+          <div class="voice-wave"></div>
+          <div class="voice-wave"></div>
+          <div class="voice-wave"></div>
+          <div class="voice-wave"></div>
+          <span>Đang nghe...</span>
+        </div>
+        <span *ngIf="voiceError" class="text-red-500">{{ voiceError }}</span>
+      </div>
     </div>
 
     <!-- Exact Phrase -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">
-        Từ khóa</label>
-      <input type="text" [ngModel]="searchParameters.as_epq"
-        (ngModelChange)="updateSearchParameters({ as_epq: $event })" name="as_epq"
-        placeholder="e.g., 'green technology'"
+      <label class="block mb-2 text-sm font-medium text-gray-600">Từ khóa chính xác</label>
+      <input type="text" [ngModel]="searchParameters.as_epq" (ngModelChange)="updateSearchParameters({ as_epq: $event })"
+        name="as_epq" placeholder="e.g., 'green technology'"
         class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
     </div>
 
     <!-- Number of Results -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">
-        Số lượng kết quả</label>
+      <label class="block mb-2 text-sm font-medium text-gray-600">Số lượng kết quả</label>
       <input type="number" [ngModel]="searchParameters.num" (ngModelChange)="updateSearchParameters({ num: $event })"
         name="searchNum" min="10" placeholder="e.g., 10"
         class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
@@ -90,28 +137,22 @@
     <!-- Location -->
     <div>
       <label class="block mb-2 text-sm font-medium text-gray-600">Vị Trí</label>
-      <input type="text" [ngModel]="searchParameters.location"
-        (ngModelChange)="updateSearchParameters({ location: $event })" name="location"
-        placeholder="e.g., New York, Hanoi"
+      <input type="text" [ngModel]="searchParameters.location" (ngModelChange)="updateSearchParameters({ location: $event })"
+        name="location" placeholder="e.g., New York, Hanoi"
         class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
     </div>
 
     <!-- Time Range -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">
-        Phạm vi thời gian</label>
+      <label class="block mb-2 text-sm font-medium text-gray-600">Phạm vi thời gian</label>
       <select [ngModel]="searchParameters.tbs" (ngModelChange)="updateSearchParameters({ tbs: $event })" name="tbs"
         class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition">
-        <option value="">
-          Bất cứ lúc nào</option>
-        <option value="qdr:d">
-          24 giờ qua</option>
+        <option value="">Bất cứ lúc nào</option>
+        <option value="qdr:d">24 giờ qua</option>
         <option value="qdr:w">Tuần trước</option>
-        <option value="qdr:m">
-          Tháng trước</option>
+        <option value="qdr:m">Tháng trước</option>
         <option value="qdr:y">Năm qua</option>
-        <option value="cdr:1">
-          Phạm vi tùy chỉnh</option>
+        <option value="cdr:1">Phạm vi tùy chỉnh</option>
       </select>
     </div>
 
@@ -122,17 +163,13 @@
         <div>
           <label class="block mb-2 text-xs font-medium text-gray-500">From</label>
           <input type="date" [ngModel]="startDate" (ngModelChange)="startDate = $event" name="startDate"
-            [min]="'1999-01-01'" [max]="
-              endDate
-                ? (endDate | date : 'yyyy-MM-dd')
-                : (today | date : 'yyyy-MM-dd')
-            "
+            [min]="'1999-01-01'" [max]="endDate ? (endDate | date : 'yyyy-MM-dd') : (today | date : 'yyyy-MM-dd')"
             class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
         </div>
         <div>
           <label class="block mb-2 text-xs font-medium text-gray-500">To</label>
           <input type="date" [ngModel]="endDate" (ngModelChange)="endDate = $event" name="endDate"
-            [min]="startDate | date : 'yyyy-MM-dd'" [max]="today | date : 'yyyy-MM-dd'"
+            [min]="startDate ? (startDate | date : 'yyyy-MM-dd') : '1999-01-01'" [max]="today | date : 'yyyy-MM-dd'"
             class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
         </div>
       </div>
@@ -167,9 +204,8 @@
     <div>
       <label class="block mb-2 text-sm font-medium text-gray-600">Bất kỳ từ nào trong số này</label>
       <div class="flex gap-2">
-        <input type="text" [(ngModel)]="relatedKeyInput" (keydown.enter)="
-            addRelatedKey(); relatedKeyInput = ''; $event.preventDefault()
-          " name="as_oq" placeholder="e.g., word1 OR word2"
+        <input type="text" [(ngModel)]="relatedKeyInput" (keydown.enter)="addRelatedKey(); relatedKeyInput = ''; $event.preventDefault()"
+          name="as_oq" placeholder="e.g., word1 OR word2"
           class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
         <button type="button"
           class="bg-primary text-white rounded-lg px-4 py-3 hover:bg-primary/90 transition disabled:bg-gray-300"
@@ -183,11 +219,9 @@
         </button>
       </div>
       <div class="flex flex-wrap gap-2 mt-3">
-        <span *ngFor="let key of relatedKeys"
-          class="flex items-center bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm">
+        <span *ngFor="let key of relatedKeys" class="flex items-center bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm">
           <span>{{ key }}</span>
-          <span class="material-icons text-red-500 cursor-pointer ml-2" title="Remove"
-            (click)="deleteRelatedKey(key)">close</span>
+          <span class="material-icons text-red-500 cursor-pointer ml-2" title="Remove" (click)="deleteRelatedKey(key)">close</span>
         </span>
       </div>
     </div>
@@ -196,9 +230,8 @@
     <div>
       <label class="block mb-2 text-sm font-medium text-gray-600">Không có từ nào trong số này</label>
       <div class="flex gap-2">
-        <input type="text" [(ngModel)]="ignoreTextInput" (keydown.enter)="
-            addIgnoreText(); ignoreTextInput = ''; $event.preventDefault()
-          " name="as_eq" placeholder="e.g., -word1"
+        <input type="text" [(ngModel)]="ignoreTextInput" (keydown.enter)="addIgnoreText(); ignoreTextInput = ''; $event.preventDefault()"
+          name="as_eq" placeholder="e.g., -word1"
           class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
         <button type="button"
           class="bg-primary text-white rounded-lg px-4 py-3 hover:bg-primary/90 transition disabled:bg-gray-300"
@@ -212,11 +245,9 @@
         </button>
       </div>
       <div class="flex flex-wrap gap-2 mt-3">
-        <span *ngFor="let text of ignoreTexts"
-          class="flex items-center bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm">
+        <span *ngFor="let text of ignoreTexts" class="flex items-center bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm">
           <span>{{ text }}</span>
-          <span class="material-icons text-red-500 cursor-pointer ml-2" title="Remove"
-            (click)="deleteIgnoreText(text)">close</span>
+          <span class="material-icons text-red-500 cursor-pointer ml-2" title="Remove" (click)="deleteIgnoreText(text)">close</span>
         </span>
       </div>
     </div>
@@ -230,15 +261,12 @@
           [ngClass]="{ 'bg-primary/10 border-primary': isSelected(site.key) }">
           <input type="checkbox" [value]="site.key" [checked]="isSelected(site.key)" (change)="onUpdateSites($event)"
             class="w-5 h-5 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2" />
-          <span class="ml-3 text-sm font-medium text-gray-800">{{
-            site.value
-            }}</span>
+          <span class="ml-3 text-sm font-medium text-gray-800">{{ site.value }}</span>
         </label>
         <div class="flex items-center border border-gray-200 rounded-lg p-2">
           <input type="text" [ngModel]="newDomain" (ngModelChange)="newDomain = $event" name="newDomain"
             class="px-3 py-2 border-none focus:outline-none focus:ring-0" placeholder="Thêm tên miền mới" />
-          <button class="text-white bg-secondary rounded-md p-2 ml-2 hover:bg-secondary/90 transition"
-            (click)="onAddDomain()">
+          <button class="text-white bg-secondary rounded-md p-2 ml-2 hover:bg-secondary/90 transition" (click)="onAddDomain()">
             <span class="material-icons">add</span>
           </button>
         </div>
@@ -246,12 +274,11 @@
     </div>
 
     <!-- Search Button -->
-<button (click)="onSearch()" [disabled]="isLoading"
-  class="w-full bg-green-500 text-white rounded-lg px-6 py-4 flex items-center justify-center gap-3 text-base font-semibold hover:bg-green-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md hover:shadow-lg">
-  <mat-spinner *ngIf="isLoading" diameter="24" class="text-white"></mat-spinner>
-  <span *ngIf="!isLoading" class="material-icons">search</span>
-  <span>{{ isLoading ? "Đang tìm kiếm..." : "Tìm kiếm" }}</span>
-</button>
-
+    <button (click)="onSearch()" [disabled]="isLoading"
+      class="w-full bg-green-500 text-white rounded-lg px-6 py-4 flex items-center justify-center gap-3 text-base font-semibold hover:bg-green-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md hover:shadow-lg">
+      <mat-spinner *ngIf="isLoading" diameter="24" class="text-white"></mat-spinner>
+      <span *ngIf="!isLoading" class="material-icons">search</span>
+      <span>{{ isLoading ? "Đang tìm kiếm..." : "Tìm kiếm" }}</span>
+    </button>
   </form>
 </div>
