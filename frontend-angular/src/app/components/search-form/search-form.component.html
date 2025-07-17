@@ -65,36 +65,18 @@
         >Từ khóa</label
       >
       <div class="relative">
-        <input
-          type="text"
-          [ngModel]="searchParameters.q"
-          (ngModelChange)="updateSearchParameters({ q: $event })"
-          name="searchQuery"
-          placeholder="e.g., technology, health"
-          class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
-        />
-        <button
-          type="button"
-          (click)="toggleVoiceRecognition()"
+        <input type="text" [ngModel]="searchParameters.q" (ngModelChange)="updateSearchParameters({ q: $event })"
+          name="searchQuery" placeholder="e.g., technology, health"
+          class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
+        <button type="button" (click)="toggleVoiceRecognition('query')"
           class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors"
-          title="Ghi âm giọng nói"
-          [ngClass]="{ recording: isListening }"
-        >
-          <span
-            class="material-icons text-gray-600"
-            [ngClass]="{ 'text-red-500': isListening }"
-            #voiceIcon
-            >mic</span
-          >
+          title="Ghi âm giọng nói" [ngClass]="{ 'recording': isListeningQuery }">
+          <span class="material-icons text-gray-600" [ngClass]="{ 'text-red-500': isListeningQuery }" #voiceIcon>mic</span>
         </button>
       </div>
-      <!-- Voice Recording Status -->
-      <div
-        *ngIf="voiceStatus"
-        class="mt-2 text-sm text-gray-500"
-        [ngClass]="{ hidden: !isListening && !voiceError }"
-      >
-        <div class="flex items-center gap-2" *ngIf="isListening">
+      <!-- Voice Recording Status for Query -->
+      <div *ngIf="voiceStatusQuery" class="mt-2 text-sm text-gray-500" [ngClass]="{ 'hidden': !isListeningQuery && !voiceErrorQuery }">
+        <div class="flex items-center gap-2" *ngIf="isListeningQuery">
           <div class="voice-wave"></div>
           <div class="voice-wave"></div>
           <div class="voice-wave"></div>
@@ -102,23 +84,35 @@
           <div class="voice-wave"></div>
           <span>Đang nghe...</span>
         </div>
-        <span *ngIf="voiceError" class="text-red-500">{{ voiceError }}</span>
+        <span *ngIf="voiceErrorQuery" class="text-red-500">{{ voiceErrorQuery }}</span>
       </div>
     </div>
 
-    <!-- Exact Phrase -->
+    <!-- Exact Phrase with Voice -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600"
-        >Từ khóa chính xác</label
-      >
-      <input
-        type="text"
-        [ngModel]="searchParameters.as_epq"
-        (ngModelChange)="updateSearchParameters({ as_epq: $event })"
-        name="as_epq"
-        placeholder="e.g., 'green technology'"
-        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
-      />
+      <label class="block mb-2 text-sm font-medium text-gray-600">Từ khóa chính xác</label>
+      <div class="relative">
+        <input type="text" [ngModel]="searchParameters.as_epq" (ngModelChange)="updateSearchParameters({ as_epq: $event })"
+          name="as_epq" placeholder="e.g., 'green technology'"
+          class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
+        <button type="button" (click)="toggleVoiceRecognition('exact')"
+          class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors"
+          title="Ghi âm giọng nói" [ngClass]="{ 'recording': isListeningExact }">
+          <span class="material-icons text-gray-600" [ngClass]="{ 'text-red-500': isListeningExact }" #voiceIconExact>mic</span>
+        </button>
+      </div>
+      <!-- Voice Recording Status for Exact Phrase -->
+      <div *ngIf="voiceStatusExact" class="mt-2 text-sm text-gray-500" [ngClass]="{ 'hidden': !isListeningExact && !voiceErrorExact }">
+        <div class="flex items-center gap-2" *ngIf="isListeningExact">
+          <div class="voice-wave"></div>
+          <div class="voice-wave"></div>
+          <div class="voice-wave"></div>
+          <div class="voice-wave"></div>
+          <div class="voice-wave"></div>
+          <span>Đang nghe...</span>
+        </div>
+        <span *ngIf="voiceErrorExact" class="text-red-500">{{ voiceErrorExact }}</span>
+      </div>
     </div>
 
     <!-- Number of Results -->
