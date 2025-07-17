@@ -1,4 +1,11 @@
-import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -9,7 +16,8 @@ import { SearchRequest } from '../../interfaces/search-request';
   selector: 'app-search-form',
   standalone: true,
   imports: [CommonModule, FormsModule, MatProgressSpinnerModule],
-  templateUrl: './search-form.component.html'
+  templateUrl: './search-form.component.html',
+  styleUrl: './search-form.component.css',
 })
 export class SearchFormComponent {
   @Input() searchParameters: GoogleSearchRequest | undefined;
@@ -44,7 +52,9 @@ export class SearchFormComponent {
   }
 
   initSpeechRecognition() {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       this.recognition = new SpeechRecognition();
       this.recognition.continuous = false;
