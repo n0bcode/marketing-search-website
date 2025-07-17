@@ -82,12 +82,6 @@ out
 .nuxt
 dist
 
-# Gatsby files
-.cache/
-# Comment in the public line in if your project uses Gatsby and not Next.js
-# https://nextjs.org/blog/next-9-1#public-directory-support
-# public
-
 # vuepress build output
 .vuepress/dist
 
@@ -557,22 +551,6 @@ FodyWeavers.xsd
 *.code-workspace
 
 # Local History for Visual Studio Code
-.history/
-
-# Windows Installer files from build outputs
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-
-# JetBrains Rider
-*.sln.iml
-
-### VisualStudioCode ###
-!.vscode/*.code-snippets
-
-# Local History for Visual Studio Code
 
 # Built Visual Studio Code Extensions
 *.vsix
@@ -594,3 +572,6 @@ FodyWeavers.xsd
 description.md
 note.txt
 *ggml-base.bin
+
+# Added by Gemini CLI
+appsettings.Development.json
