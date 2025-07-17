@@ -1,49 +1,17 @@
-<style>
-.recording {
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-.voice-wave {
-  display: inline-block;
-  width: 4px;
-  height: 20px;
-  background: #ef4444;
-  margin: 0 1px;
-  animation: wave 1s infinite ease-in-out;
-}
-
-.voice-wave:nth-child(2) { animation-delay: -0.9s; }
-.voice-wave:nth-child(3) { animation-delay: -0.8s; }
-.voice-wave:nth-child(4) { animation-delay: -0.7s; }
-.voice-wave:nth-child(5) { animation-delay: -0.6s; }
-
-@keyframes wave {
-  0%, 40%, 100% { transform: scaleY(0.4); }
-  20% { transform: scaleY(1); }
-}
-
-.primary { background-color: #3b82f6; }
-.primary\/10 { background-color: rgba(59, 130, 246, 0.1); }
-.primary\/50 { background-color: rgba(59, 130, 246, 0.5); }
-.secondary { background-color: #f59e0b; }
-.secondary\/90 { background-color: rgba(245, 158, 11, 0.9); }
-</style>
-
 <div class="bg-white rounded-xl shadow-lg p-6 space-y-6">
   <h2 class="text-2xl font-bold text-dark mb-6">Tìm kiếm</h2>
 
   <!-- Search Engine Selection -->
   <div class="mb-4">
-    <label class="block mb-2 text-sm font-medium text-gray-600">Công cụ tìm kiếm</label>
-    <select [ngModel]="searchParameters?.engine" (ngModelChange)="updateSearchParameters({ engine: $event })"
+    <label class="block mb-2 text-sm font-medium text-gray-600"
+      >Công cụ tìm kiếm</label
+    >
+    <select
+      [ngModel]="searchParameters?.engine"
+      (ngModelChange)="updateSearchParameters({ engine: $event })"
       name="searchEngine"
-      class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition">
+      class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+    >
       <option value="google">Google</option>
       <option value="bing">Bing</option>
     </select>
@@ -93,19 +61,39 @@
   <form class="space-y-6" *ngIf="!isLoading && searchParameters">
     <!-- Search Query with Voice -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">Từ khóa</label>
+      <label class="block mb-2 text-sm font-medium text-gray-600"
+        >Từ khóa</label
+      >
       <div class="relative">
-        <input type="text" [ngModel]="searchParameters.q" (ngModelChange)="updateSearchParameters({ q: $event })"
-          name="searchQuery" placeholder="e.g., technology, health"
-          class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
-        <button type="button" (click)="toggleVoiceRecognition()"
+        <input
+          type="text"
+          [ngModel]="searchParameters.q"
+          (ngModelChange)="updateSearchParameters({ q: $event })"
+          name="searchQuery"
+          placeholder="e.g., technology, health"
+          class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+        />
+        <button
+          type="button"
+          (click)="toggleVoiceRecognition()"
           class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors"
-          title="Ghi âm giọng nói" [ngClass]="{ 'recording': isListening }">
-          <span class="material-icons text-gray-600" [ngClass]="{ 'text-red-500': isListening }" #voiceIcon>mic</span>
+          title="Ghi âm giọng nói"
+          [ngClass]="{ recording: isListening }"
+        >
+          <span
+            class="material-icons text-gray-600"
+            [ngClass]="{ 'text-red-500': isListening }"
+            #voiceIcon
+            >mic</span
+          >
         </button>
       </div>
       <!-- Voice Recording Status -->
-      <div *ngIf="voiceStatus" class="mt-2 text-sm text-gray-500" [ngClass]="{ 'hidden': !isListening && !voiceError }">
+      <div
+        *ngIf="voiceStatus"
+        class="mt-2 text-sm text-gray-500"
+        [ngClass]="{ hidden: !isListening && !voiceError }"
+      >
         <div class="flex items-center gap-2" *ngIf="isListening">
           <div class="voice-wave"></div>
           <div class="voice-wave"></div>
@@ -120,33 +108,59 @@
 
     <!-- Exact Phrase -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">Từ khóa chính xác</label>
-      <input type="text" [ngModel]="searchParameters.as_epq" (ngModelChange)="updateSearchParameters({ as_epq: $event })"
-        name="as_epq" placeholder="e.g., 'green technology'"
-        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
+      <label class="block mb-2 text-sm font-medium text-gray-600"
+        >Từ khóa chính xác</label
+      >
+      <input
+        type="text"
+        [ngModel]="searchParameters.as_epq"
+        (ngModelChange)="updateSearchParameters({ as_epq: $event })"
+        name="as_epq"
+        placeholder="e.g., 'green technology'"
+        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+      />
     </div>
 
     <!-- Number of Results -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">Số lượng kết quả</label>
-      <input type="number" [ngModel]="searchParameters.num" (ngModelChange)="updateSearchParameters({ num: $event })"
-        name="searchNum" min="10" placeholder="e.g., 10"
-        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
+      <label class="block mb-2 text-sm font-medium text-gray-600"
+        >Số lượng kết quả</label
+      >
+      <input
+        type="number"
+        [ngModel]="searchParameters.num"
+        (ngModelChange)="updateSearchParameters({ num: $event })"
+        name="searchNum"
+        min="10"
+        placeholder="e.g., 10"
+        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+      />
     </div>
 
     <!-- Location -->
     <div>
       <label class="block mb-2 text-sm font-medium text-gray-600">Vị Trí</label>
-      <input type="text" [ngModel]="searchParameters.location" (ngModelChange)="updateSearchParameters({ location: $event })"
-        name="location" placeholder="e.g., New York, Hanoi"
-        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
+      <input
+        type="text"
+        [ngModel]="searchParameters.location"
+        (ngModelChange)="updateSearchParameters({ location: $event })"
+        name="location"
+        placeholder="e.g., New York, Hanoi"
+        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+      />
     </div>
 
     <!-- Time Range -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">Phạm vi thời gian</label>
-      <select [ngModel]="searchParameters.tbs" (ngModelChange)="updateSearchParameters({ tbs: $event })" name="tbs"
-        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition">
+      <label class="block mb-2 text-sm font-medium text-gray-600"
+        >Phạm vi thời gian</label
+      >
+      <select
+        [ngModel]="searchParameters.tbs"
+        (ngModelChange)="updateSearchParameters({ tbs: $event })"
+        name="tbs"
+        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+      >
         <option value="">Bất cứ lúc nào</option>
         <option value="qdr:d">24 giờ qua</option>
         <option value="qdr:w">Tuần trước</option>
@@ -157,29 +171,56 @@
     </div>
 
     <!-- Custom Date Range -->
-    <div *ngIf="searchParameters.tbs === 'cdr:1'" class="border border-dashed border-gray-300 rounded-lg p-4 space-y-4">
+    <div
+      *ngIf="searchParameters.tbs === 'cdr:1'"
+      class="border border-dashed border-gray-300 rounded-lg p-4 space-y-4"
+    >
       <h3 class="text-sm font-medium text-gray-600">Phạm vi ngày tùy chỉnh</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block mb-2 text-xs font-medium text-gray-500">From</label>
-          <input type="date" [ngModel]="startDate" (ngModelChange)="startDate = $event" name="startDate"
-            [min]="'1999-01-01'" [max]="endDate ? (endDate | date : 'yyyy-MM-dd') : (today | date : 'yyyy-MM-dd')"
-            class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
+          <label class="block mb-2 text-xs font-medium text-gray-500"
+            >From</label
+          >
+          <input
+            type="date"
+            [ngModel]="startDate"
+            (ngModelChange)="startDate = $event"
+            name="startDate"
+            [min]="'1999-01-01'"
+            [max]="
+              endDate
+                ? (endDate | date : 'yyyy-MM-dd')
+                : (today | date : 'yyyy-MM-dd')
+            "
+            class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+          />
         </div>
         <div>
           <label class="block mb-2 text-xs font-medium text-gray-500">To</label>
-          <input type="date" [ngModel]="endDate" (ngModelChange)="endDate = $event" name="endDate"
-            [min]="startDate ? (startDate | date : 'yyyy-MM-dd') : '1999-01-01'" [max]="today | date : 'yyyy-MM-dd'"
-            class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
+          <input
+            type="date"
+            [ngModel]="endDate"
+            (ngModelChange)="endDate = $event"
+            name="endDate"
+            [min]="startDate ? (startDate | date : 'yyyy-MM-dd') : '1999-01-01'"
+            [max]="today | date : 'yyyy-MM-dd'"
+            class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+          />
         </div>
       </div>
     </div>
 
     <!-- Language -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">Ngôn Ngữ</label>
-      <select [ngModel]="searchParameters.hl" (ngModelChange)="updateSearchParameters({ hl: $event })" name="hl"
-        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition">
+      <label class="block mb-2 text-sm font-medium text-gray-600"
+        >Ngôn Ngữ</label
+      >
+      <select
+        [ngModel]="searchParameters.hl"
+        (ngModelChange)="updateSearchParameters({ hl: $event })"
+        name="hl"
+        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+      >
         <option value="en">English</option>
         <option value="vi">Vietnamese</option>
         <option value="fr">French</option>
@@ -189,9 +230,15 @@
 
     <!-- Country -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">Đất nước</label>
-      <select [ngModel]="searchParameters.gl" (ngModelChange)="updateSearchParameters({ gl: $event })" name="gl"
-        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition">
+      <label class="block mb-2 text-sm font-medium text-gray-600"
+        >Đất nước</label
+      >
+      <select
+        [ngModel]="searchParameters.gl"
+        (ngModelChange)="updateSearchParameters({ gl: $event })"
+        name="gl"
+        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+      >
         <option value="us">United States</option>
         <option value="vn">Vietnam</option>
         <option value="fr">France</option>
@@ -202,71 +249,139 @@
 
     <!-- Any of these words -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">Bất kỳ từ nào trong số này</label>
+      <label class="block mb-2 text-sm font-medium text-gray-600"
+        >Bất kỳ từ nào trong số này</label
+      >
       <div class="flex gap-2">
-        <input type="text" [(ngModel)]="relatedKeyInput" (keydown.enter)="addRelatedKey(); relatedKeyInput = ''; $event.preventDefault()"
-          name="as_oq" placeholder="e.g., word1 OR word2"
-          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
-        <button type="button"
+        <input
+          type="text"
+          [(ngModel)]="relatedKeyInput"
+          (keydown.enter)="
+            addRelatedKey(); relatedKeyInput = ''; $event.preventDefault()
+          "
+          name="as_oq"
+          placeholder="e.g., word1 OR word2"
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+        />
+        <button
+          type="button"
           class="bg-primary text-white rounded-lg px-4 py-3 hover:bg-primary/90 transition disabled:bg-gray-300"
-          (click)="addRelatedKey(); relatedKeyInput = ''" [disabled]="!relatedKeyInput || !relatedKeyInput.trim()">
+          (click)="addRelatedKey(); relatedKeyInput = ''"
+          [disabled]="!relatedKeyInput || !relatedKeyInput.trim()"
+        >
           <span class="material-icons">add</span>
         </button>
-        <button type="button"
+        <button
+          type="button"
           class="bg-gray-200 text-gray-600 rounded-lg px-4 py-3 hover:bg-gray-300/80 transition disabled:bg-gray-100"
-          (click)="clearRelatedKey()" [disabled]="relatedKeys.length === 0" title="Clear all">
+          (click)="clearRelatedKey()"
+          [disabled]="relatedKeys.length === 0"
+          title="Clear all"
+        >
           <span class="material-icons">clear_all</span>
         </button>
       </div>
       <div class="flex flex-wrap gap-2 mt-3">
-        <span *ngFor="let key of relatedKeys" class="flex items-center bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm">
+        <span
+          *ngFor="let key of relatedKeys"
+          class="flex items-center bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm"
+        >
           <span>{{ key }}</span>
-          <span class="material-icons text-red-500 cursor-pointer ml-2" title="Remove" (click)="deleteRelatedKey(key)">close</span>
+          <span
+            class="material-icons text-red-500 cursor-pointer ml-2"
+            title="Remove"
+            (click)="deleteRelatedKey(key)"
+            >close</span
+          >
         </span>
       </div>
     </div>
 
     <!-- None of these words -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">Không có từ nào trong số này</label>
+      <label class="block mb-2 text-sm font-medium text-gray-600"
+        >Không có từ nào trong số này</label
+      >
       <div class="flex gap-2">
-        <input type="text" [(ngModel)]="ignoreTextInput" (keydown.enter)="addIgnoreText(); ignoreTextInput = ''; $event.preventDefault()"
-          name="as_eq" placeholder="e.g., -word1"
-          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition" />
-        <button type="button"
+        <input
+          type="text"
+          [(ngModel)]="ignoreTextInput"
+          (keydown.enter)="
+            addIgnoreText(); ignoreTextInput = ''; $event.preventDefault()
+          "
+          name="as_eq"
+          placeholder="e.g., -word1"
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+        />
+        <button
+          type="button"
           class="bg-primary text-white rounded-lg px-4 py-3 hover:bg-primary/90 transition disabled:bg-gray-300"
-          (click)="addIgnoreText(); ignoreTextInput = ''" [disabled]="!ignoreTextInput || !ignoreTextInput.trim()">
+          (click)="addIgnoreText(); ignoreTextInput = ''"
+          [disabled]="!ignoreTextInput || !ignoreTextInput.trim()"
+        >
           <span class="material-icons">add</span>
         </button>
-        <button type="button"
+        <button
+          type="button"
           class="bg-gray-200 text-gray-600 rounded-lg px-4 py-3 hover:bg-gray-300/80 transition disabled:bg-gray-100"
-          (click)="clearIgnoreText()" [disabled]="ignoreTexts.length === 0" title="Clear all">
+          (click)="clearIgnoreText()"
+          [disabled]="ignoreTexts.length === 0"
+          title="Clear all"
+        >
           <span class="material-icons">clear_all</span>
         </button>
       </div>
       <div class="flex flex-wrap gap-2 mt-3">
-        <span *ngFor="let text of ignoreTexts" class="flex items-center bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm">
+        <span
+          *ngFor="let text of ignoreTexts"
+          class="flex items-center bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-sm"
+        >
           <span>{{ text }}</span>
-          <span class="material-icons text-red-500 cursor-pointer ml-2" title="Remove" (click)="deleteIgnoreText(text)">close</span>
+          <span
+            class="material-icons text-red-500 cursor-pointer ml-2"
+            title="Remove"
+            (click)="deleteIgnoreText(text)"
+            >close</span
+          >
         </span>
       </div>
     </div>
 
     <!-- Website or Domain -->
     <div>
-      <label class="block mb-2 text-sm font-medium text-gray-600">Trang web hoặc tên miền</label>
+      <label class="block mb-2 text-sm font-medium text-gray-600"
+        >Trang web hoặc tên miền</label
+      >
       <div class="flex flex-wrap gap-3">
-        <label *ngFor="let site of dictionaryListSites | keyvalue"
+        <label
+          *ngFor="let site of dictionaryListSites | keyvalue"
           class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer transition-all duration-200"
-          [ngClass]="{ 'bg-primary/10 border-primary': isSelected(site.key) }">
-          <input type="checkbox" [value]="site.key" [checked]="isSelected(site.key)" (change)="onUpdateSites($event)"
-            class="w-5 h-5 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2" />
-          <span class="ml-3 text-sm font-medium text-gray-800">{{ site.value }}</span>
+          [ngClass]="{ 'bg-primary/10 border-primary': isSelected(site.key) }"
+        >
+          <input
+            type="checkbox"
+            [value]="site.key"
+            [checked]="isSelected(site.key)"
+            (change)="onUpdateSites($event)"
+            class="w-5 h-5 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
+          />
+          <span class="ml-3 text-sm font-medium text-gray-800">{{
+            site.value
+          }}</span>
         </label>
         <div class="flex items-center border border-gray-200 rounded-lg p-2">
-          <input type="text" [ngModel]="newDomain" (ngModelChange)="newDomain = $event" name="newDomain"
-            class="px-3 py-2 border-none focus:outline-none focus:ring-0" placeholder="Thêm tên miền mới" />
-          <button class="text-white bg-secondary rounded-md p-2 ml-2 hover:bg-secondary/90 transition" (click)="onAddDomain()">
+          <input
+            type="text"
+            [ngModel]="newDomain"
+            (ngModelChange)="newDomain = $event"
+            name="newDomain"
+            class="px-3 py-2 border-none focus:outline-none focus:ring-0"
+            placeholder="Thêm tên miền mới"
+          />
+          <button
+            class="text-white bg-secondary rounded-md p-2 ml-2 hover:bg-secondary/90 transition"
+            (click)="onAddDomain()"
+          >
             <span class="material-icons">add</span>
           </button>
         </div>
@@ -274,9 +389,16 @@
     </div>
 
     <!-- Search Button -->
-    <button (click)="onSearch()" [disabled]="isLoading"
-      class="w-full bg-green-500 text-white rounded-lg px-6 py-4 flex items-center justify-center gap-3 text-base font-semibold hover:bg-green-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md hover:shadow-lg">
-      <mat-spinner *ngIf="isLoading" diameter="24" class="text-white"></mat-spinner>
+    <button
+      (click)="onSearch()"
+      [disabled]="isLoading"
+      class="w-full bg-green-500 text-white rounded-lg px-6 py-4 flex items-center justify-center gap-3 text-base font-semibold hover:bg-green-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+    >
+      <mat-spinner
+        *ngIf="isLoading"
+        diameter="24"
+        class="text-white"
+      ></mat-spinner>
       <span *ngIf="!isLoading" class="material-icons">search</span>
       <span>{{ isLoading ? "Đang tìm kiếm..." : "Tìm kiếm" }}</span>
     </button>
