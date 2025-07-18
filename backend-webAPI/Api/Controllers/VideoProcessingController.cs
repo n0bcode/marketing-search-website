@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api.Automations;
 using Api.Models;
-using Api.Repositories.IRepositories;
 using Api.Services.AIServices.Gemini;
 using Api.Services.VideoServices;
 using Microsoft.AspNetCore.Mvc;
@@ -13,226 +12,261 @@ using OpenQA.Selenium.Chrome;
 
 namespace Api.Controllers
 {
+    /// <summary>
+    /// Controller for processing video-related operations, including downloading, content extraction, and AI analysis.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]/[action]")]
     public class VideoProcessingController : ControllerBase
     {
+        #region Fields
+
         private readonly Automations.SeleniumManager _seleniumManager;
         private readonly VideoProcessingService _videoProcessingService;
         private readonly GeminiAIService _geminiAIService;
-        public VideoProcessingController(GeminiAIService geminiAIService, VideoProcessingService videoProcessingService)
-        {
-            _seleniumManager = new Automations.SeleniumManager(); // Khởi tạo SeleniumManager
-            _videoProcessingService = videoProcessingService; // Khởi tạo VideoProcessingService
-            _geminiAIService = geminiAIService; // Khởi tạo GeminiAIService
-        }
-        #region [Public API]
+
+        #endregion
+
+        #region Constructor
+
         /// <summary>
-        /// Lấy link tải về video TikTok
+        /// Initializes a new instance of the <see cref="VideoProcessingController"/> class.
         /// </summary>
-        /// <param name="videoUrl">Link gốc bài viết có video trên Tiktok</param>
-        /// <returns></returns>
+        /// <param name="geminiAIService">The Gemini AI service.</param>
+        /// <param name="videoProcessingService">The video processing service.</param>
+        /// <param name="seleniumManager">The Selenium manager for browser automation.</param>
+        public VideoProcessingController(GeminiAIService geminiAIService, VideoProcessingService videoProcessingService, Automations.SeleniumManager seleniumManager)
+        {
+            _seleniumManager = seleniumManager;
+            _videoProcessingService = videoProcessingService;
+            _geminiAIService = geminiAIService;
+        }
+
+        #endregion
+
+        #region Public Endpoints
+
+        /// <summary>
+        /// Lấy link tải về video TikTok.
+        /// </summary>
+        /// <param name="videoUrl">Link gốc bài viết có video trên Tiktok.</param>
+        /// <returns>Một <see cref="IActionResult"/> chứa link tải về video TikTok.</returns>
         [HttpPost]
-        public async Task<IActionResult> GetLinkDownloadTikTokVideo(string videoUrl)
+        public async Task<IActionResult> GetLinkDownloadTikTokVideo([FromQuery] string videoUrl)
         {
             if (string.IsNullOrEmpty(videoUrl) || !videoUrl.Contains("tiktok.com"))
             {
-                return BadRequest("URL không hợp lệ.");
+                return BadRequest("URL không hợp lệ. Vui lòng cung cấp một URL TikTok hợp lệ.");
             }
 
-            var downloadUrl = await _videoProcessingService.GetTikTokDownloadLink(videoUrl); // Sử dụng dịch vụ ở đây
-            if (downloadUrl != null)
+            var downloadUrlResponse = await _videoProcessingService.GetTikTokDownloadLink(videoUrl);
+            if (downloadUrlResponse != null && downloadUrlResponse.Success && !string.IsNullOrEmpty(downloadUrlResponse.Data))
             {
-                return Ok(new { DownloadUrl = downloadUrl });
+                return Ok(new { DownloadUrl = downloadUrlResponse.Data });
             }
 
-            return BadRequest("Không thể lấy link tải về.");
+            return BadRequest(downloadUrlResponse?.Message ?? "Không thể lấy link tải về video TikTok.");
         }
+
         /// <summary>
-        /// Trích xuất nội dung từ video TikTok
+        /// Trích xuất nội dung từ video TikTok.
         /// </summary>
-        /// <param name="videoUrl"> Link video tiktok </param>
-        /// <param name="languageCode"> Ngôn ngữ để lấy nội dung từ video (VD: en-US)</param>
-        /// <param name="isTransLinkToLinkDownload"> Có cần chuyển đổi link thành link có thể download video? </param>
-        /// <returns></returns>
+        /// <param name="videoUrl">Link video TikTok.</param>
+        /// <param name="languageCode">Ngôn ngữ để lấy nội dung từ video (VD: en-US, vi-VN).</param>
+        /// <param name="isTransLinkToLinkDownload">Có cần chuyển đổi link thành link có thể download video? Mặc định là true.</param>
+        /// <returns>Một <see cref="IActionResult"/> chứa nội dung văn bản được trích xuất từ video.</returns>
         [HttpPost]
-        public async Task<IActionResult> ExtractContentFromLinkVideoTikTok(string videoUrl, string languageCode, bool isTransLinkToLinkDownload = true)
+        public async Task<IActionResult> ExtractContentFromLinkVideoTikTok([FromQuery] string videoUrl, [FromQuery] string languageCode, [FromQuery] bool isTransLinkToLinkDownload = true)
         {
-            ResponseAPI<string> downloadLink = new();
+            ResponseAPI<string> downloadLinkResponse = new();
             if (string.IsNullOrEmpty(videoUrl))
             {
-                return BadRequest("URL không hợp lệ.");
-            }
-            if (isTransLinkToLinkDownload)
-            {
-                downloadLink = await _videoProcessingService.GetTikTokDownloadLink(videoUrl); // Sử dụng dịch vụ ở đây
+                return BadRequest("URL không hợp lệ. Vui lòng cung cấp một URL video.");
             }
 
-            if (string.IsNullOrEmpty(downloadLink.Data))
+            string finalVideoUrl = videoUrl;
+            if (isTransLinkToLinkDownload)
             {
-                return BadRequest("Không thể lấy link tải về.");
+                downloadLinkResponse = await _videoProcessingService.GetTikTokDownloadLink(videoUrl);
+                if (!downloadLinkResponse.Success || string.IsNullOrEmpty(downloadLinkResponse.Data))
+                {
+                    return BadRequest(downloadLinkResponse?.Message ?? "Không thể lấy link tải về video TikTok.");
+                }
+                finalVideoUrl = downloadLinkResponse.Data;
             }
+
             try
             {
-                var textContent = await _videoProcessingService.ExtractContentFromVideo(downloadLink.Data, languageCode, "tiktok");
+                var textContent = await _videoProcessingService.ExtractContentFromVideo(finalVideoUrl, languageCode, "tiktok");
                 return Ok(new { TextContent = textContent });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Đã xảy ra lỗi: {ex.Message}");
+                return StatusCode(500, $"Đã xảy ra lỗi trong quá trình trích xuất nội dung: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Trích xuất nội dung từ video TikTok và phân tích bằng Gemini AI.
+        /// </summary>
+        /// <param name="videoUrl">Link video TikTok.</param>
+        /// <param name="languageCode">Ngôn ngữ để lấy nội dung từ video (VD: en-US, vi-VN). Mặc định là vi-VN.</param>
+        /// <param name="isTransLinkToLinkDownload">Có cần chuyển đổi link thành link có thể download video? Mặc định là true.</param>
+        /// <returns>Một <see cref="IActionResult"/> chứa kết quả phân tích từ Gemini AI.</returns>
         [HttpPost]
-        public async Task<IActionResult> ExtractContentFromLinkVideoTikTokAndAnalysis(string videoUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = true)
+        public async Task<IActionResult> ExtractContentFromLinkVideoTikTokAndAnalysis([FromQuery] string videoUrl, [FromQuery] string languageCode = "vi-VN", [FromQuery] bool isTransLinkToLinkDownload = true)
         {
-            // Kiểm tra URL có hợp lệ không
             if (string.IsNullOrEmpty(videoUrl))
             {
-                return BadRequest("URL không hợp lệ.");
+                return BadRequest("URL không hợp lệ. Vui lòng cung cấp một URL video.");
             }
+
             string basedLink = videoUrl;
+            string finalVideoUrl = videoUrl;
+
             if (isTransLinkToLinkDownload)
             {
-                videoUrl = _seleniumManager.GetTikTokDownloadLink(videoUrl).Result?.Data ?? string.Empty;
-                // Kiểm tra xem videoUrl có hợp lệ không
-                if (string.IsNullOrEmpty(videoUrl))
+                var downloadLinkResponse = await _videoProcessingService.GetTikTokDownloadLink(videoUrl);
+                if (!downloadLinkResponse.Success || string.IsNullOrEmpty(downloadLinkResponse.Data))
                 {
-                    return BadRequest("Không thể lấy link tải về.");
+                    return BadRequest(downloadLinkResponse?.Message ?? "Không thể lấy link tải về video TikTok.");
                 }
+                finalVideoUrl = downloadLinkResponse.Data;
             }
 
             try
             {
-                var videoContent = await _videoProcessingService.ExtractContentFromVideo(videoUrl, languageCode);
+                var videoContent = await _videoProcessingService.ExtractContentFromVideo(finalVideoUrl, languageCode);
 
                 var mediaAnalysisPrompt = $"Phân tích nội dung video từ link: {basedLink}. Nội dung video là: {videoContent}." +
                                       "\nNếu không phải nội dung video, hãy phân tích như một trang web thông thường.";
-                var request = GeminiAIRequest.CreateWithContentMediaPrompt(videoUrl, mediaAnalysisPrompt);
+                var request = GeminiAIRequest.CreateWithContentMediaPrompt(linkMediaSocial: basedLink, contentMedia: videoContent);
                 var response = await _geminiAIService.AnalyzeAsync(request);
-                if (response == null || !response.Success)
+
+                if (response == null || !response.Success || response.Data == null)
                 {
-                    return BadRequest("Không thể phân tích nội dung video.");
+                    return BadRequest(response?.Message ?? "Không thể phân tích nội dung video bằng Gemini AI.");
                 }
-                if (response.Data == null)
-                {
-                    return BadRequest("Phản hồi không xử lí thành công.");
-                }
+
                 response.Data.Note = $"Nội dung video: {videoContent}";
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Đã xảy ra lỗi: {ex.Message}");
+                return StatusCode(500, $"Đã xảy ra lỗi trong quá trình trích xuất và phân tích nội dung video: {ex.Message}");
             }
         }
+
         /// <summary>
-        /// Lấy link tải về video Facebook
+        /// Lấy link tải về video Facebook.
         /// </summary>
-        /// <param name="videoUrl">Link bài viết gốc có video</param>
-        /// <returns></returns>
+        /// <param name="videoUrl">Link gốc bài viết có video trên Facebook.</param>
+        /// <returns>Một <see cref="IActionResult"/> chứa link tải về video Facebook.</returns>
         [HttpPost]
-        public async Task<IActionResult> GetLinkDownloadFacebookVideo(string videoUrl)
+        public async Task<IActionResult> GetLinkDownloadFacebookVideo([FromQuery] string videoUrl)
         {
             if (string.IsNullOrEmpty(videoUrl) || !videoUrl.Contains("facebook.com"))
             {
-                return BadRequest("URL không hợp lệ.");
+                return BadRequest("URL không hợp lệ. Vui lòng cung cấp một URL Facebook hợp lệ.");
             }
 
-            var downloadResponse = await _videoProcessingService.GetFacebookDownloadLink(videoUrl); // Sử dụng dịch vụ ở đây
-            if (downloadResponse != null)
+            var downloadResponse = await _videoProcessingService.GetFacebookDownloadLink(videoUrl);
+            if (downloadResponse != null && downloadResponse.Success && !string.IsNullOrEmpty(downloadResponse.Data))
             {
-                return Ok(downloadResponse);
+                return Ok(new { DownloadUrl = downloadResponse.Data });
             }
 
-            return BadRequest("Không thể lấy link tải về.");
+            return BadRequest(downloadResponse?.Message ?? "Không thể lấy link tải về video Facebook.");
         }
+
         /// <summary>
-        /// Trích xuất nội dung từ video Facebook
+        /// Trích xuất nội dung từ video Facebook.
         /// </summary>
-        /// <param name="audioUrl"> Link trên Facebook có video</param>
-        /// <param name="languageCode">Ngôn ngữ xác định để trích xuất nội dung từ video</param>
-        /// <param name="isTransLinkToLinkDownload">Có chuyển đổi video gốc thành link tải được video?</param>
-        /// <returns></returns>
+        /// <param name="videoUrl">Link video Facebook.</param>
+        /// <param name="languageCode">Ngôn ngữ để lấy nội dung từ video (VD: en-US, vi-VN).</param>
+        /// <param name="isTransLinkToLinkDownload">Có chuyển đổi video gốc thành link tải được video? Mặc định là true.</param>
+        /// <returns>Một <see cref="IActionResult"/> chứa nội dung văn bản được trích xuất từ video.</returns>
         [HttpPost]
-        public async Task<IActionResult> ExtractContentFromLinkVideoFacebook(string audioUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = true)
+        public async Task<IActionResult> ExtractContentFromLinkVideoFacebook([FromQuery] string videoUrl, [FromQuery] string languageCode = "vi-VN", [FromQuery] bool isTransLinkToLinkDownload = true)
         {
-            ResponseAPI<string> downloadAudioLink = new();
-            if (string.IsNullOrEmpty(audioUrl))
+            ResponseAPI<string> downloadAudioLinkResponse = new();
+            if (string.IsNullOrEmpty(videoUrl))
             {
-                return BadRequest("URL không hợp lệ.");
+                return BadRequest("URL không hợp lệ. Vui lòng cung cấp một URL video.");
             }
+
+            string finalVideoUrl = videoUrl;
             if (isTransLinkToLinkDownload)
             {
-                downloadAudioLink = await _videoProcessingService.GetFacebookDownloadLink(audioUrl); // Sử dụng dịch vụ ở đây
+                downloadAudioLinkResponse = await _videoProcessingService.GetFacebookDownloadLink(videoUrl);
+                if (!downloadAudioLinkResponse.Success || string.IsNullOrEmpty(downloadAudioLinkResponse.Data))
+                {
+                    return BadRequest(downloadAudioLinkResponse?.Message ?? "Không thể lấy link tải về video Facebook.");
+                }
+                finalVideoUrl = downloadAudioLinkResponse.Data;
             }
-            if (string.IsNullOrEmpty(downloadAudioLink.Data))
-            {
-                return BadRequest("Không thể lấy link tải về.");
-            }
+
             try
             {
-                var textContent = await _videoProcessingService.ExtractContentFromAudio(downloadAudioLink.Data, languageCode, "facebook");
+                var textContent = await _videoProcessingService.ExtractContentFromAudio(finalVideoUrl, languageCode, "facebook");
                 return Ok(new { TextContent = textContent });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Đã xảy ra lỗi: {ex.Message}");
+                return StatusCode(500, $"Đã xảy ra lỗi trong quá trình trích xuất nội dung: {ex.Message}");
             }
         }
+
         /// <summary>
-        ///     
+        /// Trích xuất nội dung từ video Facebook và phân tích bằng Gemini AI.
         /// </summary>
-        /// <param name="audioUrl"></param>
-        /// <param name="languageCode"></param>
-        /// <param name="isTransLinkToLinkDownload"></param>
-        /// <returns></returns>
+        /// <param name="videoUrl">Link video Facebook.</param>
+        /// <param name="languageCode">Ngôn ngữ để lấy nội dung từ video (VD: en-US, vi-VN). Mặc định là vi-VN.</param>
+        /// <param name="isTransLinkToLinkDownload">Có chuyển đổi video gốc thành link tải được video? Mặc định là true.</param>
+        /// <returns>Một <see cref="IActionResult"/> chứa kết quả phân tích từ Gemini AI.</returns>
         [HttpPost]
-        public async Task<IActionResult> ExtractContentFromLinkVideoFacebookAndAnalysis(string audioUrl, string languageCode = "vi-VN", bool isTransLinkToLinkDownload = true)
+        public async Task<IActionResult> ExtractContentFromLinkVideoFacebookAndAnalysis([FromQuery] string videoUrl, [FromQuery] string languageCode = "vi-VN", [FromQuery] bool isTransLinkToLinkDownload = true)
         {
-            // Kiểm tra URL có hợp lệ không
-            if (string.IsNullOrEmpty(audioUrl))
+            if (string.IsNullOrEmpty(videoUrl))
             {
-                return BadRequest("URL không hợp lệ.");
+                return BadRequest("URL không hợp lệ. Vui lòng cung cấp một URL video.");
             }
-            string basedLink = audioUrl;
+
+            string basedLink = videoUrl;
+            string finalVideoUrl = videoUrl;
+
             if (isTransLinkToLinkDownload)
             {
-                audioUrl = _seleniumManager.GetFacebookDownloadLink(audioUrl).Result?.Data ?? string.Empty;
-                // Kiểm tra xem audioUrl có hợp lệ không
-                if (string.IsNullOrEmpty(audioUrl))
+                var downloadLinkResponse = await _seleniumManager.GetFacebookDownloadLink(videoUrl);
+                if (!downloadLinkResponse.Success || string.IsNullOrEmpty(downloadLinkResponse.Data))
                 {
-                    return BadRequest("Không thể lấy link tải về.");
+                    return BadRequest(downloadLinkResponse?.Message ?? "Không thể lấy link tải về video Facebook.");
                 }
+                finalVideoUrl = downloadLinkResponse.Data;
             }
 
             try
             {
-                var videoContent = await _videoProcessingService.ExtractContentFromAudio(audioUrl, languageCode);
+                var videoContent = await _videoProcessingService.ExtractContentFromAudio(finalVideoUrl, languageCode);
 
                 var mediaAnalysisPrompt = $"Phân tích nội dung video từ link: {basedLink}. Nội dung video là: {videoContent}." +
                                       "\nNếu không phải nội dung video, hãy phân tích như một trang web thông thường.";
-                var request = GeminiAIRequest.CreateWithContentMediaPrompt(linkMediaSocial: audioUrl, mediaAnalysisPrompt);
+                var request = GeminiAIRequest.CreateWithContentMediaPrompt(linkMediaSocial: basedLink, contentMedia: videoContent);
                 var response = await _geminiAIService.AnalyzeAsync(request);
-                if (response == null || !response.Success)
+
+                if (response == null || !response.Success || response.Data == null)
                 {
-                    return BadRequest("Không thể phân tích nội dung video.");
+                    return BadRequest(response?.Message ?? "Không thể phân tích nội dung video bằng Gemini AI.");
                 }
-                if (response.Data == null)
-                {
-                    return BadRequest("Phản hồi không xử lí thành công.");
-                }
+
                 response.Data.Note = $"Nội dung video: {videoContent}";
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Đã xảy ra lỗi: {ex.Message}");
+                return StatusCode(500, $"Đã xảy ra lỗi trong quá trình trích xuất và phân tích nội dung video: {ex.Message}");
             }
         }
-        #endregion
-
-        #region [Private Methods]
 
         #endregion
     }

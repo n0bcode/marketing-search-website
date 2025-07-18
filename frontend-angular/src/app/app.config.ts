@@ -13,6 +13,8 @@ import {
   withEventReplay,
 } from '@angular/platform-browser';
 import { errorInterceptor } from './interceptors/error.interceptor';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,5 +23,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
     provideAnimationsAsync(),
     provideClientHydration(withEventReplay()),
+    provideAnimations(),
+    MatSnackBarModule,
   ],
 };
