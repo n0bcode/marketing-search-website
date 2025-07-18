@@ -1,29 +1,29 @@
-<div class="flex items-center flex-col pt-56 h-screen bg-gray-100">
-  <div class="h-screen">
-    <h1 class="text-4xl text-center font-bold my-10">
+<div class="flex items-center flex-col py-16 min-h-screen bg-light font-sans">
+  <div class="container mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+    <h1 class="text-4xl text-center font-extrabold text-dark mb-6">
       Chào mừng đến với
-      <span class="text-5xl text-green-800">May Ap</span>
+      <span class="text-5xl text-primary">May Ap</span>
     </h1>
 
-    <div class="container mx-auto my-4">
-      <div class="flex justify-center items-center">
-        <div class="w-full flex justify-center space-x-4">
-          <a
-            [routerLink]="['/google-search']"
-            routerLinkActive="router-link-active"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >Tìm kiếm: Google</a
-          >
-          <a
-            [routerLink]="['/twitter-search']"
-            routerLinkActive="router-link-active"
-            class="bg-blue-500 text-white font-bold py-2 px-4 rounded"
-            title="Trang web không khả dụng"
-            disabled
-            aria-disabled="true"
-            >Tìm kiếm: Twitter</a
-          >
-        </div>
+    <div class="flex justify-center items-center">
+      <div class="w-full flex justify-center space-x-4">
+        <a
+          [routerLink]="['/google-search']"
+          routerLinkActive="router-link-active"
+          class="px-6 py-3 bg-green-500 text-white rounded-lg text-lg font-semibold hover:bg-green-600 transition-all duration-300 ease-in-out shadow-lg transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+        >
+          Tìm kiếm
+        </a>
+        <a
+          [routerLink]="['/twitter-search']"
+          routerLinkActive="router-link-active"
+          class="px-6 py-3 bg-secondary-light text-white rounded-lg text-lg font-semibold cursor-not-allowed opacity-70"
+          title="Page not available"
+          disabled
+          aria-disabled="true"
+        >
+          Search: Twitter
+        </a>
       </div>
     </div>
 
@@ -31,12 +31,12 @@
       <button
         [routerLink]="['/test']"
         routerLinkActive="router-link-active"
-        class="invisible group-hover:visible bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        title="Trang web không khả dụng"
+        class="invisible group-hover:visible px-6 py-3 bg-secondary-light text-secondary-dark rounded-lg text-lg font-semibold hover:bg-secondary transition-all duration-300 ease-in-out cursor-not-allowed opacity-70"
+        title="Page not available"
         disabled
         aria-disabled="true"
       >
-        Tính năng ẩn
+        Hidden Feature
       </button>
     </p>
 

@@ -1,4 +1,5 @@
-using Api.Repositories.IRepositories;
+using Api.Models;
+using Api.Repositories.MongoDb;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -9,22 +10,22 @@ using System.Threading.Tasks;
 
 namespace Api.Services.SearchServices.Google
 {
-    public class GoogleSearchService : ISearchService<GoogleRequest, GoogleResponse?>
+    public class GoogleSearchService : ISearchService<SearchRequest, GoogleResponse?>
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
-        private readonly IUnitOfWork _unit;
+        private readonly IUnitOfWorkMongo _unitMongo;
 
-        public GoogleSearchService(HttpClient httpClient, IOptions<ApiSettings> apiSettings, IUnitOfWork unit)
+        public GoogleSearchService(HttpClient httpClient, IOptions<ApiSettings> apiSettings, IUnitOfWorkMongo unitMongo)
         {
             _httpClient = httpClient;
             _apiKey = apiSettings.Value.GoogleApi.ApiKey;
             _httpClient.BaseAddress = new Uri(apiSettings.Value.GoogleApi.BaseUrl);
-            _unit = unit;
+            _unitMongo = unitMongo;
         }
-        public async Task<GoogleResponse?> SearchAsync(GoogleRequest request)
+        public async Task<GoogleResponse?> SearchAsync(SearchRequest request)
         {
-            GoogleResponse googleResponse = new();
+            GoogleResponse? result = null;
             try
             {
                 // Xây dựng các tham số từ yêu cầu
@@ -43,8 +44,8 @@ namespace Api.Services.SearchServices.Google
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonResponse = await response.Content.ReadAsStringAsync();
-                    googleResponse = JsonConvert.DeserializeObject<GoogleResponse>(jsonResponse)!;
-                    return googleResponse;
+                    result = JsonConvert.DeserializeObject<GoogleResponse>(jsonResponse);
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -53,11 +54,11 @@ namespace Api.Services.SearchServices.Google
                 Console.WriteLine($"Error: {ex.Message}");
             }
 
-            return googleResponse; // Hoặc xử lý lỗi phù hợp
+            return result; // Hoặc xử lý lỗi phù hợp
         }
-        public async Task<GoogleResponse?> SearchWithUserTokenCofigAsync(GoogleRequest googleRequest, string userIdTokenConfig)
+        public async Task<GoogleResponse?> SearchWithUserTokenCofigAsync(SearchRequest googleRequest, string userIdTokenConfig)
         {
-            GoogleResponse googleResponse = new();
+            GoogleResponse? result = null;
             try
             {
                 // Xây dựng các tham số từ yêu cầu
@@ -67,7 +68,7 @@ namespace Api.Services.SearchServices.Google
                 var requestContent = new StringContent(JsonConvert.SerializeObject(parameters), Encoding.UTF8, "application/json");
 
 
-                string? tokenDecrypted = _unit.SecretTokens.GetByIdAsync(userIdTokenConfig).Result?.Token;
+                string? tokenDecrypted = _unitMongo.SecretTokens.GetByIdAsync(userIdTokenConfig).Result?.Token;
 
                 // Thêm API key vào header
                 _httpClient.DefaultRequestHeaders.Add("X-API-KEY", tokenDecrypted ?? _apiKey);
@@ -79,8 +80,8 @@ namespace Api.Services.SearchServices.Google
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonResponse = await response.Content.ReadAsStringAsync();
-                    googleResponse = JsonConvert.DeserializeObject<GoogleResponse>(jsonResponse)!;
-                    return googleResponse;
+                    result = JsonConvert.DeserializeObject<GoogleResponse>(jsonResponse);
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -89,7 +90,7 @@ namespace Api.Services.SearchServices.Google
                 Console.WriteLine($"Error: {ex.Message}");
             }
 
-            return googleResponse; // Hoặc xử lý lỗi phù hợp
+            return result; // Hoặc xử lý lỗi phù hợp
         }
     }
 }

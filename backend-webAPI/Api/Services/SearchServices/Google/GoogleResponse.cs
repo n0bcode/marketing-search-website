@@ -10,7 +10,7 @@ namespace Api.Services.SearchServices.Google
 {
     public class GoogleResponse
     {
-        public GoogleRequest? SearchParameters { get; set; }
+        public SearchRequest? SearchParameters { get; set; }
         public KnowledgeGraph KnowledgeGraphRelated { get; set; } = new();
         public List<OrganicSearchResult> Organic { get; set; } = new();
         public List<RelatedSearch> RelatedSearches { get; set; } = new();

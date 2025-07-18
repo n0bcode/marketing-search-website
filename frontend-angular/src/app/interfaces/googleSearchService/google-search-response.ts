@@ -1,6 +1,6 @@
 import { GoogleSearchRequest } from './google-search-request.js';
 export interface GoogleSearchResponse {
-    searchParameters: GoogleSearchRequest;
+    searchParameters: SearchRequest;
     knowledgeGraph: KnowledgeGraph;
     organic: OrganicSearchResult[];
     relatedSearches: RelatedSearch[];

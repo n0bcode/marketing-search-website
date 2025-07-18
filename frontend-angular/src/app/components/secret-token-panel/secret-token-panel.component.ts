@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SecretTokenResponseDTO } from '../../models/dtos/secret-token-dto/secret-token-response-dto';
 
 @Component({
   selector: 'app-secret-token-panel',
@@ -9,11 +10,11 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './secret-token-panel.component.html',
 })
 export class SecretTokenPanelComponent {
-  @Input() isShowViewSettingToken!: boolean;
-  @Input() listServices!: string[];
-  @Input() listSecretDTOsMap!: { [key: string]: any[] };
-  @Input() listSelectSecretToken!: { [key: string]: string };
-  @Input() secretTokenDTO!: { name: string; token: string };
+  @Input() isShowViewSettingToken: boolean = false;
+  @Input() listServices: string[] = [];
+  @Input() listSecretDTOsMap: Record<string, SecretTokenResponseDTO[]> = {};
+  @Input() listSelectSecretToken: Record<string, string> = {};
+  @Input() secretTokenDTO: { name: string; token: string } = { name: '', token: '' };
   @Output() toggleSettings = new EventEmitter<void>();
-  @Output() createToken = new EventEmitter<string>();
+  @Output() createToken = new EventEmitter<string | null>();
 }

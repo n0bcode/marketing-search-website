@@ -121,7 +121,7 @@ namespace Api.Utils
             string jsonData = File.ReadAllText(filePath);
 
             // Ép kiểu dữ liệu
-            dynamic data = JsonConvert.DeserializeObject(jsonData, type);
+            dynamic? data = JsonConvert.DeserializeObject(jsonData, type);
 
             return data;
         }

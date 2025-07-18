@@ -1,17 +1,17 @@
-<!-- Nút mở modal -->
+<!-- Button to open modal -->
 <button
   *ngIf="!isShowModal"
-  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
-  (click)="openModal()"
-  aria-label="Phân tích cụ thể"
+  class="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary/90 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-md"
+  (click)="openModal(); modalToggle.emit()"
+  aria-label="Detailed Analysis"
 >
-  Phân tích cụ thể
+  Detailed Analysis
 </button>
 
 <!-- Modal overlay -->
 <div
   *ngIf="isShowModal"
-  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300"
+  class="fixed inset-0 bg-dark bg-opacity-60 flex items-center justify-center z-50 transition-opacity duration-300"
   [ngClass]="{
     'opacity-100': isShowModal,
     'opacity-0': !isShowModal
@@ -19,59 +19,71 @@
   (click)="closeModal()"
 >
   <div
-    class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg relative transform transition-transform duration-300"
+    class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl relative transform transition-transform duration-300 scale-95"
     [ngClass]="{
       'scale-100': isShowModal,
       'scale-95': !isShowModal
     }"
     (click)="$event.stopPropagation()"
   >
-    <!-- Nút đóng modal -->
+    <!-- Close button -->
     <button
-      class="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition text-2xl focus:outline-none"
+      class="absolute top-4 right-4 text-gray-400 hover:text-danger transition-colors text-3xl focus:outline-none"
       (click)="closeModal()"
-      aria-label="Đóng modal"
+      aria-label="Close modal"
     >
       <span class="material-icons">close</span>
     </button>
 
-    <!-- Tiêu đề -->
-    <h2 class="text-xl font-semibold mb-4 text-gray-800">
-      Phân tích mạng xã hội
+    <!-- Title -->
+    <h2 class="text-3xl font-bold text-dark mb-6 border-b pb-3 border-gray-200">
+      Social Media Analysis
     </h2>
 
-    <!-- Trạng thái loading -->
+    <!-- Loading state -->
     <div
       *ngIf="isLoading"
-      class="flex items-center gap-3 text-blue-600 p-4 bg-blue-50 rounded-md"
+      class="space-y-4 p-6 bg-light/50 rounded-lg animate-pulse"
     >
-      <span class="animate-spin material-icons">autorenew</span>
-      <span>Đang tải dữ liệu, vui lòng chờ...</span>
+      <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+      <div class="h-4 bg-gray-200 rounded w-full"></div>
+      <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+      <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div class="h-4 bg-gray-200 rounded w-full"></div>
+      <div class="h-4 bg-gray-200 rounded w-2/3"></div>
     </div>
 
-    <!-- Không có dữ liệu -->
+    <!-- Error state -->
+    <div
+      *ngIf="error"
+      class="text-danger p-6 bg-red-100 rounded-lg text-center text-lg font-semibold"
+    >
+      Error: {{ error }}
+    </div>
+
+    <!-- No data -->
     <div
       *ngIf="!isLoading && !data"
-      class="text-gray-500 p-4 bg-gray-50 rounded-md text-center"
+      class="text-gray-500 p-6 bg-light/50 rounded-lg text-center text-lg italic"
     >
-      Không có dữ liệu để hiển thị.
+      No data to display.
     </div>
 
-    <!-- Có dữ liệu -->
+    <!-- Data available -->
     <div
       *ngIf="!isLoading && data"
-      class="bg-gray-100 rounded-lg p-4 text-sm overflow-x-auto"
+      class="bg-light/50 rounded-lg p-6 text-base overflow-x-auto border border-gray-200"
     >
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div
           [innerHTML]="data.showText"
-          class="prose prose-sm max-w-none text-gray-700"
+          class="prose prose-lg max-w-none text-gray-700 leading-relaxed"
         ></div>
-        <div class="text-gray-600">{{ data.note }}</div>
+        <div class="text-gray-600 text-base leading-relaxed">{{ data.note }}</div>
       </div>
     </div>
 
-    <!-- Debug info (ẩn trong production) -->
+    <!-- Debug info (hidden in production) -->
     <!-- <div *ngIf="isDebug" class="mt-4 text-xs text-gray-500">
       <p>Loading: {{ isLoading }}</p>
       <p>Modal Visible: {{ isShowModal }}</p>

@@ -1,19 +1,13 @@
 
 using System;
-using Api.Data;
 using Api.Services;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using Api.Services.SearchServices;
 using Api.Services.SearchServices.Google;
 using Api.Services.SearchServices.Twitter;
 using Api.Services.AIServices.Gemini;
-using Api.Repositories;
-using Api.Repositories.IRepositories;
-using Api.Services.RedisCacheService;
-using Api.DbInitializer;
+
 using Api.Services.VideoServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +15,8 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using Microsoft.Extensions.Hosting;
 using Api.Automations;
+using Api.Repositories.MongoDb;
+using Api.Data;
 
 namespace Api
 {
@@ -32,14 +28,14 @@ namespace Api
 
             builder.Services.AddHttpClient<GoogleSearchService>();
             builder.Services.AddHttpClient<TwitterSearchService>();
+            builder.Services.AddScoped<BingSearchService>();
 
             builder.Services.AddHttpClient<GeminiAIService>();
 
             builder.Services.AddScoped<SeleniumManager>();
             builder.Services.AddScoped<VideoProcessingService>();
 
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddSingleton<MongoDbContext>();
 
             // Add services to the container.
 
@@ -54,23 +50,14 @@ namespace Api
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
-                #endregion    
+                #endregion
             });
             // Gắn ApiSettings vào DI
             builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IUnitOfWorkMongo, UnitOfWorkMongo>();
 
-            builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
             builder.Services.AddScoped<VideoProcessingService>();
-
-            builder.Services.AddScoped<IDbInitializer, DbInitializer.DbInitializer>();
-
-            builder.Services.AddStackExchangeRedisCache(options =>
-            {
-                options.Configuration = builder.Configuration["Redis:Configuration"];
-                options.InstanceName = builder.Configuration["Redis:InstanceName"];
-            });
 
             builder.Services.AddMemoryCache();
 
@@ -97,31 +84,9 @@ namespace Api
 
             app.UseAuthorization();
 
-            SeedDatabaes(); //Method tạo CSDL nếu chưa có
-
             app.MapControllers();
 
             app.Run();
-
-
-
-            #region Func tạo CConstantsL 
-            void SeedDatabaes()
-            {
-                using (var seedScope = app.Services.CreateScope())
-                {
-                    var dbInitializer = seedScope.ServiceProvider.GetRequiredService<IDbInitializer>();
-                    try
-                    {
-                        dbInitializer.Initializer();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error: " + ex.Message);
-                    }
-                }
-            }
-            #endregion
         }
     }
 }
