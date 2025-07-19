@@ -127,3 +127,21 @@ Create the `whisper-models` directory if it doesn't exist.
 The API is documented using Swagger. Once the backend is running, you can access the Swagger UI at:
 
 [https://localhost:7228/swagger](https://localhost:7228/swagger)
+
+
+## Contributors
+
+Thank you to all the friends who have contributed to this project！
+
+<p align="center">
+    <a href="https://github.com/n0bcode/marketing-search-website/graphs/contributors">
+      <img src="https://contrib.rocks/image?repo=n0bcode/marketing-search-website" style="max-width: 400px;" />
+    </a>
+</p>
+
+**Dev Branch contribution statistics：**
+<p align="center">
+    <img src="https://repobeats.axiom.co/api/embed/d23176e25029ed25e6813f558c5f220e86b591cc.svg" alt="Dev Branch code analysis" style="max-width: 80%; border-radius: 5px;">
+</p>
+
+## Thanks for your support
