@@ -8,9 +8,9 @@ This project is a web application for marketing search analysis, consisting of a
 
 Before you begin, ensure you have the following installed:
 
-*   [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-*   [Node.js and npm](https://nodejs.org/en/)
-*   [Angular CLI](https://angular.io/cli)
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Node.js and npm](https://nodejs.org/en/)
+- [Angular CLI](https://angular.io/cli)
 
 ## Getting Started
 
@@ -19,11 +19,13 @@ Follow these instructions to get the project up and running on your local machin
 ### Backend (ASP.NET Core Web API)
 
 1.  **Navigate to the backend directory:**
+
     ```bash
     cd backend-webAPI/Api
     ```
 
 2.  **Run the application:**
+
     ```bash
     dotnet run
     ```
@@ -33,16 +35,19 @@ Follow these instructions to get the project up and running on your local machin
 ### Frontend (Angular)
 
 1.  **Navigate to the frontend directory:**
+
     ```bash
     cd frontend-angular
     ```
 
 2.  **Install the dependencies:**
+
     ```bash
     npm install
     ```
 
 3.  **Run the application:**
+
     ```bash
     npm start
     ```
@@ -53,8 +58,8 @@ Follow these instructions to get the project up and running on your local machin
 
 Sensitive API keys and connection strings are not committed directly to the repository for security reasons. They are managed through `appsettings.json` and `appsettings.Development.json`.
 
-*   `appsettings.json`: Contains default or placeholder values for configuration. This file is committed to the repository.
-*   `appsettings.Development.json`: Contains sensitive keys and connection strings used during development. This file is **not** committed to the repository and is ignored by Git.
+- `appsettings.json`: Contains default or placeholder values for configuration. This file is committed to the repository.
+- `appsettings.Development.json`: Contains sensitive keys and connection strings used during development. This file is **not** committed to the repository and is ignored by Git.
 
 To set up your local development environment:
 
@@ -63,6 +68,7 @@ To set up your local development environment:
 3.  Populate `appsettings.Development.json` with your actual sensitive keys and connection strings. You can use the structure from the `appsettings.Development.json` that was previously in the repository as a template, replacing the `DELETED` or `YOUR_...` placeholders with your actual values.
 
     Example structure for `appsettings.Development.json`:
+
     ```json
     {
       "ApiSettings": {
@@ -71,16 +77,6 @@ To set up your local development environment:
         },
         "FacebookApi": {
           "AccessToken": "YOUR_FACEBOOK_ACCESS_TOKEN"
-        },
-        "TwitterApi": {
-          "BearerToken": "YOUR_TWITTER_BEARER_TOKEN"
-        },
-        "InstagramApi": {
-          "AccessToken": "YOUR_INSTAGRAM_ACCESS_TOKEN"
-        },
-        "ThreadsApi": {
-          "ID": "YOUR_THREADS_ID",
-          "AccessToken": "YOUR_THREADS_ACCESS_TOKEN"
         },
         "OpenApi": {
           "SecretToken": "YOUR_OPENAI_SECRET_TOKEN"
@@ -109,6 +105,36 @@ To set up your local development environment:
     }
     ```
 
+### How to Obtain API Tokens
+
+To ensure the application functions correctly, you will need to obtain API keys/tokens from the respective service providers and add them to your `appsettings.Development.json` file.
+
+-   **Google API Key (Serper API):**
+    This key is used for the Google search functionality via the Serper API. Serper API provides search results from Google without direct integration with Google's Custom Search API.
+    1.  Go to the [Serper API website](https://serper.dev/).
+    2.  Sign up or log in to your account.
+    3.  Obtain your API key from your Serper dashboard.
+    4.  Copy the generated API key and paste it as `YOUR_GOOGLE_API_KEY` in `appsettings.Development.json`.
+
+-   **Facebook Access Token:**
+    1.  Go to the [Facebook for Developers](https://developers.facebook.com/) website.
+    2.  Create a new app or select an existing one.
+    3.  Navigate to "Tools" > "Graph API Explorer" or refer to the specific Facebook API documentation for the required access token type (e.g., User Access Token, Page Access Token, App Access Token).
+    4.  Obtain the appropriate access token and paste it as `YOUR_FACEBOOK_ACCESS_TOKEN` in `appsettings.Development.json`.
+
+-   **OpenAI Secret Token:**
+    1.  Go to the [OpenAI Platform](https://platform.openai.com/).
+    2.  Log in or sign up.
+    3.  Navigate to "API keys" (usually found under your profile or settings).
+    4.  Click "Create new secret key".
+    5.  Copy the generated secret key and paste it as `YOUR_OPENAI_SECRET_TOKEN` in `appsettings.Development.json`.
+
+-   **Gemini Secret Token:**
+    1.  Go to [Google AI Studio](https://aistudio.google.com/app/apikey) or the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+    2.  If using Google AI Studio, create an API key directly.
+    3.  If using Google Cloud Console, create a new project or select an existing one, then navigate to "APIs & Services" > "Credentials" and create an API key.
+    4.  Copy the generated API key and paste it as `YOUR_GEMINI_SECRET_TOKEN` in `appsettings.Development.json`.
+
 ## Additional Setup
 
 Some features of this project require additional files to be downloaded.
@@ -117,8 +143,8 @@ Some features of this project require additional files to be downloaded.
 
 The video transcription feature uses the Whisper model. You need to download the `ggml-base.bin` file and place it in the `backend-webAPI/Api/whisper-models` directory.
 
-*   **Download link:** [ggml-base.bin](https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin)
-*   **Destination directory:** `backend-webAPI/Api/whisper-models`
+-   **Download link:** [ggml-base.bin](https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin)
+-   **Destination directory:** `backend-webAPI/Api/whisper-models`
 
 Create the `whisper-models` directory if it doesn't exist.
 
@@ -127,7 +153,6 @@ Create the `whisper-models` directory if it doesn't exist.
 The API is documented using Swagger. Once the backend is running, you can access the Swagger UI at:
 
 [https://localhost:7228/swagger](https://localhost:7228/swagger)
-
 
 ## Contributors
 
@@ -140,6 +165,7 @@ Thank you to all the friends who have contributed to this project！
 </p>
 
 **Dev Branch contribution statistics：**
+
 <p align="center">
     <img src="https://repobeats.axiom.co/api/embed/d23176e25029ed25e6813f558c5f220e86b591cc.svg" alt="Dev Branch code analysis" style="max-width: 80%; border-radius: 5px;">
 </p>
