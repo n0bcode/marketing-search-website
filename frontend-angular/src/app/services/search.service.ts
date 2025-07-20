@@ -8,7 +8,6 @@ import { TypeServicesConstants } from '../constants/type-services-constants';
 import { ApiService } from '../utils/http-client-config';
 import { ResponseAPI } from '../models/response-api';
 import ConfigsRequest from '../models/configs-request';
-import { MarkdownItConfig } from '../utils/markdown-it-config';
 import { SearchRequest } from '../interfaces/search-request';
 
 @Injectable({
@@ -161,7 +160,7 @@ export class SearchService {
           console.error(
             `Error fetching search results for site ${
               params.as_sitesearch || 'default'
-            }:`,
+            }`,
             err
           );
           this.errorMessageResponse.set(
@@ -197,7 +196,9 @@ export class SearchService {
 
             this.apiService
               .postToApi<ResponseAPI<GeminiResponse>>(
-                `/Analysis/AnalyzeBingResults?query=${params.q}&site=${params.as_sitesearch}&idTokenGeminiChange=${idTokenGemini || ''}`,
+                `/Analysis/AnalyzeBingResults?query=${params.q}&site=${
+                  params.as_sitesearch
+                }&idTokenGeminiChange=${idTokenGemini || ''}`,
                 bingResponse.data, // Truyền bingResponse.data vào body
                 ConfigsRequest.getSkipAuthConfig()
               )

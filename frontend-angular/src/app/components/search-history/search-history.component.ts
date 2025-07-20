@@ -14,4 +14,8 @@ export class SearchHistoryComponent {
   @Input() keywordModels: KeywordModel[] = [];
   @Output() toggleHistory = new EventEmitter<void>();
   @Output() loadAnalysis = new EventEmitter<string>();
+
+  onToggleHistory(): void {
+    this.toggleHistory.emit();
+  }
 }
