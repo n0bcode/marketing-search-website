@@ -9,7 +9,6 @@ namespace Api.Services
     {
         public GoogleApiSettings GoogleApi { get; set; } = new();
         public FacebookApiSettings FacebookApi { get; set; } = new();
-        public TwitterApiSettings TwitterApi { get; set; } = new();
         public OpenApiSettings OpenApi { get; set; } = new();
         public GeminiApiSettings GeminiApi { get; set; } = new();
     }
@@ -25,12 +24,6 @@ namespace Api.Services
         public string Name { get; set; } = string.Empty;
         public string BaseUrl { get; set; } = string.Empty;
         public string AccessToken { get; set; } = string.Empty;
-    }
-    public class TwitterApiSettings
-    {
-        public string Name { get; set; } = string.Empty;
-        public string BaseUrl { get; set; } = string.Empty;
-        public string BearerToken { get; set; } = string.Empty;
     }
     public class OpenApiSettings
     {

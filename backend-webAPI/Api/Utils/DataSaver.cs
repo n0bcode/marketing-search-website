@@ -72,7 +72,7 @@ namespace Api.Utils
             // Lưu dữ liệu vào tệp
             File.WriteAllText(filePath, jsonData);
         }
-        public static dynamic GetFromLog(string guildName)
+        public static ResponseAPI<object> GetFromLog(string guildName)
         {
             // Tạo đường dẫn tới thư mục Logs
             string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
@@ -95,9 +95,9 @@ namespace Api.Utils
             // Đọc nội dung file
             string jsonData = File.ReadAllText(filePath);
 
-            return jsonData;
+            return new ResponseAPI<object>() { Success = true, Data = jsonData };
         }
-        public static dynamic GetAndFormatDataFromLogs(Type type, string guildName)
+        public static object? GetAndFormatDataFromLogs(Type type, string guildName)
         {
             // Tạo đường dẫn tới thư mục Logs
             string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");

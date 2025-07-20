@@ -97,7 +97,7 @@ namespace Api.Repositories.MongoDb
                         update
                     );
                     response.SetSuccessResponse($"Cập nhật thành công: {existingToken.Id}");
-                    response.SetData(existingToken.Id);
+                    response.SetData(existingToken.Id!);
                 }
                 else
                 {

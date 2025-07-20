@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Api.Models
 {
-    public class ResponseAPI<T> where T : class
+    public class ResponseAPI<T>
     {
         public bool Success { get; set; } = false;
         public int StatusCode { get; set; } = 500; // Mặc định là lỗi server
@@ -11,12 +11,12 @@ namespace Api.Models
         public T? Data { get; set; }
         public List<string> Errors { get; set; } = new List<string>();
 
-        public void SetSuccessResponse(string? message = "Dữ liệu đã xử lí thành công!", int statusCode = 200, T? data = null)
+        public void SetSuccessResponse(string? message = "Dữ liệu đã xử lí thành công!", int statusCode = 200, T? data = default(T))
         {
             this.Success = true;
             this.StatusCode = statusCode;
             this.Message = message ?? "Dữ liệu đã xử lí thành công!";
-            if (data != null) Data = data;// Nếu có dữ liệu thì gán vào Data
+            Data = data;
         }
 
         public void SetData(T dataSet)

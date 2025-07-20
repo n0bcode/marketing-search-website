@@ -14,13 +14,13 @@ namespace Api.Services.SearchServices
         public async Task<ResponseAPI<List<BingSearchResult>>> SearchBing(SearchRequest request)
         {
             var results = new List<BingSearchResult>();
-            string nextUrl = BuildBingSearchUrl(request);
+            string? nextUrl = BuildBingSearchUrl(request);
 
             if (string.IsNullOrEmpty(nextUrl))
             {
                 return new ResponseAPI<List<BingSearchResult>> { Success = false, Message = $"Truy vấn tìm kiếm quá dài. Vui lòng rút gọn truy vấn của bạn." };
             }
-            string lastHtml = null;
+            string lastHtml = string.Empty;
             bool htmlContentReceived = false;
 
             while (!string.IsNullOrEmpty(nextUrl))
@@ -47,11 +47,11 @@ namespace Api.Services.SearchServices
                         foreach (var node in nodes)
                         {
                             var aNode = node.SelectSingleNode(".//h2/a");
-                            var title = aNode?.InnerText?.Trim() ?? "";
-                            var url = aNode?.GetAttributeValue("href", "") ?? "";
+                            var title = aNode?.InnerText?.Trim() ?? string.Empty;
+                            var url = aNode?.GetAttributeValue("href", string.Empty) ?? string.Empty;
                             var snippetNode = node.SelectSingleNode(".//div[contains(@class,'b_caption')]/p") ??
                                               node.SelectSingleNode(".//div[contains(@class,'b_caption')]");
-                            var snippet = snippetNode?.InnerText?.Trim() ?? "";
+                            var snippet = snippetNode?.InnerText?.Trim() ?? string.Empty;
 
                             if (!string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(url))
                             {
@@ -73,7 +73,7 @@ namespace Api.Services.SearchServices
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Lỗi khi request Bing: {ex.Message}");
-                    return new ResponseAPI<List<BingSearchResult>> { Success = true, Data = results, Message = $"Lỗi khi tìm kiếm Bing: {ex.Message}" }; // !
+                    return new ResponseAPI<List<BingSearchResult>> { Success = true, Data = results, Message = $"Lỗi khi tìm kiếm Bing: {ex.Message}" };
                 }
             }
 
@@ -94,7 +94,7 @@ namespace Api.Services.SearchServices
 
         private const int MaxUrlLength = 2000; // A common practical limit for URLs
 
-        private string BuildBingSearchUrl(SearchRequest request)
+        private string? BuildBingSearchUrl(SearchRequest request)
         {
             var urlParams = new List<string>();
             urlParams.Add(Uri.EscapeDataString(request.q));
@@ -124,8 +124,8 @@ namespace Api.Services.SearchServices
 
     public class BingSearchResult
     {
-        public string Title { get; set; }
-        public string Url { get; set; }
-        public string Snippet { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+        public string Snippet { get; set; } = string.Empty;
     }
 }
