@@ -132,11 +132,11 @@ namespace Api.Controllers
                 ResponseAPI<GeminiAIResponse> geminiResponse;
                 if (string.IsNullOrEmpty(idTokenGeminiChange))
                 {
-                    geminiResponse = await _geminiService.AnalyzeAsync(GeminiAIRequest.CreateWithQueryAndPrompt(request.q, analysisInput));
+                    geminiResponse = await _geminiService.AnalyzeAsync(GeminiAIRequest.CreateWithQueryAndPrompt(request.q ?? string.Empty, analysisInput));
                 }
                 else
                 {
-                    geminiResponse = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(request.q, analysisInput), idTokenGeminiChange);
+                    geminiResponse = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(request.q ?? string.Empty, analysisInput), idTokenGeminiChange);
                 }
 
                 if (!geminiResponse.Success || geminiResponse.Data == null)
@@ -149,7 +149,10 @@ namespace Api.Controllers
                     return StatusCode(responseApi.StatusCode, responseApi);
                 }
 
-                geminiResponse.Data!.KeywordId = responseAddKey.Data!; // Assign ID from Keywords table to analysis result
+                if (responseAddKey.Data != null)
+                {
+                    geminiResponse.Data!.KeywordId = responseAddKey.Data; // Assign ID from Keywords table to analysis result
+                }
                 DataSaver.SaveData(geminiResponse, $"Gemini-{request.type}", responseAddKey.Data!);
                 DataSaver.SaveData(googleResults!, $"Google-{request.type}", responseAddKey.Data!);
 
@@ -273,11 +276,11 @@ namespace Api.Controllers
                 ResponseAPI<GeminiAIResponse> geminiResponse;
                 if (string.IsNullOrEmpty(idTokenGeminiChange))
                 {
-                    geminiResponse = await _geminiService.AnalyzeAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query, analysisInput));
+                    geminiResponse = await _geminiService.AnalyzeAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query ?? string.Empty, analysisInput));
                 }
                 else
                 {
-                    geminiResponse = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query!, analysisInput), idTokenGeminiChange);
+                    geminiResponse = await _geminiService.AnalyzeWithTokenUserConfigAsync(GeminiAIRequest.CreateWithQueryAndPrompt(query ?? string.Empty, analysisInput), idTokenGeminiChange);
                 }
 
                 if (!geminiResponse.Success || geminiResponse.Data == null)
@@ -292,11 +295,14 @@ namespace Api.Controllers
 
                 var responseAddKey = await _unitMongo.Keywords.AddKeywordAndGetIdAsync(new KeywordModel()
                 {
-                    Keyword = query!,
+                    Keyword = query ?? string.Empty,
                     Source = $"Bing-search",
                 });
 
-                geminiResponse.Data!.KeywordId = responseAddKey.Data!; // Assign ID from Keywords table to analysis result
+                if (responseAddKey.Data != null)
+                {
+                    geminiResponse.Data!.KeywordId = responseAddKey.Data; // Assign ID from Keywords table to analysis result
+                }
                 // DataSaver.SaveData(geminiResponse, $"Gemini-search", responseAddKey.Data!);
                 // DataSaver.SaveData(bingResults, $"Bing-search", responseAddKey.Data!);
 
@@ -305,7 +311,7 @@ namespace Api.Controllers
                     title: r.Title,
                     url: r.Url,
                     description: r.Snippet,
-                    date: null,
+                    date: string.Empty,
                     source: "Bing",
                     createdAt: null,
                     author: ""

@@ -41,7 +41,7 @@ namespace Api.Services.VideoServices
             return await _seleniumManager.GetFacebookDownloadLink(videoUrl);
         }
 
-        public async Task<string> ExtractContentFromVideo(string videoUrl, string languageCode, string platform = "null")
+        public async Task<string> ExtractContentFromVideo(string videoUrl, string? languageCode, string platform = "null")
         {
             // 1. Kiểm tra DB trước
             var dbResult = await _unitMongo.AnalysisLinks.GetAnalysisLinkOrNot(videoUrl);
@@ -49,13 +49,12 @@ namespace Api.Services.VideoServices
                 return dbResult.ResultData!;
 
             // 2. Kiểm tra cache
-            if (string.IsNullOrWhiteSpace(languageCode))
-                languageCode = "vi"; // Whisper dùng "vi" thay vì "vi-VN"
+            languageCode = languageCode ?? "vi"; // Whisper dùng "vi" thay vì "vi-VN"
 
             string cacheKey = GenerateCacheKey(videoUrl, languageCode);
-            if (_cache.TryGetValue(cacheKey, out string cachedResult))
+            if (_cache.TryGetValue(cacheKey, out string? cachedResult))
             {
-                return cachedResult;
+                return cachedResult!;
             }
 
             string videoFilePath = Path.Combine(Path.GetTempPath(), "temp_video.mp4");

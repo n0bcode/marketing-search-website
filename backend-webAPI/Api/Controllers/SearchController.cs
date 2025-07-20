@@ -1,7 +1,6 @@
 using Api.Constants;
 using Api.Models;
 using Api.Repositories.MongoDb;
-using Api.Services.RedisCacheService;
 using Api.Services.SearchServices;
 using Api.Services.SearchServices.Google;
 using Api.Services.SearchServices.Twitter;
@@ -26,8 +25,6 @@ namespace Api.Controllers
         private readonly GoogleSearchService _searchService;
         private readonly TwitterSearchService _searchServiceTwitter;
         private readonly BingSearchService _bingSearchService;
-        private readonly IUnitOfWorkMongo _unitMongo;
-        private readonly IRedisCacheService _redis;
 
         #endregion
 
@@ -39,19 +36,13 @@ namespace Api.Controllers
         /// <param name="searchService">The Google search service.</param>
         /// <param name="searchServiceTwitter">The Twitter search service.</param>
         /// <param name="bingSearchService">The Bing search service.</param>
-        /// <param name="unitOfWorkMongo">The unit of work for MongoDB operations.</param>
-        /// <param name="redisCache">The Redis cache service.</param>
         public SearchController(GoogleSearchService searchService,
                                 TwitterSearchService searchServiceTwitter,
-                                BingSearchService bingSearchService,
-                                IUnitOfWorkMongo unitOfWorkMongo,
-                                IRedisCacheService redisCache)
+                                BingSearchService bingSearchService)
         {
             _searchService = searchService;
             _searchServiceTwitter = searchServiceTwitter;
             _bingSearchService = bingSearchService;
-            _unitMongo = unitOfWorkMongo;
-            _redis = redisCache;
         }
 
         #endregion
@@ -92,46 +83,6 @@ namespace Api.Controllers
         {
             var results = await _searchServiceTwitter.SearchAsync(request);
             return Ok(results);
-        }
-
-        /// <summary>
-        /// Retrieves all keywords from the database, utilizing Redis cache for performance.
-        /// </summary>
-        /// <returns>An <see cref="IActionResult"/> containing a list of <see cref="KeywordModel"/> objects.</returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAllKeyword()
-        {
-            ResponseAPI<IEnumerable<KeywordModel>>? response = null;
-            string cacheKey = "allKeywordsCache"; // Define a specific cache key
-
-            try
-            {
-                response = _redis.GetData<ResponseAPI<IEnumerable<KeywordModel>>>(cacheKey);
-
-                if (response == null)
-                {
-                    response = await _unitMongo.Keywords.GetAllKeywordsAsync();
-                    if (response != null && response.Success) // Only cache if the operation was successful
-                    {
-                        _redis.SetData(cacheKey, response); // Cache for 5 minutes
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log the exception for debugging purposes
-                // _logger.LogError(ex, "Error retrieving keywords from cache or database."); 
-                // Assuming _logger is available, otherwise use Console.WriteLine or similar
-                Console.WriteLine($"Error retrieving keywords: {ex.Message}");
-                response = await _unitMongo.Keywords.GetAllKeywordsAsync(); // Fallback to database if cache fails
-            }
-
-            if (response == null || !response.Success)
-            {
-                return StatusCode(response?.StatusCode ?? 500, response?.Message ?? "An error occurred while retrieving keywords.");
-            }
-
-            return Ok(response);
         }
 
         #endregion

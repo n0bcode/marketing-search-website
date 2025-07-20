@@ -108,48 +108,62 @@ namespace Api.Automations
                     url_field.SendKeys(url);
                     url_field.SendKeys(Keys.Enter); // Nhấn Enter để gửi
 
-                    if (modal_error.Displayed)
+                    if (modal_error?.Displayed == true)
                     {
-                        throw new Exception("Lỗi: " + modal_error.Text);
+                        throw new Exception("Lỗi: " + (modal_error.Text ?? ""));
                     }
 
                     System.Threading.Thread.Sleep(5000); // Đợi 5 giây
 
                     // Tìm nút Download
-                    var download_button = driver.FindElements(By.XPath("//div[contains(@class, 'media-card')]")).Where(e => e.GetAttribute("data-link").Contains("audioProcess")).FirstOrDefault(); // Dùng class để xác định
+                    var found_download_button = driver.FindElements(By.XPath("//div[contains(@class, 'media-card')]")).FirstOrDefault(e => e.GetAttribute("data-link")?.Contains("audioProcess") == true); // Dùng class để xác định
 
-                    if (download_button == null)
+                    if (found_download_button == null)
                     {
                         throw new Exception("Không tìm thấy nút tải về.");
                     }
 
                     // Giả định URL tải về được hiển thị trong một phần tử khác
-                    string? urlDownload = download_button.GetAttribute("data-link"); // Lấy URL từ thuộc tính href
+                    string? urlDownload = found_download_button!.GetAttribute("data-link"); // Lấy URL từ thuộc tính href
 
                     Console.WriteLine("User ID or Download URL: " + urlDownload);
                     // Truy cập vào URL tải xuống để lấy thông tin chi tiết về file tải xuống
-                    using (var client = new HttpClient())
+                    if (!string.IsNullOrEmpty(urlDownload))
                     {
-                        var responseJson = await client.GetAsync(urlDownload);
-                        if (responseJson.IsSuccessStatusCode)
+                        using (var client = new HttpClient())
                         {
-                            var responseBody = await responseJson.Content.ReadAsStringAsync();
-                            var jsonData = JsonConvert.DeserializeObject<DownloadInfo>(responseBody);
-                            Console.WriteLine("Thông tin chi tiết về file tải xuống:");
-                            Console.WriteLine($"Percent: {jsonData.percent!}");
-                            Console.WriteLine($"File Size: {jsonData.fileSize!}");
-                            Console.WriteLine($"File Name: {jsonData.fileName!}");
-                            Console.WriteLine($"Estimated File Size: {jsonData.estimatedFileSize!}");
-                            Console.WriteLine($"File URL: {jsonData.fileUrl!}");
+                            var responseJson = await client.GetAsync(urlDownload);
+                            if (responseJson.IsSuccessStatusCode)
+                            {
+                                var responseBody = await responseJson.Content.ReadAsStringAsync();
+                                var jsonData = JsonConvert.DeserializeObject<DownloadInfo>(responseBody);
+                                if (jsonData != null)
+                                {
+                                    Console.WriteLine("Thông tin chi tiết về file tải xuống:");
+                                    Console.WriteLine($"Percent: {jsonData.percent}");
+                                    Console.WriteLine($"File Size: {jsonData.fileSize}");
+                                    Console.WriteLine($"File Name: {jsonData.fileName}");
+                                    Console.WriteLine($"Estimated File Size: {jsonData.estimatedFileSize}");
+                                    Console.WriteLine($"File URL: {jsonData.fileUrl}");
 
-                            response.SetSuccessResponse("Lấy link tải về thành công!");
-                            response.SetData(jsonData.fileUrl!);
-                            Console.WriteLine("Success extract link download video facebook!");
+                                    response.SetSuccessResponse("Lấy link tải về thành công!");
+                                    response.SetData(jsonData.fileUrl);
+                                    Console.WriteLine("Success extract link download video facebook!");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Không thể phân tích thông tin tải xuống.");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Lỗi khi truy cập vào URL tải xuống");
+                            }
                         }
-                        else
-                        {
-                            Console.WriteLine("Lỗi khi truy cập vào URL tải xuống");
-                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("URL tải xuống không hợp lệ.");
                     }
                 }
                 catch (NoSuchElementException e)
@@ -171,11 +185,11 @@ namespace Api.Automations
         #region [DownloadInfo]
         public class DownloadInfo
         {
-            public string? percent { get; set; }
-            public string? fileSize { get; set; }
-            public string? fileName { get; set; }
-            public string? estimatedFileSize { get; set; }
-            public string? fileUrl { get; set; }
+            public string percent { get; set; } = string.Empty;
+            public string fileSize { get; set; } = string.Empty;
+            public string fileName { get; set; } = string.Empty;
+            public string estimatedFileSize { get; set; } = string.Empty;
+            public string fileUrl { get; set; } = string.Empty;
         }
         #endregion
         #endregion
