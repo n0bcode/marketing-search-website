@@ -12,6 +12,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { GoogleSearchRequest } from '../../interfaces/googleSearchService/google-search-request';
 import { SearchRequest } from '../../interfaces/search-request';
 
+import { KeywordHistoryService } from '../../services/keyword-history.service';
+
 @Component({
   selector: 'app-search-form',
   standalone: true,
@@ -52,7 +54,7 @@ export class SearchFormComponent {
   private recognition: any = null;
   private activeField: 'query' | 'exact' | null = null;
 
-  constructor() {
+  constructor(private keywordHistoryService: KeywordHistoryService) {
     this.initSpeechRecognition();
   }
 
@@ -234,6 +236,9 @@ export class SearchFormComponent {
   }
 
   onSearch() {
+    if (this.searchParameters?.q) {
+      this.keywordHistoryService.addKeyword(this.searchParameters.q);
+    }
     this.search.emit();
   }
 
@@ -245,3 +250,4 @@ export class SearchFormComponent {
     this.addDomain.emit();
   }
 }
+
