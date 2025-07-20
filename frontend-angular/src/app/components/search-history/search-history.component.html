@@ -1,5 +1,5 @@
 <div class="bg-white rounded-xl shadow-lg p-6">
-  <button (click)="toggleHistory.emit()"
+  <button (click)="onToggleHistory()"
     class="flex items-center text-primary hover:text-primary/80 transition focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-md px-3 py-2 -ml-3 mb-4">
     <span class="material-icons mr-2 text-2xl">
       <mat-icon>{{ showKeywordHistory ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</mat-icon>
@@ -10,7 +10,7 @@ Hiển thị lịch sử tìm kiếm' }}</span>
   <div
     [ngClass]="{ 'max-h-0 overflow-hidden': !showKeywordHistory, 'max-h-screen transition-all duration-500 ease-in-out': showKeywordHistory }">
     <h3 class="font-bold text-xl text-dark mb-4">
-      Lịch sử tìm kiếm:</h3>
+      Lịch sử tìm kiếm từ API:</h3>
     <ul class="space-y-3">
       <ng-container *ngIf="keywordModels.length > 0; else skeletonLoader">
         <li *ngFor="let keyword of keywordModels" (click)="loadAnalysis.emit(keyword.id)"
@@ -24,5 +24,7 @@ Hiển thị lịch sử tìm kiếm' }}</span>
         <li *ngFor="let i of [1, 2, 3]" class="p-4 rounded-lg bg-gray-200 animate-pulse h-20"></li>
       </ng-template>
     </ul>
+
+    
   </div>
 </div>

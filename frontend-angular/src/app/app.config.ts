@@ -8,10 +8,7 @@ import {
   withFetch,
   withInterceptors,
 } from '@angular/common/http';
-import {
-  provideClientHydration,
-  withEventReplay,
-} from '@angular/platform-browser';
+
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -22,7 +19,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
     provideAnimationsAsync(),
-    provideClientHydration(withEventReplay()),
     provideAnimations(),
     MatSnackBarModule,
   ],
