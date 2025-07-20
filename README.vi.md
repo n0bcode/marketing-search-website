@@ -78,9 +78,6 @@ Các khóa API và chuỗi kết nối nhạy cảm không được đưa trực
         "FacebookApi": {
           "AccessToken": "YOUR_FACEBOOK_ACCESS_TOKEN"
         },
-        "OpenApi": {
-          "SecretToken": "YOUR_OPENAI_SECRET_TOKEN"
-        },
         "GeminiApi": {
           "SecretToken": "YOUR_GEMINI_SECRET_TOKEN"
         }
@@ -109,31 +106,26 @@ Các khóa API và chuỗi kết nối nhạy cảm không được đưa trực
 
 Để đảm bảo ứng dụng hoạt động chính xác, bạn sẽ cần lấy các khóa/token API từ các nhà cung cấp dịch vụ tương ứng và thêm chúng vào file `appsettings.Development.json` của bạn.
 
--   **Google API Key (Serper API):**
-    Khóa này được sử dụng cho chức năng tìm kiếm Google thông qua Serper API. Serper API cung cấp kết quả tìm kiếm từ Google mà không cần tích hợp trực tiếp với Google Custom Search API.
-    1.  Truy cập trang web [Serper API](https://serper.dev/).
-    2.  Đăng ký hoặc đăng nhập vào tài khoản của bạn.
-    3.  Lấy khóa API của bạn từ bảng điều khiển Serper.
-    4.  Sao chép khóa API đã tạo và dán nó vào vị trí `YOUR_GOOGLE_API_KEY` trong `appsettings.Development.json`.
+- **Google API Key (Serper API):**
+  Khóa này được sử dụng cho chức năng tìm kiếm Google thông qua Serper API. Serper API cung cấp kết quả tìm kiếm từ Google mà không cần tích hợp trực tiếp với Google Custom Search API.
 
--   **Facebook Access Token:**
-    1.  Truy cập trang web [Facebook for Developers](https://developers.facebook.com/).
-    2.  Tạo một ứng dụng mới hoặc chọn một ứng dụng hiện có.
-    3.  Điều hướng đến "Tools" > "Graph API Explorer" hoặc tham khảo tài liệu API Facebook cụ thể cho loại access token cần thiết (ví dụ: User Access Token, Page Access Token, App Access Token).
-    4.  Lấy access token phù hợp và dán nó vào vị trí `YOUR_FACEBOOK_ACCESS_TOKEN` trong `appsettings.Development.json`.
+  1.  Truy cập trang web [Serper API](https://serper.dev/).
+  2.  Đăng ký hoặc đăng nhập vào tài khoản của bạn.
+  3.  Lấy khóa API của bạn từ bảng điều khiển Serper.
+  4.  Sao chép khóa API đã tạo và dán nó vào vị trí `YOUR_GOOGLE_API_KEY` trong `appsettings.Development.json`.
 
--   **OpenAI Secret Token:**
-    1.  Truy cập [OpenAI Platform](https://platform.openai.com/).
-    2.  Đăng nhập hoặc đăng ký.
-    3.  Điều hướng đến "API keys" (thường nằm trong hồ sơ hoặc cài đặt của bạn).
-    4.  Nhấp vào "Create new secret key".
-    5.  Sao chép khóa bí mật đã tạo và dán nó vào vị trí `YOUR_OPENAI_SECRET_TOKEN` trong `appsettings.Development.json`.
+- **Facebook Access Token:**
 
--   **Gemini Secret Token:**
-    1.  Truy cập [Google AI Studio](https://aistudio.google.com/app/apikey) hoặc [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
-    2.  Nếu sử dụng Google AI Studio, hãy tạo khóa API trực tiếp.
-    3.  Nếu sử dụng Google Cloud Console, hãy tạo một dự án mới hoặc chọn một dự án hiện có, sau đó điều hướng đến "APIs & Services" > "Credentials" và tạo khóa API.
-    4.  Sao chép khóa API đã tạo và dán nó vào vị trí `YOUR_GEMINI_SECRET_TOKEN` trong `appsettings.Development.json`.
+  1.  Truy cập trang web [Facebook for Developers](https://developers.facebook.com/).
+  2.  Tạo một ứng dụng mới hoặc chọn một ứng dụng hiện có.
+  3.  Điều hướng đến "Tools" > "Graph API Explorer" hoặc tham khảo tài liệu API Facebook cụ thể cho loại access token cần thiết (ví dụ: User Access Token, Page Access Token, App Access Token).
+  4.  Lấy access token phù hợp và dán nó vào vị trí `YOUR_FACEBOOK_ACCESS_TOKEN` trong `appsettings.Development.json`.
+
+- **Gemini Secret Token:**
+  1.  Truy cập [Google AI Studio](https://aistudio.google.com/app/apikey) hoặc [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+  2.  Nếu sử dụng Google AI Studio, hãy tạo khóa API trực tiếp.
+  3.  Nếu sử dụng Google Cloud Console, hãy tạo một dự án mới hoặc chọn một dự án hiện có, sau đó điều hướng đến "APIs & Services" > "Credentials" và tạo khóa API.
+  4.  Sao chép khóa API đã tạo và dán nó vào vị trí `YOUR_GEMINI_SECRET_TOKEN` trong `appsettings.Development.json`.
 
 ## Cài đặt bổ sung
 
@@ -143,8 +135,8 @@ Một số tính năng của dự án yêu cầu tải thêm các file phụ tr�
 
 Tính năng chuyển đổi video thành văn bản sử dụng Whisper model. Bạn cần tải file `ggml-base.bin` và đặt nó vào thư mục `backend-webAPI/Api/whisper-models`.
 
--   **Link tải:** [ggml-base.bin](https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin)
--   **Thư mục đích:** `backend-webAPI/Api/whisper-models`
+- **Link tải:** [ggml-base.bin](https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin)
+- **Thư mục đích:** `backend-webAPI/Api/whisper-models`
 
 Hãy tạo thư mục `whisper-models` nếu nó chưa tồn tại.
 
@@ -153,7 +145,6 @@ Hãy tạo thư mục `whisper-models` nếu nó chưa tồn tại.
 API được tài liệu hóa bằng Swagger. Sau khi backend đã chạy, bạn có thể truy cập giao diện Swagger tại:
 
 [https://localhost:7228/swagger](https://localhost:7228/swagger)
-
 
 ## Đóng góp
 
